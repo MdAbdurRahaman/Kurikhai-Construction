@@ -1,6 +1,6 @@
 // Google Apps Script Web App URL to save data to Google Sheets & send email notification.
 // Deploy your Apps Script, get the Web App URL, and paste it here.
-const GOOGLE_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbyqOfAk9exKThIZ3Ffo-kMhNdlagfgn00MvBDd6bAMx9BlKqdfHuwvpi2WH-Kjyf2zlpg/exec';
+const GOOGLE_SCRIPT_URL = 'YOUR_GOOGLE_APPS_SCRIPT_URL_HERE';
 
     document.addEventListener('DOMContentLoaded', () => {
 
