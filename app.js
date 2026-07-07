@@ -1,6 +1,6 @@
-/* ==========================================================================
-   CLIENT INTERACTION & DYNAMIC BEHAVIORS - KURIKHAI CONSTRUCTION PTE LTD
-   ========================================================================== */
+// Google Apps Script Web App URL to save data to Google Sheets & send email notification.
+// Deploy your Apps Script, get the Web App URL, and paste it here.
+const GOOGLE_SCRIPT_URL = 'YOUR_GOOGLE_APPS_SCRIPT_URL_HERE';
 
 document.addEventListener('DOMContentLoaded', () => {
     
@@ -195,21 +195,53 @@ document.addEventListener('DOMContentLoaded', () => {
             }
             
             if (isValid) {
-                // Simulate form submission
                 const submitBtn = leadForm.querySelector('button[type="submit"]');
                 const originalText = submitBtn.textContent;
                 submitBtn.disabled = true;
                 submitBtn.textContent = 'Submitting Quote...';
-                
-                setTimeout(() => {
-                    // Show custom success modal
+
+                // Collect form values
+                const formData = new FormData(leadForm);
+                const data = {};
+                formData.forEach((value, key) => {
+                    data[key] = value;
+                });
+
+                // Add company metadata
+                data['companyName'] = 'Kurikhai Construction Pte Ltd';
+                data['submittedAt'] = new Date().toLocaleString();
+
+                const showSuccess = () => {
                     successModal.classList.add('active');
-                    
-                    // Reset form fields
                     leadForm.reset();
                     submitBtn.disabled = false;
                     submitBtn.textContent = originalText;
-                }, 1000);
+                };
+
+                if (GOOGLE_SCRIPT_URL && GOOGLE_SCRIPT_URL !== 'YOUR_GOOGLE_APPS_SCRIPT_URL_HERE') {
+                    // Post data to Google Apps Script Web App
+                    fetch(GOOGLE_SCRIPT_URL, {
+                        method: 'POST',
+                        mode: 'no-cors', // Standard Apps Script Web Apps require no-cors for simple cross-origin posts
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify(data)
+                    })
+                    .then(() => {
+                        showSuccess();
+                    })
+                    .catch((err) => {
+                        console.error('Submission error:', err);
+                        // Fallback to show success modal so user experience doesn't break
+                        showSuccess();
+                    });
+                } else {
+                    // Fallback to simulated submission if URL is not configured yet
+                    setTimeout(() => {
+                        showSuccess();
+                    }, 1000);
+                }
             }
         });
 

@@ -7,13 +7,13 @@
 
 :root {
     /* Colors */
-    --color-primary: #1a1f2c;       /* Deep Charcoal Slate */
-    --color-primary-light: #2d3548; /* Light Charcoal */
-    --color-primary-dark: #0f131c;  /* Near Black Slate */
+    --color-primary: #0b132b;       /* Deep Midnight Navy */
+    --color-primary-light: #1c2541; /* Slate Navy */
+    --color-primary-dark: #020813;  /* Near Black Navy */
     
-    --color-accent: #d97706;        /* Construction Gold (Amber 600) */
-    --color-accent-hover: #b45309;  /* Deep Gold (Amber 700) */
-    --color-accent-light: #fef3c7;  /* Warm Pale Gold (Amber 100) */
+    --color-accent: #ff6b00;        /* Vibrant Electric Orange */
+    --color-accent-hover: #e65f00;  /* Deep Orange */
+    --color-accent-light: #fff7ed;  /* Warm Pale Orange */
     
     --color-text-dark: #0f172a;     /* Deep Slate Text */
     --color-text-muted: #64748b;    /* Slate Muted Text */
