@@ -11,9 +11,9 @@
     --color-primary-light: #1e293b; /* Slate Gray */
     --color-primary-dark: #020617;  /* Near Black */
     
-    --color-accent: #ffb703;        /* Vibrant Amber Gold */
-    --color-accent-hover: #fb8500;  /* Orange-Amber */
-    --color-accent-light: #fffbeb;  /* Amber Warm Light */
+    --color-accent: #00b4d8;        /* Vibrant Cyan/Teal */
+    --color-accent-hover: #0077b6;  /* Sapphire Blue */
+    --color-accent-light: #e0f2fe;  /* Soft Ice Blue */
     
     --color-text-dark: #0f172a;     /* Deep Slate Text */
     --color-text-muted: #64748b;    /* Slate Muted Text */
@@ -362,17 +362,6 @@ img {
     position: relative;
 }
 
-.hero::after {
-    content: '';
-    position: absolute;
-    bottom: 0;
-    left: 0;
-    right: 0;
-    height: 150px;
-    background: linear-gradient(transparent, var(--color-bg-white));
-    pointer-events: none;
-}
-
 .hero-content {
     max-width: 700px;
 }
@@ -386,7 +375,7 @@ img {
     color: var(--color-accent);
     margin-bottom: 16px;
     display: inline-block;
-    background-color: rgba(255, 183, 3, 0.15);
+    background-color: rgba(0, 180, 216, 0.15);
     padding: 6px 16px;
     border-radius: var(--radius-full);
 }
