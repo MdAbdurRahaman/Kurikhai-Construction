@@ -7,13 +7,13 @@
 
 :root {
     /* Colors */
-    --color-primary: #0b132b;       /* Deep Midnight Navy */
-    --color-primary-light: #1c2541; /* Slate Navy */
-    --color-primary-dark: #020813;  /* Near Black Navy */
+    --color-primary: #0f172a;       /* Slate Navy */
+    --color-primary-light: #1e293b; /* Slate Gray */
+    --color-primary-dark: #020617;  /* Near Black */
     
-    --color-accent: #ff6b00;        /* Vibrant Electric Orange */
-    --color-accent-hover: #e65f00;  /* Deep Orange */
-    --color-accent-light: #fff7ed;  /* Warm Pale Orange */
+    --color-accent: #ffb703;        /* Vibrant Amber Gold */
+    --color-accent-hover: #fb8500;  /* Orange-Amber */
+    --color-accent-light: #fffbeb;  /* Amber Warm Light */
     
     --color-text-dark: #0f172a;     /* Deep Slate Text */
     --color-text-muted: #64748b;    /* Slate Muted Text */
@@ -353,11 +353,12 @@ img {
 /* Hero Section */
 .hero {
     min-height: 100vh;
-    background: linear-gradient(rgba(26, 31, 44, 0.75), rgba(26, 31, 44, 0.9)), url('images/hero-bg.png') no-repeat center center/cover;
+    background: linear-gradient(rgba(15, 23, 42, 0.75), rgba(15, 23, 42, 0.9)), url('images/hero-bg.png') no-repeat center center/cover;
     display: flex;
     align-items: center;
     color: var(--color-bg-white);
-    padding-top: var(--header-height);
+    padding-top: calc(var(--header-height) + 40px);
+    padding-bottom: 120px; /* Leave space for floating feature cards on short screens */
     position: relative;
 }
 
@@ -385,7 +386,7 @@ img {
     color: var(--color-accent);
     margin-bottom: 16px;
     display: inline-block;
-    background-color: rgba(219, 119, 6, 0.15);
+    background-color: rgba(255, 183, 3, 0.15);
     padding: 6px 16px;
     border-radius: var(--radius-full);
 }
@@ -942,7 +943,7 @@ textarea.form-control {
 
 /* Sub-page Hero style */
 .subpage-hero {
-    background: linear-gradient(rgba(26, 31, 44, 0.85), rgba(26, 31, 44, 0.95)), url('images/hero-bg.png') no-repeat center center/cover;
+    background: linear-gradient(rgba(15, 23, 42, 0.85), rgba(15, 23, 42, 0.95)), url('images/hero-bg.png') no-repeat center center/cover;
     padding: 140px 0 80px 0;
     color: var(--color-bg-white);
     text-align: center;
