@@ -2,348 +2,348 @@
 // Deploy your Apps Script, get the Web App URL, and paste it here.
 const GOOGLE_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbyqOfAk9exKThIZ3Ffo-kMhNdlagfgn00MvBDd6bAMx9BlKqdfHuwvpi2WH-Kjyf2zlpg/exec';
 
-    document.addEventListener('DOMContentLoaded', () => {
+document.addEventListener('DOMContentLoaded', () => {
 
-        // 1. Sticky Header Scroll Effect (only for pages where header is transparent by default)
-        const header = document.getElementById('header');
+    // 1. Sticky Header Scroll Effect (only for pages where header is transparent by default)
+    const header = document.getElementById('header');
 
-        const handleScroll = () => {
-            if (!header) return;
+    const handleScroll = () => {
+        if (!header) return;
 
-            // If it is the home page, the header doesn't have Scrolled class by default. We toggle it.
-            const isHomePage = window.location.pathname.endsWith('index.html') ||
-                window.location.pathname.endsWith('/') ||
-                window.location.pathname === '';
+        // If it is the home page, the header doesn't have Scrolled class by default. We toggle it.
+        const isHomePage = window.location.pathname.endsWith('index.html') ||
+            window.location.pathname.endsWith('/') ||
+            window.location.pathname === '';
 
-            if (isHomePage) {
-                if (window.scrollY > 50) {
-                    header.classList.add('scrolled');
-                } else {
-                    header.classList.remove('scrolled');
-                }
-            } else {
-                // Keep scrolled class on subpages permanently
+        if (isHomePage) {
+            if (window.scrollY > 50) {
                 header.classList.add('scrolled');
+            } else {
+                header.classList.remove('scrolled');
             }
-        };
-
-        // Initial run
-        handleScroll();
-        window.addEventListener('scroll', handleScroll);
-
-
-        // 2. Mobile Navbar Hamburger Toggle
-        const burgerMenu = document.getElementById('burger-menu');
-        const navList = document.getElementById('nav-list');
-
-        if (burgerMenu && navList) {
-            burgerMenu.addEventListener('click', (e) => {
-                e.stopPropagation();
-                burgerMenu.classList.toggle('active');
-                navList.classList.toggle('active');
-            });
-
-            // Close menu when clicking outside
-            document.addEventListener('click', (e) => {
-                if (!navList.contains(e.target) && !burgerMenu.contains(e.target)) {
-                    burgerMenu.classList.remove('active');
-                    navList.classList.remove('active');
-                }
-            });
-
-            // Close menu when clicking links
-            const navLinks = navList.querySelectorAll('.nav-link, .btn');
-            navLinks.forEach(link => {
-                link.addEventListener('click', () => {
-                    burgerMenu.classList.remove('active');
-                    navList.classList.remove('active');
-                });
-            });
-        }
-
-
-        // 3. Scroll Animations (Intersection Observer)
-        const fadeElements = document.querySelectorAll('.fade-in-up');
-
-        if ('IntersectionObserver' in window) {
-            const observerOptions = {
-                threshold: 0.1,
-                rootMargin: '0px 0px -50px 0px'
-            };
-
-            const appearanceObserver = new IntersectionObserver((entries, observer) => {
-                entries.forEach(entry => {
-                    if (entry.isIntersecting) {
-                        entry.target.classList.add('appear');
-                        // Stop observing once animated
-                        observer.unobserve(entry.target);
-                    }
-                });
-            }, observerOptions);
-
-            fadeElements.forEach(element => {
-                appearanceObserver.observe(element);
-            });
         } else {
-            // Fallback for older browsers
-            fadeElements.forEach(element => {
-                element.classList.add('appear');
-            });
+            // Keep scrolled class on subpages permanently
+            header.classList.add('scrolled');
         }
+    };
+
+    // Initial run
+    handleScroll();
+    window.addEventListener('scroll', handleScroll);
 
 
-        // 4. Services Categorization Filters (services.html)
-        const filterButtons = document.querySelectorAll('.filter-btn');
-        const serviceCards = document.querySelectorAll('.services-grid .service-card');
+    // 2. Mobile Navbar Hamburger Toggle
+    const burgerMenu = document.getElementById('burger-menu');
+    const navList = document.getElementById('nav-list');
 
-        if (filterButtons.length > 0 && serviceCards.length > 0) {
-            filterButtons.forEach(button => {
-                button.addEventListener('click', () => {
-                    // Toggle active button class
-                    filterButtons.forEach(btn => btn.classList.remove('active'));
-                    button.classList.add('active');
+    if (burgerMenu && navList) {
+        burgerMenu.addEventListener('click', (e) => {
+            e.stopPropagation();
+            burgerMenu.classList.toggle('active');
+            navList.classList.toggle('active');
+        });
 
-                    const filterValue = button.getAttribute('data-filter');
-
-                    serviceCards.forEach(card => {
-                        const cardCategory = card.getAttribute('data-category');
-
-                        if (filterValue === 'all' || cardCategory === filterValue) {
-                            // Smoothly show card
-                            card.style.display = 'flex';
-                            setTimeout(() => {
-                                card.style.opacity = '1';
-                                card.style.transform = 'translateY(0)';
-                            }, 50);
-                        } else {
-                            // Smoothly hide card
-                            card.style.opacity = '0';
-                            card.style.transform = 'translateY(15px)';
-                            setTimeout(() => {
-                                card.style.display = 'none';
-                            }, 300);
-                        }
-                    });
-                });
-            });
-        }
-
-
-        // 5. URL Query Parameter Auto-select for service (contact.html)
-        const getQueryParam = (param) => {
-            const urlParams = new URLSearchParams(window.location.search);
-            return urlParams.get(param);
-        };
-
-        const serviceSelect = document.getElementById('service');
-        if (serviceSelect) {
-            const serviceParam = getQueryParam('service');
-            if (serviceParam) {
-                // Find option that matches param or includes it
-                for (let option of serviceSelect.options) {
-                    if (option.value.toLowerCase() === serviceParam.toLowerCase() ||
-                        option.text.toLowerCase().includes(serviceParam.toLowerCase())) {
-                        option.selected = true;
-                        break;
-                    }
-                }
-            }
-        }
-
-
-        // 6. Contact & Lead Form Validation with Success Modal
-        const successModal = document.getElementById('successModal');
-        const closeModalBtn = document.getElementById('closeModalBtn');
-        const leadForm = document.getElementById('leadForm');
-        const popupQuoteForm = document.getElementById('popupQuoteForm');
-        const quoteModal = document.getElementById('quoteModal');
-
-        // Helper to mark field as invalid
-        const markInvalid = (element, message) => {
-            element.style.borderColor = '#ef4444'; // border red
-
-            const errorDiv = document.createElement('div');
-            errorDiv.className = 'validation-error';
-            errorDiv.style.color = '#ef4444';
-            errorDiv.style.fontSize = '12px';
-            errorDiv.style.marginTop = '4px';
-            errorDiv.style.fontFamily = 'Inter, sans-serif';
-            errorDiv.textContent = message;
-
-            element.parentNode.appendChild(errorDiv);
-        };
-
-        // Helper to validate email format
-        const validateEmail = (email) => {
-            const re = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-            return re.test(String(email).toLowerCase());
-        };
-
-        const setupFormValidation = (form, onSuccessCallback) => {
-            if (!form) return;
-
-            const consentCheckbox = form.querySelector('input[type="checkbox"]');
-
-            form.addEventListener('submit', (e) => {
-                e.preventDefault();
-
-                let isValid = true;
-
-                // Collect fields for verification
-                const inputs = form.querySelectorAll('.form-control[required]');
-
-                // Remove previous error states
-                form.querySelectorAll('.validation-error').forEach(el => el.remove());
-                inputs.forEach(input => {
-                    input.style.borderColor = '';
-                });
-                if (consentCheckbox) {
-                    consentCheckbox.style.outline = 'none';
-                }
-
-                // Verify empty or invalid fields
-                inputs.forEach(input => {
-                    if (!input.value.trim()) {
-                        isValid = false;
-                        markInvalid(input, 'This field is required');
-                    } else if (input.type === 'email' && !validateEmail(input.value)) {
-                        isValid = false;
-                        markInvalid(input, 'Please enter a valid email address');
-                    }
-                });
-
-                // Consent checkbox validation (if present)
-                if (consentCheckbox && !consentCheckbox.checked) {
-                    isValid = false;
-                    const label = consentCheckbox.nextElementSibling;
-                    if (label) {
-                        label.style.color = '#ef4444'; // Red color
-                    }
-                    consentCheckbox.style.outline = '2px solid #ef4444';
-                }
-
-                if (isValid) {
-                    const submitBtn = form.querySelector('button[type="submit"]');
-                    const originalText = submitBtn.textContent;
-                    submitBtn.disabled = true;
-                    submitBtn.textContent = 'Submitting...';
-
-                    // Collect form values
-                    const formData = new FormData(form);
-                    const data = {};
-                    formData.forEach((value, key) => {
-                        data[key] = value;
-                    });
-
-                    // Add company metadata
-                    data['companyName'] = 'Kurikhai Construction Pte Ltd';
-                    data['submittedAt'] = new Date().toLocaleString();
-
-                    const showSuccess = () => {
-                        if (successModal) {
-                            successModal.classList.add('active');
-                        }
-                        form.reset();
-                        submitBtn.disabled = false;
-                        submitBtn.textContent = originalText;
-                        if (onSuccessCallback) {
-                            onSuccessCallback();
-                        }
-                    };
-
-                    if (GOOGLE_SCRIPT_URL && GOOGLE_SCRIPT_URL !== 'YOUR_GOOGLE_APPS_SCRIPT_URL_HERE') {
-                        // Post data to Google Apps Script Web App
-                        fetch(GOOGLE_SCRIPT_URL, {
-                            method: 'POST',
-                            mode: 'no-cors',
-                            headers: {
-                                'Content-Type': 'application/json'
-                            },
-                            body: JSON.stringify(data)
-                        })
-                            .then(() => {
-                                showSuccess();
-                            })
-                            .catch((err) => {
-                                console.error('Submission error:', err);
-                                // Fallback to show success modal so user experience doesn't break
-                                showSuccess();
-                            });
-                    } else {
-                        // Fallback to simulated submission if URL is not configured yet
-                        setTimeout(() => {
-                            showSuccess();
-                        }, 1000);
-                    }
-                }
-            });
-
-            // Reset custom styles if user types or checks
-            form.addEventListener('input', (e) => {
-                if (e.target.classList.contains('form-control')) {
-                    e.target.style.borderColor = '';
-                    const err = e.target.parentNode.querySelector('.validation-error');
-                    if (err) err.remove();
-                }
-            });
-
-            if (consentCheckbox) {
-                consentCheckbox.addEventListener('change', () => {
-                    if (consentCheckbox.checked) {
-                        consentCheckbox.style.outline = 'none';
-                        const label = consentCheckbox.nextElementSibling;
-                        if (label) {
-                            label.style.color = '';
-                        }
-                    }
-                });
-            }
-        };
-
-        // Initialize form validations
-        setupFormValidation(leadForm);
-        setupFormValidation(popupQuoteForm, () => {
-            if (quoteModal) {
-                quoteModal.classList.remove('active');
+        // Close menu when clicking outside
+        document.addEventListener('click', (e) => {
+            if (!navList.contains(e.target) && !burgerMenu.contains(e.target)) {
+                burgerMenu.classList.remove('active');
+                navList.classList.remove('active');
             }
         });
 
-        // 7. Quote Popup Modal Opening/Closing
-        const openModalBtns = document.querySelectorAll('.open-quote-modal-btn');
-        const closeQuoteModalBtn = document.getElementById('closeQuoteModalBtn');
+        // Close menu when clicking links
+        const navLinks = navList.querySelectorAll('.nav-link, .btn');
+        navLinks.forEach(link => {
+            link.addEventListener('click', () => {
+                burgerMenu.classList.remove('active');
+                navList.classList.remove('active');
+            });
+        });
+    }
 
-        if (openModalBtns.length > 0 && quoteModal) {
-            openModalBtns.forEach(btn => {
-                btn.addEventListener('click', (e) => {
-                    e.preventDefault();
-                    quoteModal.classList.add('active');
+
+    // 3. Scroll Animations (Intersection Observer)
+    const fadeElements = document.querySelectorAll('.fade-in-up');
+
+    if ('IntersectionObserver' in window) {
+        const observerOptions = {
+            threshold: 0.1,
+            rootMargin: '0px 0px -50px 0px'
+        };
+
+        const appearanceObserver = new IntersectionObserver((entries, observer) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.classList.add('appear');
+                    // Stop observing once animated
+                    observer.unobserve(entry.target);
+                }
+            });
+        }, observerOptions);
+
+        fadeElements.forEach(element => {
+            appearanceObserver.observe(element);
+        });
+    } else {
+        // Fallback for older browsers
+        fadeElements.forEach(element => {
+            element.classList.add('appear');
+        });
+    }
+
+
+    // 4. Services Categorization Filters (services.html)
+    const filterButtons = document.querySelectorAll('.filter-btn');
+    const serviceCards = document.querySelectorAll('.services-grid .service-card');
+
+    if (filterButtons.length > 0 && serviceCards.length > 0) {
+        filterButtons.forEach(button => {
+            button.addEventListener('click', () => {
+                // Toggle active button class
+                filterButtons.forEach(btn => btn.classList.remove('active'));
+                button.classList.add('active');
+
+                const filterValue = button.getAttribute('data-filter');
+
+                serviceCards.forEach(card => {
+                    const cardCategory = card.getAttribute('data-category');
+
+                    if (filterValue === 'all' || cardCategory === filterValue) {
+                        // Smoothly show card
+                        card.style.display = 'flex';
+                        setTimeout(() => {
+                            card.style.opacity = '1';
+                            card.style.transform = 'translateY(0)';
+                        }, 50);
+                    } else {
+                        // Smoothly hide card
+                        card.style.opacity = '0';
+                        card.style.transform = 'translateY(15px)';
+                        setTimeout(() => {
+                            card.style.display = 'none';
+                        }, 300);
+                    }
                 });
             });
-        }
+        });
+    }
 
-        if (closeQuoteModalBtn && quoteModal) {
-            closeQuoteModalBtn.addEventListener('click', () => {
-                quoteModal.classList.remove('active');
+
+    // 5. URL Query Parameter Auto-select for service (contact.html)
+    const getQueryParam = (param) => {
+        const urlParams = new URLSearchParams(window.location.search);
+        return urlParams.get(param);
+    };
+
+    const serviceSelect = document.getElementById('service');
+    if (serviceSelect) {
+        const serviceParam = getQueryParam('service');
+        if (serviceParam) {
+            // Find option that matches param or includes it
+            for (let option of serviceSelect.options) {
+                if (option.value.toLowerCase() === serviceParam.toLowerCase() ||
+                    option.text.toLowerCase().includes(serviceParam.toLowerCase())) {
+                    option.selected = true;
+                    break;
+                }
+            }
+        }
+    }
+
+
+    // 6. Contact & Lead Form Validation with Success Modal
+    const successModal = document.getElementById('successModal');
+    const closeModalBtn = document.getElementById('closeModalBtn');
+    const leadForm = document.getElementById('leadForm');
+    const popupQuoteForm = document.getElementById('popupQuoteForm');
+    const quoteModal = document.getElementById('quoteModal');
+
+    // Helper to mark field as invalid
+    const markInvalid = (element, message) => {
+        element.style.borderColor = '#ef4444'; // border red
+
+        const errorDiv = document.createElement('div');
+        errorDiv.className = 'validation-error';
+        errorDiv.style.color = '#ef4444';
+        errorDiv.style.fontSize = '12px';
+        errorDiv.style.marginTop = '4px';
+        errorDiv.style.fontFamily = 'Inter, sans-serif';
+        errorDiv.textContent = message;
+
+        element.parentNode.appendChild(errorDiv);
+    };
+
+    // Helper to validate email format
+    const validateEmail = (email) => {
+        const re = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        return re.test(String(email).toLowerCase());
+    };
+
+    const setupFormValidation = (form, onSuccessCallback) => {
+        if (!form) return;
+
+        const consentCheckbox = form.querySelector('input[type="checkbox"]');
+
+        form.addEventListener('submit', (e) => {
+            e.preventDefault();
+
+            let isValid = true;
+
+            // Collect fields for verification
+            const inputs = form.querySelectorAll('.form-control[required]');
+
+            // Remove previous error states
+            form.querySelectorAll('.validation-error').forEach(el => el.remove());
+            inputs.forEach(input => {
+                input.style.borderColor = '';
+            });
+            if (consentCheckbox) {
+                consentCheckbox.style.outline = 'none';
+            }
+
+            // Verify empty or invalid fields
+            inputs.forEach(input => {
+                if (!input.value.trim()) {
+                    isValid = false;
+                    markInvalid(input, 'This field is required');
+                } else if (input.type === 'email' && !validateEmail(input.value)) {
+                    isValid = false;
+                    markInvalid(input, 'Please enter a valid email address');
+                }
             });
 
-            quoteModal.addEventListener('click', (e) => {
-                if (e.target === quoteModal) {
-                    quoteModal.classList.remove('active');
+            // Consent checkbox validation (if present)
+            if (consentCheckbox && !consentCheckbox.checked) {
+                isValid = false;
+                const label = consentCheckbox.nextElementSibling;
+                if (label) {
+                    label.style.color = '#ef4444'; // Red color
+                }
+                consentCheckbox.style.outline = '2px solid #ef4444';
+            }
+
+            if (isValid) {
+                const submitBtn = form.querySelector('button[type="submit"]');
+                const originalText = submitBtn.textContent;
+                submitBtn.disabled = true;
+                submitBtn.textContent = 'Submitting...';
+
+                // Collect form values
+                const formData = new FormData(form);
+                const data = {};
+                formData.forEach((value, key) => {
+                    data[key] = value;
+                });
+
+                // Add company metadata
+                data['companyName'] = 'Kurikhai Construction Pte Ltd';
+                data['submittedAt'] = new Date().toLocaleString();
+
+                const showSuccess = () => {
+                    if (successModal) {
+                        successModal.classList.add('active');
+                    }
+                    form.reset();
+                    submitBtn.disabled = false;
+                    submitBtn.textContent = originalText;
+                    if (onSuccessCallback) {
+                        onSuccessCallback();
+                    }
+                };
+
+                if (GOOGLE_SCRIPT_URL && GOOGLE_SCRIPT_URL !== 'YOUR_GOOGLE_APPS_SCRIPT_URL_HERE') {
+                    // Post data to Google Apps Script Web App
+                    fetch(GOOGLE_SCRIPT_URL, {
+                        method: 'POST',
+                        mode: 'no-cors',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify(data)
+                    })
+                        .then(() => {
+                            showSuccess();
+                        })
+                        .catch((err) => {
+                            console.error('Submission error:', err);
+                            // Fallback to show success modal so user experience doesn't break
+                            showSuccess();
+                        });
+                } else {
+                    // Fallback to simulated submission if URL is not configured yet
+                    setTimeout(() => {
+                        showSuccess();
+                    }, 1000);
+                }
+            }
+        });
+
+        // Reset custom styles if user types or checks
+        form.addEventListener('input', (e) => {
+            if (e.target.classList.contains('form-control')) {
+                e.target.style.borderColor = '';
+                const err = e.target.parentNode.querySelector('.validation-error');
+                if (err) err.remove();
+            }
+        });
+
+        if (consentCheckbox) {
+            consentCheckbox.addEventListener('change', () => {
+                if (consentCheckbox.checked) {
+                    consentCheckbox.style.outline = 'none';
+                    const label = consentCheckbox.nextElementSibling;
+                    if (label) {
+                        label.style.color = '';
+                    }
                 }
             });
         }
+    };
 
-        // Close success modal actions
-        if (closeModalBtn && successModal) {
-            closeModalBtn.addEventListener('click', () => {
-                successModal.classList.remove('active');
-            });
-
-            // Close modal when clicking on the overlay backdrop
-            successModal.addEventListener('click', (e) => {
-                if (e.target === successModal) {
-                    successModal.classList.remove('active');
-                }
-            });
+    // Initialize form validations
+    setupFormValidation(leadForm);
+    setupFormValidation(popupQuoteForm, () => {
+        if (quoteModal) {
+            quoteModal.classList.remove('active');
         }
     });
+
+    // 7. Quote Popup Modal Opening/Closing
+    const openModalBtns = document.querySelectorAll('.open-quote-modal-btn');
+    const closeQuoteModalBtn = document.getElementById('closeQuoteModalBtn');
+
+    if (openModalBtns.length > 0 && quoteModal) {
+        openModalBtns.forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                e.preventDefault();
+                quoteModal.classList.add('active');
+            });
+        });
+    }
+
+    if (closeQuoteModalBtn && quoteModal) {
+        closeQuoteModalBtn.addEventListener('click', () => {
+            quoteModal.classList.remove('active');
+        });
+
+        quoteModal.addEventListener('click', (e) => {
+            if (e.target === quoteModal) {
+                quoteModal.classList.remove('active');
+            }
+        });
+    }
+
+    // Close success modal actions
+    if (closeModalBtn && successModal) {
+        closeModalBtn.addEventListener('click', () => {
+            successModal.classList.remove('active');
+        });
+
+        // Close modal when clicking on the overlay backdrop
+        successModal.addEventListener('click', (e) => {
+            if (e.target === successModal) {
+                successModal.classList.remove('active');
+            }
+        });
+    }
+});
