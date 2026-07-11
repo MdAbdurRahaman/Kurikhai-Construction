@@ -999,6 +999,24 @@ textarea.form-control {
     transform: translateY(0);
 }
 
+.modal-close-btn {
+    position: absolute;
+    top: 20px;
+    right: 20px;
+    background: none;
+    border: none;
+    font-size: 28px;
+    cursor: pointer;
+    color: var(--color-text-muted);
+    line-height: 1;
+    padding: 4px;
+    transition: var(--transition-fast);
+}
+
+.modal-close-btn:hover {
+    color: var(--color-text-dark);
+}
+
 .modal-icon {
     width: 70px;
     height: 70px;

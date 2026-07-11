@@ -152,24 +152,49 @@ const GOOGLE_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbyqOfAk9exKTh
 
 
         // 6. Contact & Lead Form Validation with Success Modal
-        const leadForm = document.getElementById('leadForm');
         const successModal = document.getElementById('successModal');
         const closeModalBtn = document.getElementById('closeModalBtn');
+        const leadForm = document.getElementById('leadForm');
+        const popupQuoteForm = document.getElementById('popupQuoteForm');
+        const quoteModal = document.getElementById('quoteModal');
 
-        if (leadForm && successModal) {
-            leadForm.addEventListener('submit', (e) => {
+        // Helper to mark field as invalid
+        const markInvalid = (element, message) => {
+            element.style.borderColor = '#ef4444'; // border red
+
+            const errorDiv = document.createElement('div');
+            errorDiv.className = 'validation-error';
+            errorDiv.style.color = '#ef4444';
+            errorDiv.style.fontSize = '12px';
+            errorDiv.style.marginTop = '4px';
+            errorDiv.style.fontFamily = 'Inter, sans-serif';
+            errorDiv.textContent = message;
+
+            element.parentNode.appendChild(errorDiv);
+        };
+
+        // Helper to validate email format
+        const validateEmail = (email) => {
+            const re = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+            return re.test(String(email).toLowerCase());
+        };
+
+        const setupFormValidation = (form, onSuccessCallback) => {
+            if (!form) return;
+
+            form.addEventListener('submit', (e) => {
                 e.preventDefault();
 
                 let isValid = true;
 
                 // Collect fields for verification
-                const inputs = leadForm.querySelectorAll('.form-control[required]');
-                const consentCheckbox = document.getElementById('consent');
+                const inputs = form.querySelectorAll('.form-control[required]');
+                const consentCheckbox = form.querySelector('input[type="checkbox"]');
 
                 // Remove previous error states
-                leadForm.querySelectorAll('.validation-error').forEach(el => el.remove());
+                form.querySelectorAll('.validation-error').forEach(el => el.remove());
                 inputs.forEach(input => {
-                    input.style.borderColor = '#e2e8f0';
+                    input.style.borderColor = '';
                 });
                 if (consentCheckbox) {
                     consentCheckbox.style.outline = 'none';
@@ -186,22 +211,24 @@ const GOOGLE_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbyqOfAk9exKTh
                     }
                 });
 
-                // Consent checkbox validation on contact page
+                // Consent checkbox validation (if present)
                 if (consentCheckbox && !consentCheckbox.checked) {
                     isValid = false;
                     const label = consentCheckbox.nextElementSibling;
-                    label.style.color = '#ef4444'; // Red color
+                    if (label) {
+                        label.style.color = '#ef4444'; // Red color
+                    }
                     consentCheckbox.style.outline = '2px solid #ef4444';
                 }
 
                 if (isValid) {
-                    const submitBtn = leadForm.querySelector('button[type="submit"]');
+                    const submitBtn = form.querySelector('button[type="submit"]');
                     const originalText = submitBtn.textContent;
                     submitBtn.disabled = true;
-                    submitBtn.textContent = 'Submitting Quote...';
+                    submitBtn.textContent = 'Submitting...';
 
                     // Collect form values
-                    const formData = new FormData(leadForm);
+                    const formData = new FormData(form);
                     const data = {};
                     formData.forEach((value, key) => {
                         data[key] = value;
@@ -212,17 +239,22 @@ const GOOGLE_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbyqOfAk9exKTh
                     data['submittedAt'] = new Date().toLocaleString();
 
                     const showSuccess = () => {
-                        successModal.classList.add('active');
-                        leadForm.reset();
+                        if (successModal) {
+                            successModal.classList.add('active');
+                        }
+                        form.reset();
                         submitBtn.disabled = false;
                         submitBtn.textContent = originalText;
+                        if (onSuccessCallback) {
+                            onSuccessCallback();
+                        }
                     };
 
                     if (GOOGLE_SCRIPT_URL && GOOGLE_SCRIPT_URL !== 'YOUR_GOOGLE_APPS_SCRIPT_URL_HERE') {
                         // Post data to Google Apps Script Web App
                         fetch(GOOGLE_SCRIPT_URL, {
                             method: 'POST',
-                            mode: 'no-cors', // Standard Apps Script Web Apps require no-cors for simple cross-origin posts
+                            mode: 'no-cors',
                             headers: {
                                 'Content-Type': 'application/json'
                             },
@@ -245,29 +277,8 @@ const GOOGLE_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbyqOfAk9exKTh
                 }
             });
 
-            // Helper to mark field as invalid
-            const markInvalid = (element, message) => {
-                element.style.borderColor = '#ef4444'; // border red
-
-                const errorDiv = document.createElement('div');
-                errorDiv.className = 'validation-error';
-                errorDiv.style.color = '#ef4444';
-                errorDiv.style.fontSize = '12px';
-                errorDiv.style.marginTop = '4px';
-                errorDiv.style.fontFamily = 'Inter, sans-serif';
-                errorDiv.textContent = message;
-
-                element.parentNode.appendChild(errorDiv);
-            };
-
-            // Helper to validate email format
-            const validateEmail = (email) => {
-                const re = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-                return re.test(String(email).toLowerCase());
-            };
-
             // Reset custom styles if user types or checks
-            leadForm.addEventListener('input', (e) => {
+            form.addEventListener('input', (e) => {
                 if (e.target.classList.contains('form-control')) {
                     e.target.style.borderColor = '';
                     const err = e.target.parentNode.querySelector('.validation-error');
@@ -279,10 +290,46 @@ const GOOGLE_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbyqOfAk9exKTh
                 consentCheckbox.addEventListener('change', () => {
                     if (consentCheckbox.checked) {
                         consentCheckbox.style.outline = 'none';
-                        consentCheckbox.nextElementSibling.style.color = '';
+                        const label = consentCheckbox.nextElementSibling;
+                        if (label) {
+                            label.style.color = '';
+                        }
                     }
                 });
             }
+        };
+
+        // Initialize form validations
+        setupFormValidation(leadForm);
+        setupFormValidation(popupQuoteForm, () => {
+            if (quoteModal) {
+                quoteModal.classList.remove('active');
+            }
+        });
+
+        // 7. Quote Popup Modal Opening/Closing
+        const openModalBtns = document.querySelectorAll('.open-quote-modal-btn');
+        const closeQuoteModalBtn = document.getElementById('closeQuoteModalBtn');
+
+        if (openModalBtns.length > 0 && quoteModal) {
+            openModalBtns.forEach(btn => {
+                btn.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    quoteModal.classList.add('active');
+                });
+            });
+        }
+
+        if (closeQuoteModalBtn && quoteModal) {
+            closeQuoteModalBtn.addEventListener('click', () => {
+                quoteModal.classList.remove('active');
+            });
+
+            quoteModal.addEventListener('click', (e) => {
+                if (e.target === quoteModal) {
+                    quoteModal.classList.remove('active');
+                }
+            });
         }
 
         // Close success modal actions

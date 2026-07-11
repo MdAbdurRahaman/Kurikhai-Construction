@@ -44,7 +44,7 @@
                         <li><a href="services.html" class="nav-link">Services</a></li>
                         <li><a href="about.html" class="nav-link active">About Us</a></li>
                         <li><a href="contact.html" class="nav-link">Contact</a></li>
-                        <li><a href="contact.html" class="btn btn-primary" style="padding: 10px 20px; font-size: 14px;">Get a Quote</a></li>
+                        <li><a href="javascript:void(0)" class="btn btn-primary open-quote-modal-btn" style="padding: 10px 20px; font-size: 14px;">Get a Quote</a></li>
                     </ul>
                 </nav>
                 <button class="burger" id="burger-menu" aria-label="Toggle Menu">
@@ -150,7 +150,7 @@
         <div class="container">
             <h2>Ready to Consult with Our Project Estimators?</h2>
             <p>Schedule a site visit today. We provide itemized bills of quantity (BQ) so you know exactly what goes into your building budget.</p>
-            <a href="contact.html" class="btn btn-primary">Schedule Consultation</a>
+            <a href="javascript:void(0)" class="btn btn-primary open-quote-modal-btn">Schedule Consultation</a>
         </div>
     </section>
 
@@ -205,6 +205,51 @@
             </div>
         </div>
     </footer>
+
+    <!-- Quote Popup Modal -->
+    <div class="modal" id="quoteModal">
+        <div class="modal-content" style="max-width: 600px; text-align: left; position: relative;">
+            <button class="modal-close-btn" id="closeQuoteModalBtn" aria-label="Close modal">&times;</button>
+            <h3 style="font-size: 24px; margin-bottom: 10px; font-family: var(--font-heading); color: var(--color-text-dark);">Request a Free Quote</h3>
+            <p style="color: var(--color-text-muted); font-size: 14px; margin-bottom: 25px;">Provide details about your project and we'll get back to you with a competitive estimation within 24 hours.</p>
+            <form id="popupQuoteForm" novalidate>
+                <div class="form-group-row">
+                    <div class="form-group">
+                        <label for="popup-name">Your Name *</label>
+                        <input type="text" id="popup-name" name="name" class="form-control" placeholder="John Doe" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="popup-phone">Phone Number *</label>
+                        <input type="tel" id="popup-phone" name="phone" class="form-control" placeholder="+65 9123 4567" required>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label for="popup-email">Email Address *</label>
+                    <input type="email" id="popup-email" name="email" class="form-control" placeholder="john@example.com" required>
+                </div>
+                <div class="form-group">
+                    <label for="popup-service">Select Required Service *</label>
+                    <select id="popup-service" name="service" class="form-control" required>
+                        <option value="" disabled selected>-- Select a service --</option>
+                        <option value="Building & Renovation">Building & Renovation Works</option>
+                        <option value="Demolition & Hacking">Demolition & Hacking Works</option>
+                        <option value="Flooring Installation">Flooring Installation</option>
+                        <option value="Ceiling Installation">Ceiling Installation</option>
+                        <option value="Painting & Plastering">Painting & Plastering</option>
+                        <option value="Plumbing & Electrical">Plumbing & Electrical Works</option>
+                        <option value="Waterproofing Works">Waterproofing Works</option>
+                        <option value="Metal Fabrication">Metal Fabrication (Gates, Grilles)</option>
+                        <option value="Home Extensions & Alterations">Home Extensions & Alteration Works</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="popup-message">Project Description & Requirements *</label>
+                    <textarea id="popup-message" name="message" class="form-control" placeholder="Describe the scope of works, target completion timeline, and any specific requirements..." required></textarea>
+                </div>
+                <button type="submit" class="btn btn-primary" style="width: 100%;">Submit Quote Request</button>
+            </form>
+        </div>
+    </div>
 
     <!-- JS Scripts -->
     <script src="app.js"></script>
