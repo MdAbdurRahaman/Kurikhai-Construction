@@ -182,6 +182,8 @@ const GOOGLE_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbyqOfAk9exKTh
         const setupFormValidation = (form, onSuccessCallback) => {
             if (!form) return;
 
+            const consentCheckbox = form.querySelector('input[type="checkbox"]');
+
             form.addEventListener('submit', (e) => {
                 e.preventDefault();
 
@@ -189,7 +191,6 @@ const GOOGLE_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbyqOfAk9exKTh
 
                 // Collect fields for verification
                 const inputs = form.querySelectorAll('.form-control[required]');
-                const consentCheckbox = form.querySelector('input[type="checkbox"]');
 
                 // Remove previous error states
                 form.querySelectorAll('.validation-error').forEach(el => el.remove());
