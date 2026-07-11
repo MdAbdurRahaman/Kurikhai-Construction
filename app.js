@@ -235,6 +235,16 @@ document.addEventListener('DOMContentLoaded', () => {
                     data[key] = value;
                 });
 
+                // Prevent Google Sheets formula parse error if phone starts with '+'
+                if (data['phone']) {
+                    const cleanPhone = data['phone'].trim();
+                    if (cleanPhone.startsWith('+')) {
+                        data['phone'] = "'" + cleanPhone;
+                    } else {
+                        data['phone'] = cleanPhone;
+                    }
+                }
+
                 // Add company metadata
                 data['companyName'] = 'Kurikhai Construction Pte Ltd';
                 data['submittedAt'] = new Date().toLocaleString();

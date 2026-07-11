@@ -49,11 +49,17 @@ function doPost(e) {
       sheet.appendRow(["Timestamp", "Name", "Phone", "Email", "Budget", "Service Requested", "Message", "Consent Acknowledged", "Company"]);
     }
     
+    // Format phone number to prevent formula parse error if it starts with '+'
+    var phoneFormatted = data.phone || "";
+    if (phoneFormatted.toString().indexOf('+') === 0) {
+      phoneFormatted = "'" + phoneFormatted;
+    }
+    
     // Log details as a new row
     sheet.appendRow([
       data.submittedAt || new Date().toLocaleString(),
       data.name || "",
-      data.phone || "",
+      phoneFormatted,
       data.email || "",
       data.budget || "N/A (Home Page Form)",
       data.service || "",
