@@ -12,6 +12,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
         // If it is the home page, the header doesn't have Scrolled class by default. We toggle it.
         const isHomePage = window.location.pathname.endsWith('index.html') ||
+            window.location.pathname.endsWith('index') ||
             window.location.pathname.endsWith('/') ||
             window.location.pathname === '';
 
