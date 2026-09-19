@@ -413,9 +413,10 @@ img {
     font-family: var(--font-heading);
     font-weight: 500;
     font-size: 15px;
-    color: var(--color-primary-light);
+    color: rgba(255, 255, 255, 0.85);
     position: relative;
     padding: 8px 0;
+    transition: var(--transition-fast);
 }
 
 .nav-link::after {
@@ -436,7 +437,7 @@ img {
 
 .nav-link:hover,
 .nav-link.active {
-    color: var(--color-primary);
+    color: var(--color-accent);
 }
 
 /* Burger Menu */
