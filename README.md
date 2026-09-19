@@ -1,36 +1,50 @@
-# Kurikhai Construction Pte Ltd Website
+# Tabeeb Contractor Pte Ltd Website
 
-A premium, highly responsive multi-page static website for **Kurikhai Construction Pte Ltd**, a leading building, renovation, hacking, and structural engineering services provider in Singapore.
+A premium, highly responsive multi-page static website for **Tabeeb Contractor Pte Ltd**, a leading building, residential & commercial renovation, commercial reinstatement, hacking, and engineering services provider in Singapore.
 
-## 🎨 Design & Theme
-* **Colors**: Premium Midnight Navy (`#0b132b` / `#1c2541`) as primary dark, and Vibrant Electric Orange (`#ff6b00` / `#e65f00`) as high-contrast action accent.
-* **Fonts**: Outfit (headings) and Inter (body text) imported from Google Fonts.
-* **Animations**: Custom slide-up fade effects utilizing `IntersectionObserver`.
-* **Favicon**: Integrated brand-matching inline SVG icon (`K` logo) for instant tab branding.
+## 🏢 Company Profile & Contact Info
+* **Legal Name**: Tabeeb Contractor Pte Ltd
+* **Office Address**: 61 Kaki Bukit Ave 1, #03-34 Shun Li Industrial Park, Singapore 417943
+* **Hotline / Telephone**: [+65 8648 4883](tel:+6586484883)
+* **WhatsApp Direct**: [Chat on WhatsApp (+65 8648 4883)](https://wa.me/6586484883)
+* **Email**: [info@tabeebcontractor.com](mailto:info@tabeebcontractor.com)
+* **Operating Hours**: Monday - Saturday: 9:00 AM - 6:00 PM (Closed on Sundays & Public Holidays)
+
+---
+
+## 🎨 Design & Features (Inspired by Leong Yik Standards)
+* **Corporate Palette**: Deep Contractor Navy (`#0a1128`), Industrial Slate Navy (`#16224f`), Architectural Gold (`#d4af37`), and Vibrant Engineering Cyan (`#00b4d8`).
+* **Top Bar**: Fast contact access across all pages displaying Singapore HQ address, operating hours, phone hotline, and instant WhatsApp chat.
+* **Trust & Accreditations Bar**: BizSAFE Star safety compliance standards, BCA regulatory approvals, commercial & residential capabilities, and handover guarantees.
+* **Floating WhatsApp Widget**: Persistent, pulsating WhatsApp contact button with pre-filled greeting for rapid customer conversions.
+* **Interactive Map**: Embedded Google Maps location directly pinpointing Shun Li Industrial Park at 61 Kaki Bukit Ave 1, Singapore.
+* **Fonts**: Google Fonts `Outfit` (headings) and `Inter` (body text).
+* **Favicon**: Inline SVG brand-matching `T` lettermark.
+
+---
 
 ## 📂 Project Structure
 ```
-├── index.html          # Homepage (Hero, Services highlights, About teaser, Quick Quote form)
-├── services.html       # Services page (10 detailed service listings + interactive category filter)
-├── about.html          # About company profile page (Core values, detailed project workflow)
-├── contact.html        # Contact page (HQ/hotline details, full inquiry form with budget range)
-├── style.css           # Global stylesheet and custom styling rules
-├── app.js              # Header scrolls, mobile navbar, form validation, and spreadsheet sync
-├── website.zip         # ZIP archive ready for cPanel uploads
-└── images/             # Folder containing high-definition service graphics
+├── index.html          # Homepage (Hero, Trust bar, Features, Services overview, Lead capture, Footer)
+├── services.html       # Detailed services catalog with category filter & quote requests
+├── about.html          # Company background, safety commitment, core values, and workflow
+├── contact.html        # Comprehensive inquiry form, Google Maps embed, and direct channels
+├── style.css           # Global design system, responsive layouts, components, and animations
+├── app.js              # Header scrolls, mobile menu, form validation, and Google Sheets sync
+└── images/             # High-definition imagery for all contractor services
 ```
 
 ---
 
 ## 📊 Google Sheets & Email Integration Guide
 
-The quote inquiry forms on **Home** and **Contact** pages are integrated to save submissions to a **Google Sheet** and dispatch email notifications directly to **infovvpengineering@gmail.com** mentioning **Kurikhai Construction Pte Ltd**. 
+The quote inquiry forms on **Home**, **Services**, and **Contact** pages are integrated to log submissions to a **Google Sheet** and dispatch real-time email alerts.
 
-Follow these simple steps to deploy the handler:
+Follow these simple steps to deploy the Google Apps Script handler:
 
 ### Step 1: Create a Google Sheet
 1. Open [Google Sheets](https://sheets.google.com/) and create a new blank spreadsheet.
-2. Name your spreadsheet (e.g., `Kurikhai Website Leads`).
+2. Name your spreadsheet (e.g., `Tabeeb Contractor Website Leads`).
 
 ### Step 2: Attach Google Apps Script
 1. Inside your new spreadsheet, go to **Extensions** > **Apps Script**.
@@ -65,15 +79,15 @@ function doPost(e) {
       data.service || "",
       data.message || "",
       data.consent ? "Yes" : "N/A",
-      data.companyName || "Kurikhai Construction Pte Ltd"
+      data.companyName || "Tabeeb Contractor Pte Ltd."
     ]);
     
     // Send email alert
     var emailRecipient = "infovvpengineering@gmail.com";
-    var subject = "New Quote Request - " + (data.companyName || "Kurikhai Construction Pte Ltd");
+    var subject = "New Quote Request - " + (data.companyName || "Tabeeb Contractor Pte Ltd.");
     
     var emailBody = "Hello,\n\n" +
-                    "You have received a new quote request from the Kurikhai Construction Pte Ltd website.\n\n" +
+                    "You have received a new quote request from the Tabeeb Contractor Pte Ltd website.\n\n" +
                     "Details:\n" +
                     "-----------------------------------------\n" +
                     "Name: " + (data.name || "N/A") + "\n" +
@@ -102,14 +116,16 @@ function doPost(e) {
 1. Click the **Deploy** button (top right) and select **New deployment**.
 2. Select type: **Web app** (click the gear icon to verify).
 3. Configure the following settings:
-   * **Description**: `Kurikhai Leads Handler`
+   * **Description**: `Tabeeb Leads Handler`
    * **Execute as**: **Me** (your google email account)
-   * **Who has access**: **Anyone** (this allows the website to send submissions without user authentication)
-4. Click **Deploy**. Authorize the permissions when prompted (Google may warn you the app is unverified; click *Advanced* > *Go to Untitled Project (unsafe)* to approve).
-5. Copy the **Web App URL** generated (ends with `/exec`).
+   * **Who has access**: **Anyone** (allows the website to send submissions without requiring user logins)
+4. Click **Deploy**. Authorize permissions when prompted.
+5. Copy the generated **Web App URL** (ends with `/exec`).
 
 ### Step 4: Link to App.js
 1. Open the [app.js](app.js) file.
-2. Locate the variable at the top:
-   `const GOOGLE_SCRIPT_URL = 'YOUR_GOOGLE_APPS_SCRIPT_URL_HERE';`
-3. Replace `'YOUR_GOOGLE_APPS_SCRIPT_URL_HERE'` with your copied deployment URL. Save the file.
+2. Update the `GOOGLE_SCRIPT_URL` variable:
+   ```javascript
+   const GOOGLE_SCRIPT_URL = 'PASTE_YOUR_DEPLOYED_URL_HERE';
+   ```
+3. Save the file.

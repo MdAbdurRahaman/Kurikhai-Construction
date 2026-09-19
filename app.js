@@ -247,7 +247,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 }
 
                 // Add company metadata
-                data['companyName'] = 'Kurikhai Construction Pte Ltd';
+                data['companyName'] = 'Tabeeb Contractor Pte Ltd.';
                 data['submittedAt'] = new Date().toLocaleString();
 
                 const showSuccess = () => {
