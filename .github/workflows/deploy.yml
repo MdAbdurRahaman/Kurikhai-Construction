@@ -29,23 +29,17 @@ jobs:
             exit 1
           fi
 
-          echo "1️⃣ Uploading files to cPanel..."
+          echo "1️⃣ Uploading zip and extractor to cPanel public_html..."
           UPLOAD_RES=$(curl -k -s -X POST \
             -H "Authorization: cpanel ${CPANEL_USER}:${API_TOKEN}" \
             -F "dir=public_html" \
             -F "file-1=@website-deploy.zip" \
+            -F "file-2=@unzip.php" \
             "https://${CPANEL_HOST}:2083/execute/Fileman/upload_files")
           echo "Upload Response: $UPLOAD_RES"
 
-          echo "2️⃣ Extracting files inside public_html..."
-          EXTRACT_RES=$(curl -k -s -X POST \
-            -H "Authorization: cpanel ${CPANEL_USER}:${API_TOKEN}" \
-            "https://${CPANEL_HOST}:2083/execute/Fileman/extract_files?dir=public_html&file=website-deploy.zip&overwrite=1")
-          echo "Extract Response: $EXTRACT_RES"
-
-          echo "3️⃣ Cleaning up temporary zip..."
-          curl -k -s -X POST \
-            -H "Authorization: cpanel ${CPANEL_USER}:${API_TOKEN}" \
-            "https://${CPANEL_HOST}:2083/execute/Fileman/delete_files?dir=public_html&files=website-deploy.zip" > /dev/null
+          echo "2️⃣ Triggering file extraction..."
+          EXTRACT_RES=$(curl -k -s -L "https://tabeebgroup.com/unzip.php" || true)
+          echo "Extractor Response: $EXTRACT_RES"
 
           echo "🎉 Website deployed successfully to live server!"
