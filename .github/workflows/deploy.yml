@@ -1,0 +1,33 @@
+name: 🚀 Deploy Website to cPanel
+
+on:
+  push:
+    branches:
+      - main
+      - rebrand-tabeeb-contractor
+
+jobs:
+  web-deploy:
+    name: 🎉 Sync Files to cPanel
+    runs-on: ubuntu-latest
+    steps:
+      - name: 🚚 Checkout latest code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 2
+
+      - name: 📂 Deploy files to cPanel
+        uses: SamKirkland/FTP-Deploy-Action@v4.3.5
+        with:
+          server: ${{ secrets.FTP_SERVER || '151.158.158.31' }}
+          username: ${{ secrets.FTP_USERNAME || 'tabeebgroup' }}
+          password: ${{ secrets.FTP_PASSWORD }}
+          server-dir: public_html/
+          exclude: |
+            **/.git*
+            **/.git*/**
+            **/.github*
+            **/.github*/**
+            README.md
+            *.zip
+            .cpanel.yml
