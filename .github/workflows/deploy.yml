@@ -16,7 +16,7 @@ jobs:
 
       - name: 📦 Package Website Files
         run: |
-          zip -r website-deploy.zip . -x ".git*" ".github*" "README.md" ".cpanel.yml" "*.zip"
+          zip -r website-deploy.zip . -x ".git*" ".github*" "*.md" ".cpanel.yml" "*.zip"
 
       - name: 🚀 Upload and Extract to cPanel public_html
         run: |

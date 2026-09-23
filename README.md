@@ -129,3 +129,25 @@ function doPost(e) {
    const GOOGLE_SCRIPT_URL = 'PASTE_YOUR_DEPLOYED_URL_HERE';
    ```
 3. Save the file.
+
+---
+
+## 🚀 Automated Continuous Deployment (GitHub to cPanel)
+
+This repository is configured with a fully automated **Continuous Deployment (CI/CD)** pipeline powered by **GitHub Actions** and cPanel's HTTPS API.
+
+Whenever you push any updates to the `main` or `rebrand-tabeeb-contractor` branch, the live website at **[https://tabeebgroup.com](https://tabeebgroup.com)** updates automatically in **~10 seconds**.
+
+### How to Deploy Updates:
+```bash
+git add .
+git commit -m "Your update message"
+git push origin rebrand-tabeeb-contractor
+```
+
+### Highlights:
+* **Private Repository Ready:** Natively handles private GitHub repos without exposing tokens in clone URLs.
+* **Firewall & Port-Resistant:** Communicates through cPanel's authenticated **HTTPS Port 2083**, completely bypassing closed FTP (port 21) and restricted SSH (port 22).
+* **Automated Extraction:** Uses [unzip.php](unzip.php) to unpack new assets directly into `public_html/` and clean up the temporary archive.
+
+📖 For the full technical breakdown, architecture diagram, and setup instructions for other projects, read the detailed **[DEPLOYMENT_GUIDE.md](DEPLOYMENT_GUIDE.md)**.
