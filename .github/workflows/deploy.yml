@@ -8,26 +8,44 @@ on:
 
 jobs:
   web-deploy:
-    name: 🎉 Sync Files to cPanel
+    name: 🌐 Direct Deploy to cPanel (HTTPS)
     runs-on: ubuntu-latest
     steps:
       - name: 🚚 Checkout latest code
         uses: actions/checkout@v4
-        with:
-          fetch-depth: 2
 
-      - name: 📂 Deploy files to cPanel
-        uses: SamKirkland/FTP-Deploy-Action@v4.3.5
-        with:
-          server: ${{ secrets.FTP_SERVER || '151.158.158.31' }}
-          username: ${{ secrets.FTP_USERNAME || 'tabeebgroup' }}
-          password: ${{ secrets.FTP_PASSWORD }}
-          server-dir: public_html/
-          exclude: |
-            **/.git*
-            **/.git*/**
-            **/.github*
-            **/.github*/**
-            README.md
-            *.zip
-            .cpanel.yml
+      - name: 📦 Package Website Files
+        run: |
+          zip -r website-deploy.zip . -x ".git*" ".github*" "README.md" ".cpanel.yml" "*.zip"
+
+      - name: 🚀 Upload and Extract to cPanel public_html
+        run: |
+          CPANEL_USER="${{ secrets.CPANEL_USERNAME || 'tabeebgroup' }}"
+          CPANEL_HOST="${{ secrets.CPANEL_HOST || '151.158.158.31' }}"
+          API_TOKEN="${{ secrets.CPANEL_API_TOKEN }}"
+          
+          if [ -z "$API_TOKEN" ]; then
+            echo "::error::CPANEL_API_TOKEN secret is missing! Please add it in GitHub Settings -> Secrets -> Actions."
+            exit 1
+          fi
+
+          echo "1️⃣ Uploading files to cPanel..."
+          UPLOAD_RES=$(curl -k -s -X POST \
+            -H "Authorization: cpanel ${CPANEL_USER}:${API_TOKEN}" \
+            -F "dir=public_html" \
+            -F "file-1=@website-deploy.zip" \
+            "https://${CPANEL_HOST}:2083/execute/Fileman/upload_files")
+          echo "Upload Response: $UPLOAD_RES"
+
+          echo "2️⃣ Extracting files inside public_html..."
+          EXTRACT_RES=$(curl -k -s -X POST \
+            -H "Authorization: cpanel ${CPANEL_USER}:${API_TOKEN}" \
+            "https://${CPANEL_HOST}:2083/execute/Fileman/extract_files?dir=public_html&file=website-deploy.zip&overwrite=1")
+          echo "Extract Response: $EXTRACT_RES"
+
+          echo "3️⃣ Cleaning up temporary zip..."
+          curl -k -s -X POST \
+            -H "Authorization: cpanel ${CPANEL_USER}:${API_TOKEN}" \
+            "https://${CPANEL_HOST}:2083/execute/Fileman/delete_files?dir=public_html&files=website-deploy.zip" > /dev/null
+
+          echo "🎉 Website deployed successfully to live server!"
