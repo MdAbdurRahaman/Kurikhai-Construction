@@ -27,14 +27,14 @@
     <meta property="twitter:description" content="Tabeeb Contractor Pte Ltd offers premier building renovation, demolition, hacking, reinstatement, flooring, false ceiling, painting, plumbing, electrical, waterproofing, and structural works in Singapore. Get a free quote today.">
     <meta property="twitter:image" content="https://www.tabeebcontractor.com/images/hero-bg.png">
     
-    <!-- CSS Stylesheet -->
-    <link rel="stylesheet" href="style.css">
+    <!-- CSS Stylesheet (Versioned to guarantee immediate refresh) -->
+    <link rel="stylesheet" href="style.css?v=3.1">
 </head>
 <body>
 
     <!-- Header Navigation with Topbar -->
     <header class="header" id="header">
-        <!-- Top Contact Bar (Inspired by Leong Yik) -->
+        <!-- Top Contact Bar (Inspired by Company Poster) -->
         <div class="topbar">
             <div class="container">
                 <div class="topbar-left">
@@ -53,12 +53,7 @@
             <div class="container">
                 <div class="header-wrapper">
                     <a href="/" class="logo" id="header-logo" aria-label="Tabeeb Contractor Pte Ltd">
-                        <img src="images/logo-mark-white.png" alt="Tabeeb Contractor Mark" class="logo-mark-img" width="54" height="30">
-                        <div class="logo-text-group">
-                            <span class="logo-brand-title">TABEEB</span>
-                            <span class="logo-badge-sub">CONTRACTOR PTE LTD</span>
-                            <span class="logo-slogan-sub">BUILDING BETTER SPACES</span>
-                        </div>
+                        <img src="images/logo-horizontal.png" alt="Tabeeb Contractor Pte Ltd - Building Better Spaces" class="header-logo-img">
                     </a>
                     <nav>
                         <ul class="nav-list" id="nav-list">
@@ -66,7 +61,7 @@
                             <li><a href="services" class="nav-link">Services</a></li>
                             <li><a href="about" class="nav-link">About Us</a></li>
                             <li><a href="contact" class="nav-link">Contact</a></li>
-                            <li><a href="javascript:void(0)" class="btn btn-primary open-quote-modal-btn" style="padding: 10px 20px; font-size: 14px;">Get a Quote</a></li>
+                            <li><a href="javascript:void(0)" class="btn btn-quote-header open-quote-modal-btn">Get a Quote</a></li>
                         </ul>
                     </nav>
                     <button class="burger" id="burger-menu" aria-label="Toggle Menu">
@@ -83,47 +78,56 @@
     <section class="hero" id="hero">
         <div class="container">
             <div class="hero-content fade-in-up">
-                <span class="hero-subtitle">Singapore's Premier Residential & Commercial Renovation Contractor</span>
-                <h1>Building & Engineering Excellence With Absolute Precision</h1>
-                <p class="hero-desc">From residential and commercial renovation, structural demolition, and hacking to cement screed, waterproofing, and full reinstatement. Tabeeb Contractor Pte Ltd is your trusted builder in Singapore.</p>
+                <span class="hero-trusted-badge">🛡️ YOUR TRUSTED RENOVATION PARTNER</span>
+                <h1>Building Better Spaces With Absolute Precision</h1>
+                <div class="hero-pill-row">
+                    <span class="hero-pill-item">Residential</span>
+                    <span class="hero-pill-dot">&bull;</span>
+                    <span class="hero-pill-item">Commercial</span>
+                    <span class="hero-pill-dot">&bull;</span>
+                    <span class="hero-pill-item">Quality</span>
+                    <span class="hero-pill-dot">&bull;</span>
+                    <span class="hero-pill-item">On Time</span>
+                </div>
+                <p class="hero-desc">Singapore's dedicated specialist for hacking, tiling, false ceilings, electrical, plumbing, painting, and complete interior renovation. Delivering high quality and on-time handover every single time.</p>
                 <div class="hero-actions">
-                    <a href="javascript:void(0)" class="btn btn-primary open-quote-modal-btn">Request Free Consultation</a>
-                    <a href="services" class="btn btn-secondary">Explore Our Services</a>
+                    <a href="javascript:void(0)" class="btn btn-primary open-quote-modal-btn">Free Site Assessment</a>
+                    <a href="#services-overview" class="btn btn-secondary">Explore 8 Core Services</a>
                 </div>
             </div>
         </div>
     </section>
 
-    <!-- Trust & Accreditations Bar (Inspired by Leong Yik) -->
+    <!-- Trust & Accreditations Bar (From Official Poster) -->
     <section class="trust-bar-section">
         <div class="container">
             <div class="trust-bar-grid">
                 <div class="trust-item">
                     <div class="trust-icon">🛡️</div>
                     <div class="trust-text">
-                        <strong>BizSAFE Standards</strong>
-                        <span>Rigorous WSH Workplace Safety Protocol</span>
+                        <strong>Quality Workmanship</strong>
+                        <span>Premium Materials & Strict Quality Control</span>
+                    </div>
+                </div>
+                <div class="trust-item">
+                    <div class="trust-icon">🤝</div>
+                    <div class="trust-text">
+                        <strong>Reliable Team</strong>
+                        <span>Experienced, Safe & In-House Craftsmen</span>
+                    </div>
+                </div>
+                <div class="trust-item">
+                    <div class="trust-icon">⏱️</div>
+                    <div class="trust-text">
+                        <strong>On Time Delivery</strong>
+                        <span>Punctual Milestones & Guaranteed Completion</span>
                     </div>
                 </div>
                 <div class="trust-item">
                     <div class="trust-icon">🏗️</div>
                     <div class="trust-text">
-                        <strong>BCA Compliance</strong>
-                        <span>Licensed Building & Reinstatement Works</span>
-                    </div>
-                </div>
-                <div class="trust-item">
-                    <div class="trust-icon">🏢</div>
-                    <div class="trust-text">
-                        <strong>Commercial & Residential</strong>
-                        <span>HDB, Condos, Landed & Industrial Spaces</span>
-                    </div>
-                </div>
-                <div class="trust-item">
-                    <div class="trust-icon">⭐</div>
-                    <div class="trust-text">
-                        <strong>Guaranteed Handover</strong>
-                        <span>Transparent Quotes & Dedicated Site Supervisors</span>
+                        <strong>BizSAFE & BCA Standards</strong>
+                        <span>Licensed Workplace Safety & Regulation Protocol</span>
                     </div>
                 </div>
             </div>
@@ -151,76 +155,217 @@
         </div>
     </section>
 
-    <!-- Services Overview Section -->
+    <!-- Services Overview Section (8 Core Services from Official Poster) -->
     <section class="section section-bg-light" id="services-overview">
         <div class="container">
             <div class="section-header text-center fade-in-up">
-                <span class="section-tagline">What We Offer</span>
-                <h2 class="section-title">Comprehensive Building Solutions</h2>
-                <p class="section-desc">We deliver premium interior and exterior engineering works tailored for residential, commercial, and industrial clients.</p>
+                <span class="section-tagline">Core Capabilities</span>
+                <h2 class="section-title">Our 8 Specialized Renovation Services</h2>
+                <p class="section-desc">Direct from our licensed building portfolio. Premium residential, commercial, and industrial engineering executed by in-house craftsmen.</p>
             </div>
 
-            <div class="services-grid">
-                <!-- Service Card 1 -->
-                <div class="service-card fade-in-up">
-                    <div class="service-img-wrapper">
-                        <img src="images/demolition.png" alt="Demolition and Hacking Works">
-                        <span class="service-badge">Structural</span>
+            <div class="poster-services-grid">
+                <!-- Card 1: Hacking & Demolition -->
+                <div class="poster-service-card fade-in-up">
+                    <div class="poster-service-img-wrap">
+                        <img src="images/service-hacking.jpg" alt="Hacking & Demolition Works" loading="lazy">
                     </div>
-                    <div class="service-body">
-                        <div class="service-icon-inline">🔨</div>
-                        <h3>Demolition & Hacking Works</h3>
-                        <p>Safe and efficient structural hacking, tile removal, partition dismantling, and site disposal following strict environmental safety standards.</p>
-                        <ul class="service-features-list">
-                            <li>Wall hacking and restructuring</li>
-                            <li>Tile and flooring hacking</li>
-                            <li>Debris disposal & site clearing</li>
+                    <div class="poster-service-header">
+                        <span class="service-icon">🔨</span>
+                        <h3>Hacking & Demolition Works</h3>
+                    </div>
+                    <div class="poster-service-body">
+                        <ul class="poster-service-list">
+                            <li>Hacking of walls, floors, tiles</li>
+                            <li>Dismantling of fixtures</li>
+                            <li>Disposal & site cleaning</li>
+                            <li>Protection to surrounding areas</li>
                         </ul>
-                        <a href="services#demolition" class="service-link">Learn More ➔</a>
+                        <a href="services#demolition" class="btn-card-inquire">View Scope & Quote ➔</a>
                     </div>
                 </div>
 
-                <!-- Service Card 2 -->
-                <div class="service-card fade-in-up">
-                    <div class="service-img-wrapper">
-                        <img src="images/flooring.png" alt="Flooring Installation">
-                        <span class="service-badge">Finishing</span>
+                <!-- Card 2: Flooring Works -->
+                <div class="poster-service-card fade-in-up">
+                    <div class="poster-service-img-wrap">
+                        <img src="images/service-flooring.jpg" alt="Flooring Works (Tiling & Vinyl)" loading="lazy">
                     </div>
-                    <div class="service-body">
-                        <div class="service-icon-inline">🪵</div>
-                        <h3>Flooring Installation</h3>
-                        <p>Expert installations of tiles, vinyl, laminate, and timber. We source premium-grade materials to ensure longevity and aesthetic brilliance.</p>
-                        <ul class="service-features-list">
-                            <li>Homogeneous & Ceramic Tiling</li>
-                            <li>Luxury Vinyl Tile (LVT) / SPC</li>
-                            <li>Solid timber & Engineered wood</li>
+                    <div class="poster-service-header">
+                        <span class="service-icon">🧱</span>
+                        <h3>Flooring Works (Tiling & Vinyl)</h3>
+                    </div>
+                    <div class="poster-service-body">
+                        <ul class="poster-service-list">
+                            <li>Tile installation (floor & wall)</li>
+                            <li>Vinyl flooring installation</li>
+                            <li>Surface preparation</li>
+                            <li>Quality finishing</li>
                         </ul>
-                        <a href="services#flooring" class="service-link">Learn More ➔</a>
+                        <a href="services#flooring" class="btn-card-inquire">View Scope & Quote ➔</a>
                     </div>
                 </div>
 
-                <!-- Service Card 3 -->
-                <div class="service-card fade-in-up">
-                    <div class="service-img-wrapper">
-                        <img src="images/ceiling.png" alt="Ceiling Installation">
-                        <span class="service-badge">Interior</span>
+                <!-- Card 3: Ceiling & Partition Works -->
+                <div class="poster-service-card fade-in-up">
+                    <div class="poster-service-img-wrap">
+                        <img src="images/service-ceiling.jpg" alt="Ceiling & Partition Works" loading="lazy">
                     </div>
-                    <div class="service-body">
-                        <div class="service-icon-inline">🏠</div>
-                        <h3>Ceiling & Gypsum Installation</h3>
-                        <p>Aesthetic false ceilings, gypsum board partitions, soundproofing ceiling installations, and hidden light troughs for modern luxury homes.</p>
-                        <ul class="service-features-list">
-                            <li>False ceiling designs</li>
-                            <li>Gypsum board partition walls</li>
-                            <li>Integrated cove & spotlight cutouts</li>
+                    <div class="poster-service-header">
+                        <span class="service-icon">📐</span>
+                        <h3>Ceiling & Partition Works</h3>
+                    </div>
+                    <div class="poster-service-body">
+                        <ul class="poster-service-list">
+                            <li>False ceiling installation</li>
+                            <li>Partition wall (gypsum / metal stud)</li>
+                            <li>Ceiling board works</li>
+                            <li>Skimming & finishing</li>
                         </ul>
-                        <a href="services#ceilings" class="service-link">Learn More ➔</a>
+                        <a href="services#ceilings" class="btn-card-inquire">View Scope & Quote ➔</a>
+                    </div>
+                </div>
+
+                <!-- Card 4: Electrical Works -->
+                <div class="poster-service-card fade-in-up">
+                    <div class="poster-service-img-wrap">
+                        <img src="images/service-electrical.jpg" alt="Electrical Works" loading="lazy">
+                    </div>
+                    <div class="poster-service-header">
+                        <span class="service-icon">⚡</span>
+                        <h3>Electrical Works</h3>
+                    </div>
+                    <div class="poster-service-body">
+                        <ul class="poster-service-list">
+                            <li>Wiring & rewiring</li>
+                            <li>Lighting installation</li>
+                            <li>Power points & switches</li>
+                            <li>Electrical fittings installation & testing</li>
+                        </ul>
+                        <a href="services#mep" class="btn-card-inquire">View Scope & Quote ➔</a>
+                    </div>
+                </div>
+
+                <!-- Card 5: Plumbing Works -->
+                <div class="poster-service-card fade-in-up">
+                    <div class="poster-service-img-wrap">
+                        <img src="images/service-plumbing.jpg" alt="Plumbing Works" loading="lazy">
+                    </div>
+                    <div class="poster-service-header">
+                        <span class="service-icon">🚰</span>
+                        <h3>Plumbing Works</h3>
+                    </div>
+                    <div class="poster-service-body">
+                        <ul class="poster-service-list">
+                            <li>Water supply & drainage works</li>
+                            <li>Installation of sanitary fittings</li>
+                            <li>Toilet, basin, sink installation</li>
+                            <li>Leak testing & rectification</li>
+                        </ul>
+                        <a href="services#mep" class="btn-card-inquire">View Scope & Quote ➔</a>
+                    </div>
+                </div>
+
+                <!-- Card 6: Painting Works -->
+                <div class="poster-service-card fade-in-up">
+                    <div class="poster-service-img-wrap">
+                        <img src="images/service-painting.jpg" alt="Painting Works" loading="lazy">
+                    </div>
+                    <div class="poster-service-header">
+                        <span class="service-icon">🖌️</span>
+                        <h3>Painting Works</h3>
+                    </div>
+                    <div class="poster-service-body">
+                        <ul class="poster-service-list">
+                            <li>Wall & ceiling painting</li>
+                            <li>Skim coat & surface preparation</li>
+                            <li>Interior & exterior painting</li>
+                            <li>Neat and professional finishing</li>
+                        </ul>
+                        <a href="services#painting" class="btn-card-inquire">View Scope & Quote ➔</a>
+                    </div>
+                </div>
+
+                <!-- Card 7: Interior Renovation Works -->
+                <div class="poster-service-card fade-in-up">
+                    <div class="poster-service-img-wrap">
+                        <img src="images/service-interior.jpg" alt="Interior Renovation Works" loading="lazy">
+                    </div>
+                    <div class="poster-service-header">
+                        <span class="service-icon">🏠</span>
+                        <h3>Interior Renovation Works</h3>
+                    </div>
+                    <div class="poster-service-body">
+                        <ul class="poster-service-list">
+                            <li>Residential & commercial renovation</li>
+                            <li>Carpentry & built-in fixtures</li>
+                            <li>Feature wall & decorative works</li>
+                            <li>End-to-end project management</li>
+                        </ul>
+                        <a href="services#renovation" class="btn-card-inquire">View Scope & Quote ➔</a>
+                    </div>
+                </div>
+
+                <!-- Card 8: Our Team at Work -->
+                <div class="poster-service-card fade-in-up">
+                    <div class="poster-service-img-wrap">
+                        <img src="images/service-team.jpg" alt="Our Team at Work" loading="lazy">
+                    </div>
+                    <div class="poster-service-header">
+                        <span class="service-icon">👥</span>
+                        <h3>Our Team at Work</h3>
+                    </div>
+                    <div class="poster-service-body">
+                        <ul class="poster-service-list">
+                            <li>Skilled & experienced team</li>
+                            <li>Strict safe work practices</li>
+                            <li>Quality & timely delivery</li>
+                            <li>Total customer satisfaction</li>
+                        </ul>
+                        <a href="about" class="btn-card-inquire">Meet Our Builders ➔</a>
                     </div>
                 </div>
             </div>
 
             <div class="text-center mb-1" style="margin-top: 50px;">
-                <a href="services" class="btn btn-outline-dark">View All 9+ Services</a>
+                <a href="services" class="btn btn-primary" style="padding: 14px 32px;">Explore Detailed Services Catalog</a>
+            </div>
+        </div>
+    </section>
+
+    <!-- 5 Value Proposition Badges (From Poster) -->
+    <section class="value-prop-section">
+        <div class="container">
+            <div class="section-header text-center fade-in-up">
+                <span class="section-tagline">Why Singapore Trusts Us</span>
+                <h2 class="section-title">The Tabeeb Contractor Standard</h2>
+                <p class="section-desc">Our 5 core commitments guaranteed on every commercial and residential project.</p>
+            </div>
+            <div class="value-badges-grid">
+                <div class="value-badge-card fade-in-up">
+                    <div class="value-badge-circle">🔍</div>
+                    <h4>Free Site Assessment</h4>
+                    <p>On-site inspection, space measurement & feasibility consultation at zero obligation.</p>
+                </div>
+                <div class="value-badge-card fade-in-up">
+                    <div class="value-badge-circle">💰</div>
+                    <h4>Competitive Pricing</h4>
+                    <p>Direct contractor pricing with transparent itemized bills and no middleman markups.</p>
+                </div>
+                <div class="value-badge-card fade-in-up">
+                    <div class="value-badge-circle">🛡️</div>
+                    <h4>Quality Workmanship</h4>
+                    <p>Certified craftsmen, top-grade building materials, and thorough quality inspection.</p>
+                </div>
+                <div class="value-badge-card fade-in-up">
+                    <div class="value-badge-circle">⏱️</div>
+                    <h4>On Time Delivery</h4>
+                    <p>Milestone tracking and disciplined schedule adherence to guarantee your handover date.</p>
+                </div>
+                <div class="value-badge-card fade-in-up">
+                    <div class="value-badge-circle">⚙️</div>
+                    <h4>One Stop Solution</h4>
+                    <p>Complete project cycle from initial hacking to architectural carpentry and handover.</p>
+                </div>
             </div>
         </div>
     </section>
@@ -260,6 +405,29 @@
         </div>
     </section>
 
+    <!-- Official Company Profile & Poster Showcase -->
+    <section class="poster-showcase-section">
+        <div class="container">
+            <div class="poster-showcase-grid">
+                <div class="poster-showcase-info fade-in-up">
+                    <span class="hero-trusted-badge">Official Company Profile</span>
+                    <h2 style="font-size: 38px; color: #ffffff; margin-bottom: 20px;">Your Trusted Renovation Partner In Singapore</h2>
+                    <p style="font-size: 16px; color: rgba(255, 255, 255, 0.88); margin-bottom: 24px; line-height: 1.6;">Tabeeb Contractor Pte Ltd is proud to provide complete building solutions. From initial structural demolition and hacking to electrical distribution, sanitary piping, false ceilings, and interior carpentry, we ensure every project meets BCA and BizSAFE safety benchmarks.</p>
+                    <div style="display: flex; gap: 16px; flex-wrap: wrap;">
+                        <a href="images/tabeeb-poster.jpg" target="_blank" class="btn btn-quote-header" style="padding: 14px 28px; font-size: 15px;">🔍 View Official Poster (HD)</a>
+                        <a href="services" class="btn btn-outline-white" style="padding: 14px 28px; font-size: 15px;">Explore All Services</a>
+                    </div>
+                </div>
+                <div class="poster-showcase-card fade-in-up">
+                    <a href="images/tabeeb-poster.jpg" target="_blank" title="Click to view full high-definition poster">
+                        <img src="images/tabeeb-poster.jpg" alt="Tabeeb Contractor Pte Ltd Official Services Poster" loading="lazy">
+                    </a>
+                    <span style="display: block; font-size: 12px; color: var(--color-gold); margin-top: 10px; font-weight: 600;">Click image to enlarge official poster</span>
+                </div>
+            </div>
+        </div>
+    </section>
+
     <!-- Call to Action Banner -->
     <section class="cta-banner fade-in-up">
         <div class="container">
@@ -290,7 +458,7 @@
                             <div class="contact-detail-icon">✉️</div>
                             <div class="contact-detail-text">
                                 <h4>Email Enquiries</h4>
-                                <p><a href="mailto:info@tabeebcontractor.com">info@tabeebcontractor.com</a></p>
+                                <p><a href="mailto:info@tabeebgroup.com">info@tabeebgroup.com</a></p>
                             </div>
                         </div>
                         <div class="contact-detail-item">
@@ -389,11 +557,12 @@
                 <div class="footer-col">
                     <h3>Our Services</h3>
                     <ul>
-                        <li><a href="services#demolition">Hacking & Demolition</a></li>
-                        <li><a href="services#flooring">Flooring & Cement Screed</a></li>
-                        <li><a href="services#ceilings">False Ceilings</a></li>
-                        <li><a href="services#mep">Plumbing & Electrical</a></li>
-                        <li><a href="services#waterproofing">Waterproofing Solutions</a></li>
+                        <li><a href="services#demolition">Hacking & Demolition Works</a></li>
+                        <li><a href="services#flooring">Flooring Works (Tiling & Vinyl)</a></li>
+                        <li><a href="services#ceilings">Ceiling & Partition Works</a></li>
+                        <li><a href="services#mep">Electrical & Plumbing Works</a></li>
+                        <li><a href="services#painting">Painting & Surface Coating</a></li>
+                        <li><a href="services#renovation">Interior Renovation Works</a></li>
                     </ul>
                 </div>
                 <div class="footer-col">
@@ -408,7 +577,11 @@
                     </div>
                     <div class="footer-contact-item">
                         <span class="footer-contact-icon">✉️</span>
-                        <span class="footer-contact-text"><a href="mailto:info@tabeebcontractor.com" style="color: inherit;">info@tabeebcontractor.com</a></span>
+                        <span class="footer-contact-text"><a href="mailto:info@tabeebgroup.com" style="color: inherit;">info@tabeebgroup.com</a></span>
+                    </div>
+                    <div class="footer-contact-item">
+                        <span class="footer-contact-icon">🌐</span>
+                        <span class="footer-contact-text"><a href="https://tabeebgroup.com" style="color: inherit;">www.tabeebgroup.com</a></span>
                     </div>
                 </div>
             </div>

@@ -27,14 +27,14 @@
     <meta property="twitter:description" content="Learn more about Tabeeb Contractor Pte Ltd, our quality commitment, building safety records, and workflow for residential and commercial renovations, structural works, and reinstatements in Singapore.">
     <meta property="twitter:image" content="https://www.tabeebcontractor.com/images/hero-bg.png">
     
-    <!-- CSS Stylesheet -->
-    <link rel="stylesheet" href="style.css">
+    <!-- CSS Stylesheet (Versioned to guarantee immediate refresh) -->
+    <link rel="stylesheet" href="style.css?v=3.1">
 </head>
 <body>
 
     <!-- Header Navigation with Topbar -->
     <header class="header scrolled" id="header">
-        <!-- Top Contact Bar (Inspired by Leong Yik) -->
+        <!-- Top Contact Bar (Inspired by Company Poster) -->
         <div class="topbar">
             <div class="container">
                 <div class="topbar-left">
@@ -53,12 +53,7 @@
             <div class="container">
                 <div class="header-wrapper">
                     <a href="/" class="logo" id="header-logo" aria-label="Tabeeb Contractor Pte Ltd">
-                        <img src="images/logo-mark-white.png" alt="Tabeeb Contractor Mark" class="logo-mark-img" width="54" height="30">
-                        <div class="logo-text-group">
-                            <span class="logo-brand-title">TABEEB</span>
-                            <span class="logo-badge-sub">CONTRACTOR PTE LTD</span>
-                            <span class="logo-slogan-sub">BUILDING BETTER SPACES</span>
-                        </div>
+                        <img src="images/logo-horizontal.png" alt="Tabeeb Contractor Pte Ltd - Building Better Spaces" class="header-logo-img">
                     </a>
                     <nav>
                         <ul class="nav-list" id="nav-list">
@@ -66,7 +61,7 @@
                             <li><a href="services" class="nav-link">Services</a></li>
                             <li><a href="about" class="nav-link active">About Us</a></li>
                             <li><a href="contact" class="nav-link">Contact</a></li>
-                            <li><a href="javascript:void(0)" class="btn btn-primary open-quote-modal-btn" style="padding: 10px 20px; font-size: 14px;">Get a Quote</a></li>
+                            <li><a href="javascript:void(0)" class="btn btn-quote-header open-quote-modal-btn">Get a Quote</a></li>
                         </ul>
                     </nav>
                     <button class="burger" id="burger-menu" aria-label="Toggle Menu">
@@ -177,6 +172,29 @@
         </div>
     </section>
 
+    <!-- Official Company Poster Showcase -->
+    <section class="poster-showcase-section">
+        <div class="container">
+            <div class="poster-showcase-grid">
+                <div class="poster-showcase-info fade-in-up">
+                    <span class="hero-trusted-badge">Official Profile</span>
+                    <h2 style="font-size: 38px; color: #ffffff; margin-bottom: 20px;">Your Trusted Renovation Partner In Singapore</h2>
+                    <p style="font-size: 16px; color: rgba(255, 255, 255, 0.88); margin-bottom: 24px; line-height: 1.6;">Tabeeb Contractor Pte Ltd delivers residential and commercial building excellence. Explore our verified project capabilities from structural hacking, flooring, and ceiling partitions to electrical, plumbing, painting, and interior styling.</p>
+                    <div style="display: flex; gap: 16px; flex-wrap: wrap;">
+                        <a href="images/tabeeb-poster.jpg" target="_blank" class="btn btn-quote-header" style="padding: 14px 28px; font-size: 15px;">🔍 View Official Poster (HD)</a>
+                        <a href="contact" class="btn btn-outline-white" style="padding: 14px 28px; font-size: 15px;">Get In Touch</a>
+                    </div>
+                </div>
+                <div class="poster-showcase-card fade-in-up">
+                    <a href="images/tabeeb-poster.jpg" target="_blank" title="Click to view full high-definition poster">
+                        <img src="images/tabeeb-poster.jpg" alt="Tabeeb Contractor Pte Ltd Official Services Poster" loading="lazy">
+                    </a>
+                    <span style="display: block; font-size: 12px; color: var(--color-gold); margin-top: 10px; font-weight: 600;">Click image to enlarge official poster</span>
+                </div>
+            </div>
+        </div>
+    </section>
+
     <!-- Footer -->
     <footer class="footer">
         <div class="container">
@@ -199,11 +217,12 @@
                 <div class="footer-col">
                     <h3>Our Services</h3>
                     <ul>
-                        <li><a href="services#demolition">Hacking & Demolition</a></li>
-                        <li><a href="services#flooring">Flooring & Cement Screed</a></li>
-                        <li><a href="services#ceilings">False Ceilings</a></li>
-                        <li><a href="services#mep">Plumbing & Electrical</a></li>
-                        <li><a href="services#waterproofing">Waterproofing Solutions</a></li>
+                        <li><a href="services#demolition">Hacking & Demolition Works</a></li>
+                        <li><a href="services#flooring">Flooring Works (Tiling & Vinyl)</a></li>
+                        <li><a href="services#ceilings">Ceiling & Partition Works</a></li>
+                        <li><a href="services#mep">Electrical & Plumbing Works</a></li>
+                        <li><a href="services#painting">Painting & Surface Coating</a></li>
+                        <li><a href="services#renovation">Interior Renovation Works</a></li>
                     </ul>
                 </div>
                 <div class="footer-col">
@@ -218,7 +237,11 @@
                     </div>
                     <div class="footer-contact-item">
                         <span class="footer-contact-icon">✉️</span>
-                        <span class="footer-contact-text"><a href="mailto:info@tabeebcontractor.com" style="color: inherit;">info@tabeebcontractor.com</a></span>
+                        <span class="footer-contact-text"><a href="mailto:info@tabeebgroup.com" style="color: inherit;">info@tabeebgroup.com</a></span>
+                    </div>
+                    <div class="footer-contact-item">
+                        <span class="footer-contact-icon">🌐</span>
+                        <span class="footer-contact-text"><a href="https://tabeebgroup.com" style="color: inherit;">www.tabeebgroup.com</a></span>
                     </div>
                 </div>
             </div>
