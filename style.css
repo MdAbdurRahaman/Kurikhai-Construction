@@ -408,7 +408,7 @@ img {
 .header-logo-img {
     height: 52px;
     width: auto;
-    max-width: 270px;
+    max-width: 310px;
     object-fit: contain;
     display: block;
     transition: var(--transition-fast);
@@ -505,7 +505,7 @@ img {
 }
 
 .footer-logo-img {
-    max-width: 240px;
+    max-width: 280px;
     height: auto;
     display: block;
     filter: drop-shadow(0 4px 12px rgba(0, 0, 0, 0.4));
@@ -515,65 +515,6 @@ img {
 .footer-logo-link:hover .footer-logo-img {
     opacity: 0.94;
     transform: translateY(-2px);
-}
-
-.nav-list {
-    display: flex;
-    list-style: none;
-    gap: 32px;
-    align-items: center;
-}
-
-.nav-link {
-    font-family: var(--font-heading);
-    font-weight: 500;
-    font-size: 15px;
-    color: rgba(255, 255, 255, 0.85);
-    position: relative;
-    padding: 8px 0;
-    transition: var(--transition-fast);
-}
-
-.nav-link::after {
-    content: '';
-    position: absolute;
-    bottom: 0;
-    left: 0;
-    width: 0;
-    height: 2px;
-    background-color: var(--color-accent);
-    transition: var(--transition-fast);
-}
-
-.nav-link:hover::after,
-.nav-link.active::after {
-    width: 100%;
-}
-
-.nav-link:hover,
-.nav-link.active {
-    color: var(--color-accent);
-}
-
-/* Burger Menu */
-.burger {
-    display: none;
-    cursor: pointer;
-    background: transparent;
-    border: none;
-    z-index: 1100;
-}
-
-.burger div {
-    width: 25px;
-    height: 3px;
-    background-color: var(--color-primary);
-    margin: 5px;
-    transition: var(--transition-normal);
-}
-
-.header.scrolled .burger div {
-    background-color: var(--color-bg-white);
 }
 
 /* Hero Section */
