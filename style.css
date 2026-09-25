@@ -6,18 +6,18 @@
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Outfit:wght@300;400;500;600;700;800;900&display=swap');
 
 :root {
-    /* Colors - Inspired by Premium Singapore Contractors (Leong Yik) */
-    --color-primary: #0a1128;       /* Deep Authority Navy */
-    --color-primary-light: #16224f; /* Slate Navy */
-    --color-primary-dark: #050a18;  /* Near Black / Deep Midnight */
+    /* Official Tabeeb Corporate Palette */
+    --color-primary: #07274d;       /* Authority Contractor Navy */
+    --color-primary-light: #0d386b; /* Slate Contractor Navy */
+    --color-primary-dark: #041933;  /* Deep Midnight Foundation */
     
     --color-accent: #00b4d8;        /* Vibrant Engineering Cyan */
     --color-accent-hover: #0077b6;  /* Sapphire Blue */
     --color-accent-light: #e0f2fe;  /* Soft Ice Blue */
     
-    --color-gold: #d4af37;          /* Architectural Gold */
-    --color-gold-hover: #b89628;    /* Deep Gold */
-    --color-gold-light: #fef9e7;    /* Warm Champagne */
+    --color-gold: #c2963f;          /* Architectural Gold */
+    --color-gold-hover: #a67d2e;    /* Deep Gold Accent */
+    --color-gold-light: #fef8ee;    /* Warm Champagne */
 
     --color-text-dark: #0f172a;     /* Deep Slate Text */
     --color-text-muted: #64748b;    /* Slate Muted Text */
@@ -361,22 +361,19 @@ img {
     display: flex;
     align-items: center;
     gap: 12px;
+    text-decoration: none;
 }
 
-.logo-icon {
-    width: 42px;
-    height: 42px;
-    background: linear-gradient(135deg, #00b4d8 0%, #0077b6 100%);
-    border: 2px solid rgba(255, 255, 255, 0.25);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    color: var(--color-bg-white);
-    border-radius: var(--radius-sm);
-    font-weight: 900;
-    font-family: var(--font-heading);
-    font-size: 24px;
-    box-shadow: 0 4px 10px rgba(0, 180, 216, 0.35);
+.logo-mark-img {
+    height: 46px;
+    width: auto;
+    object-fit: contain;
+    transition: var(--transition-fast);
+    filter: drop-shadow(0 2px 8px rgba(0, 0, 0, 0.35));
+}
+
+.logo:hover .logo-mark-img {
+    transform: translateY(-1px) scale(1.04);
 }
 
 .logo-text-group {
@@ -384,22 +381,67 @@ img {
     flex-direction: column;
 }
 
-.logo h1 {
+.logo h1,
+.logo .logo-brand-title {
     font-size: 21px;
     font-family: var(--font-heading);
-    font-weight: 800;
-    letter-spacing: -0.5px;
+    font-weight: 900;
+    letter-spacing: 2.2px;
     color: var(--color-bg-white);
-    line-height: 1.1;
+    line-height: 1;
+    margin: 0;
+    text-transform: uppercase;
 }
 
 .logo-badge-sub {
-    font-size: 11px;
-    letter-spacing: 1px;
+    font-size: 9.5px;
+    letter-spacing: 1.6px;
     text-transform: uppercase;
-    color: var(--color-accent);
+    color: rgba(255, 255, 255, 0.88);
+    font-weight: 700;
+    margin-top: 3px;
+    line-height: 1;
+}
+
+.logo-slogan-sub {
+    font-size: 8px;
+    letter-spacing: 1.4px;
+    text-transform: uppercase;
+    color: var(--color-gold);
     font-weight: 600;
-    margin-top: 2px;
+    margin-top: 3px;
+    line-height: 1;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+}
+
+.logo-slogan-sub::before,
+.logo-slogan-sub::after {
+    content: '';
+    display: inline-block;
+    width: 8px;
+    height: 1px;
+    background-color: var(--color-gold);
+}
+
+/* Footer Logo Styles */
+.footer-logo-link {
+    display: inline-block;
+    margin-bottom: 20px;
+}
+
+.footer-logo-img {
+    max-width: 230px;
+    height: auto;
+    display: block;
+    filter: drop-shadow(0 4px 12px rgba(0, 0, 0, 0.4));
+    transition: var(--transition-fast);
+}
+
+.footer-logo-link:hover .footer-logo-img {
+    opacity: 0.92;
+    transform: translateY(-2px);
 }
 
 .nav-list {
