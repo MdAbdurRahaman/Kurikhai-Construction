@@ -357,4 +357,26 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         });
     }
+
+    // 8. FAQ Accordion Toggle (For SEO Rich FAQ Sections)
+    const faqButtons = document.querySelectorAll('.faq-question');
+    if (faqButtons.length > 0) {
+        faqButtons.forEach(btn => {
+            btn.addEventListener('click', () => {
+                const currentItem = btn.closest('.faq-item');
+                const wasActive = currentItem.classList.contains('active');
+                
+                // Close other items in the same container
+                const parentAccordion = currentItem.closest('.faq-accordion');
+                if (parentAccordion) {
+                    parentAccordion.querySelectorAll('.faq-item.active').forEach(item => {
+                        if (item !== currentItem) item.classList.remove('active');
+                    });
+                }
+                
+                currentItem.classList.toggle('active', !wasActive);
+            });
+        });
+    }
 });
+
