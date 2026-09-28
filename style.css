@@ -517,10 +517,10 @@ img {
     transform: translateY(-2px);
 }
 
-/* Hero Section */
+/* Hero Section - Bright, Crisp Architectural Presentation */
 .hero {
     min-height: 100vh;
-    background: linear-gradient(rgba(15, 23, 42, 0.75), rgba(15, 23, 42, 0.9)), url('images/hero-bg.png') no-repeat center center/cover;
+    background: linear-gradient(90deg, rgba(7, 39, 77, 0.82) 0%, rgba(7, 39, 77, 0.58) 46%, rgba(7, 39, 77, 0.20) 80%, rgba(7, 39, 77, 0.08) 100%), url('images/hero-bg.jpg') no-repeat center right/cover;
     display: flex;
     align-items: center;
     color: var(--color-bg-white);
@@ -530,7 +530,9 @@ img {
 }
 
 .hero-content {
-    max-width: 700px;
+    max-width: 720px;
+    position: relative;
+    z-index: 2;
 }
 
 .hero-subtitle {
@@ -539,10 +541,11 @@ img {
     font-size: 14px;
     text-transform: uppercase;
     letter-spacing: 2px;
-    color: var(--color-accent);
+    color: var(--color-gold);
     margin-bottom: 16px;
     display: inline-block;
-    background-color: rgba(0, 180, 216, 0.15);
+    background-color: rgba(194, 150, 63, 0.18);
+    border: 1px solid rgba(194, 150, 63, 0.35);
     padding: 6px 16px;
     border-radius: var(--radius-full);
 }
@@ -551,15 +554,18 @@ img {
     font-size: 56px;
     font-weight: 800;
     line-height: 1.15;
-    color: var(--color-bg-white);
+    color: #ffffff;
     margin-bottom: 24px;
     letter-spacing: -1px;
+    text-shadow: 0 3px 14px rgba(0, 0, 0, 0.65);
 }
 
 .hero-desc {
     font-size: 18px;
-    color: rgba(255, 255, 255, 0.85);
+    color: rgba(255, 255, 255, 0.95);
     margin-bottom: 40px;
+    text-shadow: 0 2px 8px rgba(0, 0, 0, 0.65);
+    line-height: 1.6;
 }
 
 .hero-actions {
@@ -898,9 +904,9 @@ img {
     color: var(--color-text-muted);
 }
 
-/* Call To Action Banner */
+/* Call To Action Banner - Bright Commercial Showcase */
 .cta-banner {
-    background: linear-gradient(rgba(26, 31, 44, 0.85), rgba(26, 31, 44, 0.95)), url('images/hero-bg.png') no-repeat center center/cover;
+    background: linear-gradient(rgba(7, 39, 77, 0.72), rgba(7, 39, 77, 0.85)), url('images/cta-bg.jpg') no-repeat center center/cover;
     padding: 80px 0;
     color: var(--color-bg-white);
     text-align: center;
@@ -1097,9 +1103,9 @@ textarea.form-control {
     box-shadow: var(--shadow-gold);
 }
 
-/* Sub-page Hero style */
+/* Sub-page Hero style - Bright Architectural Header */
 .subpage-hero {
-    background: linear-gradient(rgba(10, 17, 40, 0.88), rgba(5, 10, 24, 0.95)), url('images/hero-bg.png') no-repeat center center/cover;
+    background: linear-gradient(rgba(7, 39, 77, 0.68), rgba(7, 39, 77, 0.82)), url('images/page-header-bg.jpg') no-repeat center center/cover;
     padding: 170px 0 80px 0;
     color: var(--color-bg-white);
     text-align: center;
@@ -1355,13 +1361,18 @@ textarea.form-control {
 
 @media (max-width: 768px) {
     :root {
-        --header-height: 70px;
+        --header-height: 64px;
     }
     .section {
         padding: 60px 0;
     }
     .header-wrapper {
         height: var(--header-height);
+    }
+    .header-logo-img {
+        height: 40px;
+        max-width: min(250px, calc(100vw - 85px));
+        width: auto;
     }
     .nav-list {
         position: fixed;
@@ -1403,8 +1414,21 @@ textarea.form-control {
         transform: rotate(45deg) translate(-5px, -6px);
     }
     
-    .hero h1 { font-size: 36px; }
-    .hero-desc { font-size: 16px; }
+    .hero {
+        background: linear-gradient(180deg, rgba(7, 39, 77, 0.86) 0%, rgba(7, 39, 77, 0.70) 55%, rgba(7, 39, 77, 0.40) 100%), url('images/hero-bg.jpg') no-repeat center center/cover;
+        padding-top: calc(var(--header-height) + 24px);
+        padding-bottom: 70px;
+    }
+    .hero-content {
+        background: rgba(7, 39, 77, 0.38);
+        backdrop-filter: blur(8px);
+        -webkit-backdrop-filter: blur(8px);
+        padding: 24px 18px;
+        border-radius: var(--radius-md);
+        border: 1px solid rgba(255, 255, 255, 0.12);
+    }
+    .hero h1 { font-size: 32px; line-height: 1.2; }
+    .hero-desc { font-size: 15px; line-height: 1.5; margin-bottom: 28px; }
     .hero-actions {
         flex-direction: column;
         gap: 12px;
@@ -1442,6 +1466,19 @@ textarea.form-control {
 }
 
 @media (max-width: 480px) {
+    .header-wrapper {
+        height: 58px;
+    }
+    .header-logo-img {
+        height: 34px;
+        max-width: min(215px, calc(100vw - 75px));
+    }
+    .hero h1 {
+        font-size: 28px;
+    }
+    .hero-content {
+        padding: 20px 14px;
+    }
     .workflow-grid {
         grid-template-columns: 1fr;
     }
@@ -1633,8 +1670,8 @@ textarea.form-control {
     display: inline-flex;
     align-items: center;
     gap: 8px;
-    background: rgba(194, 150, 63, 0.18);
-    border: 1px solid rgba(194, 150, 63, 0.45);
+    background: rgba(194, 150, 63, 0.22);
+    border: 1px solid rgba(194, 150, 63, 0.55);
     color: var(--color-gold);
     font-family: var(--font-heading);
     font-size: 13px;
@@ -1644,6 +1681,9 @@ textarea.form-control {
     padding: 6px 16px;
     border-radius: var(--radius-full);
     margin-bottom: 18px;
+    backdrop-filter: blur(6px);
+    -webkit-backdrop-filter: blur(6px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.25);
 }
 
 .hero-pill-row {
@@ -1657,15 +1697,17 @@ textarea.form-control {
 .hero-pill-item {
     font-family: var(--font-heading);
     font-size: 14px;
-    font-weight: 600;
+    font-weight: 700;
     letter-spacing: 1px;
     text-transform: uppercase;
-    color: rgba(255, 255, 255, 0.9);
+    color: #ffffff;
+    text-shadow: 0 2px 6px rgba(0, 0, 0, 0.7);
 }
 
 .hero-pill-dot {
     color: var(--color-gold);
     font-size: 16px;
+    text-shadow: 0 2px 6px rgba(0, 0, 0, 0.7);
 }
 
 /* 8 Core Service Cards Grid (Matching Poster Layout) */
