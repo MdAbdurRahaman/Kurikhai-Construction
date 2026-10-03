@@ -1,14 +1,39 @@
 RewriteEngine On
 
-# Redirect /index.html to /
+# Block sensitive data and configuration extensions
+<FilesMatch "\.(json|sqlite|log|tmp|bak)$">
+    <IfModule mod_authz_core.c>
+        Require all denied
+    </IfModule>
+    <IfModule !mod_authz_core.c>
+        Deny from all
+    </IfModule>
+</FilesMatch>
+
+# 1. Clean URLs for Blog Posts: /blog/article-slug -> blog-post.php?slug=article-slug
+RewriteRule ^blog/([a-zA-Z0-9_-]+)/?$ blog-post.php?slug=$1 [L,QSA]
+
+# 2. Clean URL for Main Blog Listing: /blog -> blog.php
+RewriteRule ^blog/?$ blog.php [L,QSA]
+
+# 3. Clean URLs for Dedicated Services: /service/slug -> service.php?slug=slug
+RewriteRule ^service/([a-zA-Z0-9_-]+)/?$ service.php?slug=$1 [L,QSA]
+RewriteRule ^services/([a-zA-Z0-9_-]+)/?$ service.php?slug=$1 [L,QSA]
+
+# 4. Redirect /index.html to /
 RewriteCond %{THE_REQUEST} ^[A-Z]{3,9}\ /index\.html\ HTTP/
 RewriteRule ^index\.html$ / [R=301,L]
 
-# Redirect /page.html to /page
+# 5. Redirect /page.html to /page
 RewriteCond %{THE_REQUEST} ^[A-Z]{3,9}\ /([^.]+)\.html\ HTTP/
 RewriteRule ^([^.]+)\.html$ /$1 [R=301,L]
 
-# Internal rewrite from /page to /page.html
+# 6. Internal rewrite from /page to /page.html
 RewriteCond %{REQUEST_FILENAME} !-d
 RewriteCond %{REQUEST_FILENAME}\.html -f
 RewriteRule ^([^/]+)$ $1.html [L]
+
+# 7. Internal rewrite from /page to /page.php
+RewriteCond %{REQUEST_FILENAME} !-d
+RewriteCond %{REQUEST_FILENAME}\.php -f
+RewriteRule ^([^/]+)$ $1.php [L]

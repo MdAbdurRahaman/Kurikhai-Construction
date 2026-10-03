@@ -1,0 +1,387 @@
+[
+  {
+    "id": "demolition-hacking",
+    "slug": "demolition-hacking",
+    "name": "Demolition, Hacking & Reinstatement",
+    "short_title": "Wall Hacking & Demolition",
+    "og_title": "HDB-Approved Hacking Contractor SG | Wall Hacking & Demolition - Tabeeb Contractor",
+    "og_description": "Licensed HDB & commercial wall hacking, floor tile removal, masonry demolition and debris haulage in Singapore. Fast turnaround & free site inspection.",
+    "category": "structural",
+    "category_name": "Structural & Preparation",
+    "badge": "HDB Licensed & BCA Approved",
+    "icon": "🔨",
+    "image": "images/demolition.png",
+    "hero_tagline": "Safe, regulated wall hacking and commercial tenancy reinstatement compliant with HDB and building management standards.",
+    "overview": "Tabeeb Contractor provides regulated, high-precision demolition and wall hacking services across residential HDB flats, private condominiums, commercial offices, and industrial units in Singapore. Our team handles everything from authority submission clearances to structural protection, dust barrier containment, high-speed hacking, and authorized debris disposal.",
+    "scope_of_work": [
+      "HDB-approved non-structural wall hacking and boundary alterations",
+      "Floor and wall tile hacking (living rooms, kitchens, bathrooms)",
+      "Commercial office tenancy reinstatement and landlord handover compliance",
+      "Removal of built-in cabinetry, wardrobes, false ceilings, and fixtures",
+      "Professional debris bagging, corridor protection, and NEA-licensed disposal",
+      "Pre-renovation site survey and acoustic protection measures"
+    ],
+    "key_benefits": [
+      {"title": "HDB & BCA Compliant", "desc": "All hacking operations adhere strictly to HDB renovation guidelines and structural safety rules."},
+      {"title": "Direct Contractor Pricing", "desc": "Zero middleman fees. Save 20% to 35% compared to interior design firm commissions."},
+      {"title": "Fast Turnaround", "desc": "Efficient crews complete standard HDB flat hacking within 2 to 4 working days."},
+      {"title": "Full Site Protection", "desc": "Lift padding, corridor floor protection, and dust control curtains included as standard."}
+    ],
+    "process": [
+      {"step": "01", "title": "Site Inspection", "desc": "We inspect the structural blueprints and identify load-bearing columns vs non-structural walls."},
+      {"step": "02", "title": "Permit Clearance", "desc": "Assist with HDB or Management Corporation Strata Title (MCST) renovation permit filing."},
+      {"step": "03", "title": "Site Hoarding & Hacking", "desc": "Deploy heavy-duty floor protection, protective padding, and systematically dismantle targets."},
+      {"step": "04", "title": "Debris Disposal & Cleanup", "desc": "Prompt haulage to licensed dumping grounds and thorough vacuum sweeping ready for subsequent trades."}
+    ],
+    "faq": [
+      {"q": "Do I need a permit to hack walls in an HDB flat?", "a": "Yes. Any wall hacking, partial demolition, or doorway creation in an HDB flat requires written approval from HDB before works commence. Tabeeb Contractor assists clients through this entire approval workflow."},
+      {"q": "How long does HDB hacking take?", "a": "A standard 3-room to 5-room HDB flat hacking (kitchen, 2 bathrooms, floor tiles, and 1 non-structural wall) typically takes 2 to 4 working days."}
+    ]
+  },
+  {
+    "id": "commercial-office-reinstatement",
+    "slug": "commercial-office-reinstatement",
+    "name": "Commercial Office & Tenancy Reinstatement",
+    "short_title": "Commercial Office Reinstatement",
+    "og_title": "Direct Commercial Office Reinstatement Singapore | Landlord Handover - Tabeeb Contractor",
+    "og_description": "Specialist office, retail & warehouse reinstatement across Singapore. Fast landlord handover, partition removal, ceiling restoration, hacking & M&E.",
+    "category": "structural",
+    "category_name": "Structural & Preparation",
+    "badge": "Turnkey Landlord Handover",
+    "icon": "🏢",
+    "image": "images/service-interior.jpg",
+    "hero_tagline": "Stress-free reinstatement services for offices, retail stores, and commercial tenancies adhering strictly to landlord handover guidelines.",
+    "overview": "When relocating or exiting a commercial tenancy in Singapore, building landlords enforce strict lease agreements mandating the premises be restored to its original bare-shell state. Tabeeb Contractor acts as your direct reinstatement contractor, managing all landlord coordination, partition dismantling, carpet stripping, false ceiling restoration, and M&E fire safety rectifications.",
+    "scope_of_work": [
+      "Removal of drywall partitions, glass demountable walls, and cubicle enclosures",
+      "Dismantling of built-in reception counters, pantries, and custom carpentry",
+      "Removal of carpet tiles, vinyl flooring, adhesives, and self-levelling screed",
+      "False ceiling grid repair, replacement of damaged acoustic tiles, and paint restoration",
+      "Electrical rewiring restoration, capping exposed conduits, and emergency exit lighting testing",
+      "Sprinkler head relocation, smoke detector realignment, and FSSD fire safety compliance",
+      "Joint joint inspection with building management and 100% security deposit release assurance"
+    ],
+    "key_benefits": [
+      {"title": "100% Deposit Return Guarantee", "desc": "We work closely with the building management until full handover signoff is achieved."},
+      {"title": "After-Hours & Weekend Work", "desc": "Crews operate on night shifts and weekends to respect commercial building noise curfews."},
+      {"title": "Direct Trade Crews", "desc": "In-house electricians, carpenters, and hack crews ensure no delays or finger-pointing."},
+      {"title": "Fixed Lump-Sum Quotes", "desc": "Clear itemized proposals based directly on your landlord's Tenancy Handover Checklist."}
+    ],
+    "process": [
+      {"step": "01", "title": "Tenancy Review & Site Walk", "desc": "We walk through the premises with your tenancy handover condition report to map exact requirements."},
+      {"step": "02", "title": "Management Approval", "desc": "Submit work permits, risk assessments (RA/MOS), and security deposits to building management."},
+      {"step": "03", "title": "Phased Reinstatement", "desc": "Systematic dismantling of carpentry, drywall, flooring, electrical circuits, and repainting."},
+      {"step": "04", "title": "Landlord Inspection", "desc": "Attend the official joint inspection with building management and immediately clear any punch-list items."}
+    ],
+    "faq": [
+      {"q": "What is included in a commercial reinstatement in Singapore?", "a": "Typically, landlords require returning the unit to bare state: removing all partitions, carpets, adhesives, false ceilings or restoring standard grids, rewiring electrical back to the main DB, repainting walls to standard white, and restoring fire sprinklers."},
+      {"q": "How far in advance should we engage a reinstatement contractor?", "a": "We recommend engaging us 3 to 4 weeks before your lease expiration date to allow sufficient time for management permit submissions, security clearance, and smooth execution without rush penalties."}
+    ]
+  },
+  {
+    "id": "flooring-cement-screed",
+    "slug": "flooring-cement-screed",
+    "name": "Flooring Installation & BCA Pre-Packed Cement Screed",
+    "short_title": "Flooring & Cement Screeding",
+    "og_title": "HDB Flooring & Pre-Packed Cement Screed Contractor Singapore - Tabeeb Contractor",
+    "og_description": "BCA-approved pre-packed cement screeding, homogeneous & marble tile installation, luxury waterproof SPC vinyl flooring across Singapore.",
+    "category": "finishing",
+    "category_name": "Interior & Finishing",
+    "badge": "BCA Approved Screeding",
+    "icon": "🪵",
+    "image": "images/flooring.png",
+    "hero_tagline": "Precision floor leveling, BCA pre-packed cement screeding, Italian homogeneous tiles, and luxury waterproof vinyl installations.",
+    "overview": "Flooring forms the fundamental foundation of your interior aesthetic and everyday durability. Tabeeb Contractor specializes in high-precision floor leveling, BCA-mandated pre-packed cement screeding for HDB flats, precision large-format tile laying, and luxury vinyl plank installations for homes and commercial offices.",
+    "scope_of_work": [
+      "BCA-approved pre-packed cement screeding for HDB living rooms, bedrooms, and kitchens",
+      "Self-levelling underlayment compound application for ultra-flat floor preparation",
+      "Homogeneous, porcelain, ceramic, terrazzo, and marble tile installation",
+      "Heavy-duty commercial luxury SPC waterproof click-lock vinyl flooring",
+      "Solid timber parquet floor installation, grinding, and polyurethane varnishing",
+      "Skirting board installation and silicone perimeter perimeter expansion joints"
+    ],
+    "key_benefits": [
+      {"title": "BCA-Approved Screed", "desc": "We use strictly certified pre-packed screed formulations ensuring zero hollow tiles or cracking."},
+      {"title": "Laser Level Precision", "desc": "State-of-the-art optical laser levels ensure absolute flat surfaces across all rooms."},
+      {"title": "Skilled Master Tilers", "desc": "Experienced Malaysian and Singaporean master tilers with over 15+ years of craft expertise."},
+      {"title": "Hollow-Tile Warranty", "desc": "Comprehensive workmanship warranty covering tile bonding and screed integrity."}
+    ],
+    "process": [
+      {"step": "01", "title": "Subfloor Inspection", "desc": "Measure moisture content and identify uneven floor depressions with digital laser levels."},
+      {"step": "02", "title": "Bonding Primer & Screeding", "desc": "Apply adhesive slurry bonding coat followed by BCA-approved pre-packed cement screed."},
+      {"step": "03", "title": "Tiling / Vinyl Laying", "desc": "Precision tile alignment with tile leveling clips or seamless click-lock vinyl placement."},
+      {"step": "04", "title": "Grouting & Protection", "desc": "Anti-stain epoxy or polymer grouting, followed by corrugated cardboard surface protection."}
+    ],
+    "faq": [
+      {"q": "Why is pre-packed cement screed mandatory for HDB flats?", "a": "HDB mandates pre-packed cement screed because it is pre-mixed in controlled factory conditions, eliminating site batch errors, minimizing dust, and ensuring consistent structural bonding strength."},
+      {"q": "Can SPC vinyl flooring be laid directly over existing tiles?", "a": "Yes! If your existing tiles are firmly bonded, level, and free of cracks, luxury SPC click-lock vinyl can be installed directly on top, saving significant hacking and disposal costs."}
+    ]
+  },
+  {
+    "id": "false-ceiling-drywall-partition",
+    "slug": "false-ceiling-drywall-partition",
+    "name": "False Ceiling & Drywall Partition Specialist",
+    "short_title": "False Ceilings & Partitions",
+    "og_title": "Commercial False Ceiling & Drywall Partition Contractor Singapore - Tabeeb Contractor",
+    "og_description": "Gypsum false ceilings, acoustic office grid ceilings, soundproof drywall partitions, and custom cove lighting troughs in Singapore.",
+    "category": "finishing",
+    "category_name": "Interior & Finishing",
+    "badge": "Acoustic & Fire-Rated",
+    "icon": "🏠",
+    "image": "images/ceiling.png",
+    "hero_tagline": "Elegant architectural false ceilings, cove light troughs, and acoustic sound-insulated drywall partitions for modern spaces.",
+    "overview": "Transform the spatial quality and acoustics of your space with bespoke ceiling and partition craftsmanship. Tabeeb Contractor designs and installs gypsum board false ceilings, concealed LED cove light troughs, drop ceilings, acoustic office grids, and fire-rated soundproof drywall partitions.",
+    "scope_of_work": [
+      "Gypsum board false ceilings with perimeter shadow gaps and curtain pelmets",
+      "Concealed LED cove light troughs and downlight cutouts with reinforced framing",
+      "Acoustic grid false ceilings (600x600mm / 600x1200mm) for commercial offices",
+      "Drywall partition walls with rockwool acoustic soundproofing insulation (up to STC 50+)",
+      "Moisture-resistant ceiling boards for bathrooms, kitchens, and outdoor balcony soffits",
+      "Fire-rated drywall partitions (1-hour / 2-hour FSSD certification)"
+    ],
+    "key_benefits": [
+      {"title": "High-Grade Galvanized Framing", "desc": "We use heavy-gauge galvanized steel channels that resist warping and sagging over time."},
+      {"title": "Rockwool Acoustic Infill", "desc": "High-density acoustic rockwool provides superior privacy between executive offices and bedrooms."},
+      {"title": "Seamless Joint Finishing", "desc": "3-coat fiber-taped joint compound creates flawlessly smooth surfaces ready for painting."},
+      {"title": "Fast Clean Installation", "desc": "Clean dry-construction methods ensure rapid completion with minimal dust disruption."}
+    ],
+    "process": [
+      {"step": "01", "title": "Layout Marking", "desc": "Laser alignment of ceiling levels, partition axes, and electrical lighting conduits."},
+      {"step": "02", "title": "Galvanized Metal Framing", "desc": "Secure anchor bolting of heavy-gauge ceiling suspension rods and partition studs."},
+      {"step": "03", "title": "Boarding & Insulation", "desc": "Install rockwool acoustic insulation followed by gypsum board fastening."},
+      {"step": "04", "title": "Joint Taping & Sanding", "desc": "Perforated paper joint taping, three coats of joint compound, and dustless orbital sanding."}
+    ],
+    "faq": [
+      {"q": "What is the standard height of a false ceiling in an HDB flat?", "a": "Standard HDB ceiling heights are typically around 2.6m. A false ceiling usually drops 100mm to 150mm to accommodate recessed downlights or LED cove strips while maintaining ample head clearance."}
+    ]
+  },
+  {
+    "id": "painting-plastering",
+    "slug": "painting-plastering",
+    "name": "Commercial & Residential Painting & Plastering",
+    "short_title": "Painting & Wall Plastering",
+    "og_title": "Direct Painting & Wall Plastering Contractor Singapore - Tabeeb Contractor",
+    "og_description": "Professional multi-coat interior & exterior painting, drywall skimming, wall plastering, and epoxy flooring by licensed Singapore contractors.",
+    "category": "finishing",
+    "category_name": "Interior & Finishing",
+    "badge": "Anti-Mould & Eco Paints",
+    "icon": "🖌️",
+    "image": "images/painting.png",
+    "hero_tagline": "Premium wall skim coating, hairline crack repair, and multi-coat painting using anti-mould, low-VOC Singapore Green Label paints.",
+    "overview": "A pristine paint finish elevates the entire appearance and feel of any home or commercial building. Tabeeb Contractor delivers meticulous wall preparation, full-skim plastering for uneven walls, moisture barrier sealers, and premium multi-coat finishes using authentic Nippon Paint, Dulux, and Jotun formulations.",
+    "scope_of_work": [
+      "Full wall and ceiling skim coating to eliminate uneven waviness and rough surfaces",
+      "Hairline plaster crack repair, water mark sealers, and anti-peeling primers",
+      "Interior multi-coat emulsion painting (matt, satin, and low-sheen washable finishes)",
+      "Anti-mould and anti-bacterial coatings specifically formulated for humid Singapore climates",
+      "Commercial heavy-duty epoxy floor painting for warehouses, car parks, and industrial kitchens",
+      "Exterior weather-shield elastomeric coatings for landed property facades"
+    ],
+    "key_benefits": [
+      {"title": "100% Genuine Paints", "desc": "We use strictly un-diluted authentic Nippon Paint, Dulux, and Jotun premium lines."},
+      {"title": "Complete Furniture Masking", "desc": "Floors, furniture, and fixtures are fully draped with protective drop sheets and masking tape."},
+      {"title": "Anti-Mould & Low-VOC", "desc": "Eco-friendly Singapore Green Label paints safe for children, pets, and sensitive occupants."},
+      {"title": "Multi-Coat Guarantee", "desc": "1 coat sealer/primer + 2 full finish coats applied for rich depth of color and durability."}
+    ],
+    "process": [
+      {"step": "01", "title": "Site Protection", "desc": "Carefully wrap furniture, mask sockets, switches, door frames, and cover all flooring."},
+      {"step": "02", "title": "Surface Preparation", "desc": "Scrape loose flaking paint, patch cracks with joint filler, and skim uneven walls."},
+      {"step": "03", "title": "Alkali-Resistant Sealer", "desc": "Apply premium oil-based or water-based primer to prevent paint chalking and moisture bleed."},
+      {"step": "04", "title": "Two Finish Coats", "desc": "Even roller and brush application of two top coats with strict drying intervals."}
+    ],
+    "faq": [
+      {"q": "How long does painting a 4-room HDB flat take?", "a": "A standard 4-room HDB flat painting (walls and ceilings across 3 bedrooms, 2 bathrooms, living room, and kitchen) typically takes 2 to 3 days including prep work and touch-ups."}
+    ]
+  },
+  {
+    "id": "plumbing-sanitary",
+    "slug": "plumbing-sanitary",
+    "name": "PUB-Licensed Plumbing & Sanitary Works",
+    "short_title": "Plumbing & Sanitary Works",
+    "og_title": "PUB Licensed Direct Plumbing & Sanitary Contractor Singapore - Tabeeb Contractor",
+    "og_description": "PUB-licensed plumbing services: concealed copper & PPR pipe rerouting, water heater installation, leak detection, and sanitary fixtures.",
+    "category": "mep",
+    "category_name": "Utilities & MEP",
+    "badge": "PUB Licensed Plumbers",
+    "icon": "🚰",
+    "image": "images/service-plumbing.jpg",
+    "hero_tagline": "PUB-licensed plumbers delivering concealed piping rerouting, water heater installations, leak detection, and commercial drainage.",
+    "overview": "Plumbing problems cause rapid water damage and costly structural degradation if executed incorrectly. Tabeeb Contractor provides certified PUB-licensed plumbers for residential renovations, office pantry fit-outs, restaurant commercial kitchens, and urgent sanitary maintenance across Singapore.",
+    "scope_of_work": [
+      "Stainless steel, copper, and fusion-welded PPR water supply piping rerouting",
+      "Concealed wall piping installations adhering to PUB water service regulations",
+      "Storage water heater, multipoint, and instant water heater installations with isolation switches",
+      "Water closet (WC) pan installation, vanity sink basins, mixer taps, and rain showers",
+      "Floor trap installation, anti-cockroach floor valves, and grease trap servicing",
+      "Digital acoustic leak detection and high-pressure water jet drain clearing"
+    ],
+    "key_benefits": [
+      {"title": "PUB Licensed Plumbers", "desc": "Fully accredited by Singapore's Public Utilities Board (PUB) ensuring statutory compliance."},
+      {"title": "PPR Fusion Welding", "desc": "Heat-fused PPR piping creates permanent leak-proof joints impervious to rust and corrosion."},
+      {"title": "High Water Pressure Testing", "desc": "All newly routed piping undergoes rigorous hydrostatic pressure testing before concealing."},
+      {"title": "Fast Emergency Response", "desc": "Rapid dispatch for urgent burst pipes, severe blockages, and commercial ceiling leaks."}
+    ],
+    "process": [
+      {"step": "01", "title": "Pressure Testing", "desc": "Check incoming main pressure and inspect existing pipe infrastructure for deterioration."},
+      {"step": "02", "title": "Piping Layout & Hacking", "desc": "Carefully hack wall chases and align drainage gradients to prevent stagnant water."},
+      {"step": "03", "title": "PPR / Stainless Fitting", "desc": "Fusion weld high-grade PPR or clamp stainless steel pipes with certified brass fittings."},
+      {"step": "04", "title": "Hydrostatic Testing & Signoff", "desc": "Maintain 10-bar test pressure for 2 hours to verify absolute zero leakage before tiling."}
+    ],
+    "faq": [
+      {"q": "Can I conceal water pipes in an HDB bathroom?", "a": "Yes, but strictly under HDB guidelines: water pipes may only be concealed inside pre-approved wall chases or behind false wall vanity box-ups, and works must be performed by a PUB-licensed plumber."}
+    ]
+  },
+  {
+    "id": "electrical-lighting",
+    "slug": "electrical-lighting",
+    "name": "EMA-Licensed Electrical Engineering & Lighting",
+    "short_title": "Electrical & Lighting Works",
+    "og_title": "EMA Licensed Electrical Rewiring & DB Box Upgrading SG - Tabeeb Contractor",
+    "og_description": "EMA-certified electrical works: full house rewiring, DB box upgrading, lighting points, power sockets, and smart electrical switches.",
+    "category": "mep",
+    "category_name": "Utilities & MEP",
+    "badge": "EMA Licensed Engineers",
+    "icon": "⚡",
+    "image": "images/electrical.png",
+    "hero_tagline": "EMA-licensed electrical engineering, total rewiring, modern distribution board (DB) upgrades, and smart home lighting integrations.",
+    "overview": "Modern residential and commercial environments demand safe, reliable, and high-capacity electrical systems. Tabeeb Contractor provides licensed electrical workers (LEW) and certified electricians for whole-unit rewiring, distribution box upgrades, smart switches, data cabling, and emergency fault finding.",
+    "scope_of_work": [
+      "Whole-home and office electrical rewiring with heavy-duty PVC/EMT conduits",
+      "Distribution Board (DB Box) upgrades with modern MCB/RCCB safety trip breakers",
+      "Lighting point additions, LED driver installations, downlights, and smart dimmers",
+      "13A single/double power socket points, 15A/20A dedicated water heater & oven isolators",
+      "Cat6/Cat6A gigabit structured data network cabling and server rack terminations",
+      "SP Services meter turn-on coordination and Electrical Installation License (LEW) sign-offs"
+    ],
+    "key_benefits": [
+      {"title": "EMA Licensed Workers (LEW)", "desc": "All electrical works comply with Singapore Standard SS CP5 and Energy Market Authority codes."},
+      {"title": "Surge & Shock Protection", "desc": "Modern RCCB safety switches detect ground leakage and trip within milliseconds to prevent shock."},
+      {"title": "Proper Load Balancing", "desc": "Apportion high-draw appliances (aircons, induction hobs, ovens) across separate dedicated circuits."},
+      {"title": "Clean Concealed Conduits", "desc": "Laser-straight conduit chases embedded seamlessly within walls or hidden inside false ceilings."}
+    ],
+    "process": [
+      {"step": "01", "title": "Load Calculation", "desc": "Calculate total amperage load and map out lighting circuits, socket points, and data ports."},
+      {"step": "02", "title": "Conduit Chasing", "desc": "Run certified fire-retardant PVC or metal conduits with proper wire pulling pull-boxes."},
+      {"step": "03", "title": "Cable Pulling & DB Assembly", "desc": "Pull copper core cables, assemble the DB box with Hager/Schneider MCBs and surge protectors."},
+      {"step": "04", "title": "Megger Insulation Testing", "desc": "Perform comprehensive insulation resistance tests and issue safety compliance certification."}
+    ],
+    "faq": [
+      {"q": "Do I need to upgrade my DB box during an HDB renovation?", "a": "If your flat still utilizes an older wooden DB box with obsolete fuses or single-pole breakers, HDB strongly recommends upgrading to a modern multi-circuit DB box with Residual Current Circuit Breakers (RCCB) for enhanced family safety."}
+    ]
+  },
+  {
+    "id": "waterproofing-pu-injection",
+    "slug": "waterproofing-pu-injection",
+    "name": "Waterproofing & Non-Hacking PU Injection Leak Repair",
+    "short_title": "Waterproofing & PU Injection",
+    "og_title": "Waterproofing Contractor SG | Non-Hacking PU Injection Leak Repair - Tabeeb Contractor",
+    "og_description": "Specialist leak repair for concrete ceilings, toilets, roofs & balconies. Advanced high-pressure Polyurethane (PU) chemical injection in Singapore.",
+    "category": "structural",
+    "category_name": "Structural & Preparation",
+    "badge": "Warranty-Backed Leak Stop",
+    "icon": "💧",
+    "image": "images/waterproofing.png",
+    "hero_tagline": "Non-destructive high-pressure Polyurethane (PU) injection grouting, toilet ceiling leak repairs, and multi-coat waterproofing membranes.",
+    "overview": "Water seepages through concrete slabs, inter-floor ceilings, and window perimeters cause unsightly mold, concrete spalling, and costly interior damage. Tabeeb Contractor specializes in non-hacking PU injection grouting—stopping active water leaks from below without disturbing upper-floor tile work—as well as comprehensive waterproofing membrane systems.",
+    "scope_of_work": [
+      "High-pressure Polyurethane (PU) chemical injection grouting for concrete ceiling leaks",
+      "Inter-floor ceiling seepage repair for HDB bathrooms, toilets, and kitchen slabs",
+      "Rooftop torch-on waterproofing membrane installation and liquid elastomer coating",
+      "Balcony, planter box, and swimming pool waterproofing restoration",
+      "Clear penetrative chemical sealers for tile joints (zero hacking needed)",
+      "Thermal infrared leak diagnosis and moisture meter scanning"
+    ],
+    "key_benefits": [
+      {"title": "Zero Hacking Required", "desc": "PU injection seals leaks from the ceiling below in hours without hacking expensive upstairs tiles."},
+      {"title": "Instant Water Reaction", "desc": "Hydrophobic PU expands up to 30 times its liquid volume upon contact with water, sealing every micro-crack."},
+      {"title": "Thermal Camera Inspection", "desc": "FLIR thermal imaging precisely pinpoints hidden water paths without guessing."},
+      {"title": "Up to 5-Year Warranty", "desc": "Backed by our official written waterproofing warranty against recurrent seepage."}
+    ],
+    "process": [
+      {"step": "01", "title": "Thermal Moisture Scan", "desc": "Trace the exact entry point and water capillary paths using high-sensitivity thermal cameras."},
+      {"step": "02", "title": "Precision Port Drilling", "desc": "Drill 45-degree angle ports intersecting the water-bearing concrete cracks."},
+      {"step": "03", "title": "High-Pressure Injection", "desc": "Pump liquid PU chemical resin under 2,000+ PSI pressure until chemical completely fills the void."},
+      {"step": "04", "title": "Port Removal & Patching", "desc": "Remove injection packers, plug holes with non-shrink hydraulic grout, and touch up with anti-mould paint."}
+    ],
+    "faq": [
+      {"q": "What is PU chemical injection grouting?", "a": "PU injection involves pumping a specialized polyurethane resin under high pressure through mechanical ports into concrete cracks. Upon contact with water, the resin reacts and expands into a dense, flexible rubber foam that permanently plugs the water leak."},
+      {"q": "Is PU injection suitable for HDB inter-floor toilet leaks?", "a": "Yes! In fact, HDB frequently approves PU injection as an effective, non-invasive solution when neighbors cannot coordinate extensive floor tile hacking."}
+    ]
+  },
+  {
+    "id": "metal-fabrication-grilles",
+    "slug": "metal-fabrication-grilles",
+    "name": "Metal Fabrication, Wrought Iron Gates & Window Grilles",
+    "short_title": "Metal Fabrication & Grilles",
+    "og_title": "Custom Metal Fabrication, Mild Steel Gates & Window Grilles SG - Tabeeb Contractor",
+    "og_description": "Custom mild steel gates, designer wrought iron, aluminum window safety grilles, tempered glass railings, and mezzanine structural steel.",
+    "category": "finishing",
+    "category_name": "Interior & Finishing",
+    "badge": "Custom In-House Metalworks",
+    "icon": "🔩",
+    "image": "images/metal-fabrication.png",
+    "hero_tagline": "Custom mild steel main entrance gates, aluminum safety window grilles, glass balcony balustrades, and structural steel works.",
+    "overview": "Elevate your property's security and modern curb appeal with precision custom metalworks. Tabeeb Contractor operates an in-house metal fabrication facility, crafting laser-cut mild steel gates, architectural wrought iron, child-safety window grilles, and heavy industrial structural frames.",
+    "scope_of_work": [
+      "Custom laser-cut mild steel and wrought iron main door entrance gates",
+      "Slimline powder-coated aluminum window safety grilles (casement, sliding, top-hung)",
+      "Tempered laminated glass balcony railings and stainless steel handrails",
+      "Commercial steel security bollards, warehouse racking guards, and cat ladders",
+      "Custom steel mezzanine floor framework and industrial spiral staircases",
+      "High-durability electrostatic powder coating in matte black, charcoal, gold, and bronze"
+    ],
+    "key_benefits": [
+      {"title": "Custom In-House Workshop", "desc": "Direct manufacturing eliminates trading markups and enables custom bespoke CAD designs."},
+      {"title": "Electrostatic Powder Coating", "desc": "Oven-baked powder coat finish resists scratches, Singapore's humidity, and UV discoloration."},
+      {"title": "Child-Safe Specifications", "desc": "Grille bar spacing complies strictly with Singapore safety recommendations for high-rise homes."},
+      {"title": "Smart Lock Compatible", "desc": "Gates engineered specifically to mount leading digital locks (Philips, Yale, Kaadas, Solity)."}
+    ],
+    "process": [
+      {"step": "01", "title": "Site Measurement", "desc": "Laser-measure opening dimensions and consult on design motifs, colors, and lock cutouts."},
+      {"step": "02", "title": "CAD & Fabrication", "desc": "CNC laser cut steel sheets, weld joints, and clean edges to ultra-smooth tolerance."},
+      {"step": "03", "title": "Powder Coating", "desc": "Zinc phosphate anti-corrosion pre-treatment followed by electrostatic powder baking."},
+      {"step": "04", "title": "On-Site Installation", "desc": "Heavy-duty hinge alignment, silent roller track installation, and safety anchor fastening."}
+    ],
+    "faq": [
+      {"q": "Can I install invisible grilles instead of aluminum grilles?", "a": "Yes! In addition to traditional powder-coated aluminum grilles, we supply and install marine-grade 316 stainless steel invisible grilles with nylon coating for unobstructed skyline views."}
+    ]
+  },
+  {
+    "id": "home-extensions-alterations",
+    "slug": "home-extensions-alterations",
+    "name": "Landed Home Extensions, Mezzanine Floors & Alteration Works",
+    "short_title": "Home Extensions & Alterations",
+    "og_title": "Landed Home Extensions, Mezzanines & Structural Alterations SG - Tabeeb Contractor",
+    "og_description": "BCA/URA compliant landed property extensions, structural load modifications, mezzanine loft platforms, and PE endorsement services in Singapore.",
+    "category": "structural",
+    "category_name": "Structural & Preparation",
+    "badge": "PE Endorsement & BCA Compliant",
+    "icon": "🏗️",
+    "image": "images/home-extensions.png",
+    "hero_tagline": "Specialist landed home additions, mezzanine platforms, structural beam reinforcement, and Professional Engineer (PE) submissions.",
+    "overview": "Maximize your property's usable gross floor area (GFA) and architectural prestige. Tabeeb Contractor handles complex structural alterations, rear kitchen extensions, mezzanine floor additions for high-ceiling apartments and commercial shophouses, and BCA/URA authority submissions with licensed Professional Engineers (PE).",
+    "scope_of_work": [
+      "Landed terrace and semi-detached property rear extensions and attic conversions",
+      "Structural steel mezzanine floor platforms for high-ceiling lofts and commercial units",
+      "Structural I-beam reinforcement to remove internal load-bearing brick walls",
+      "Reinforced concrete (RC) staircase construction and custom timber-tread cantilever stairs",
+      "Rooftop trellis, skylight pergolas, and outdoor timber decking installations",
+      "Professional Engineer (PE) endorsements, structural load calculations, and BCA permits"
+    ],
+    "key_benefits": [
+      {"title": "Licensed PE Endorsements", "desc": "Full structural calculations and certified drawings for BCA and URA regulatory approval."},
+      {"title": "Maximize Usable Space", "desc": "Add hundreds of square feet of valuable living or office area within your existing volume."},
+      {"title": "Structural Steel Expertise", "desc": "Certified welders and structural steel fabricators adhering to Singapore structural codes."},
+      {"title": "Turnkey Project Management", "desc": "From initial soil test or slab load calculation to final architectural finishing."}
+    ],
+    "process": [
+      {"step": "01", "title": "Feasibility Study", "desc": "Review structural drawings, allowable building envelope, and floor load-bearing capacity."},
+      {"step": "02", "title": "PE Calculation & Submission", "desc": "Licensed PE calculates dead/live loads and submits structural plans to BCA/URA."},
+      {"step": "03", "title": "Structural Construction", "desc": "Erect structural steel posts, I-beams, metal decking, and pour reinforced concrete."},
+      {"step": "04", "title": "Architectural Completion", "desc": "Install safety railings, lighting, air conditioning ducting, and premium flooring."}
+    ],
+    "faq": [
+      {"q": "Can I build a mezzanine floor in my apartment in Singapore?", "a": "Mezzanines must comply with URA and BCA regulations. In general, high-ceiling strata units require PE endorsement, and structural weight must not exceed slab capacities. Tabeeb Contractor performs initial structural feasibility checks before advising."}
+    ]
+  }
+]

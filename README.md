@@ -82,9 +82,9 @@ function doPost(e) {
       data.companyName || "Tabeeb Contractor Pte Ltd."
     ]);
     
-    // Send email alert
-    var emailRecipient = "infovvpengineering@gmail.com";
-    var subject = "New Quote Request - " + (data.companyName || "Tabeeb Contractor Pte Ltd.");
+    // Send email alert to both recipients
+    var emailRecipients = "infotabeebcontractor@gmail.com, abdurrahaman1a1@gmail.com";
+    var subject = "Tabeeb Contractor Website Leads";
     
     var emailBody = "Hello,\n\n" +
                     "You have received a new quote request from the Tabeeb Contractor Pte Ltd website.\n\n" +
@@ -100,7 +100,7 @@ function doPost(e) {
                     "Submitted At: " + (data.submittedAt || new Date().toLocaleString()) + "\n\n" +
                     "This request was logged in your Google Sheets database.";
                     
-    MailApp.sendEmail(emailRecipient, subject, emailBody);
+    MailApp.sendEmail(emailRecipients, subject, emailBody);
     
     return ContentService.createTextOutput(JSON.stringify({ "status": "success" }))
                          .setMimeType(ContentService.MimeType.JSON);
@@ -151,3 +151,55 @@ git push origin rebrand-tabeeb-contractor
 * **Automated Extraction:** Uses [unzip.php](unzip.php) to unpack new assets directly into `public_html/` and clean up the temporary archive.
 
 📖 For the full technical breakdown, architecture diagram, and setup instructions for other projects, read the detailed **[DEPLOYMENT_GUIDE.md](DEPLOYMENT_GUIDE.md)**.
+
+---
+
+## 📝 Blog System & Dedicated Service Social Sharing
+
+### 1. Dedicated Service Pages (Social Media Card Previews)
+Previously, sharing any service link on WhatsApp or Facebook displayed the generic website homepage title. Now, **every service has its own dedicated page and individual Open Graph metadata**:
+
+* **Dedicated URLs**:
+  * `/service/demolition-hacking` ➔ Displays *“HDB-Approved Hacking Contractor SG | Wall Hacking & Demolition”*
+  * `/service/commercial-office-reinstatement` ➔ Displays *“Direct Commercial Office Reinstatement Singapore | Landlord Handover”*
+  * `/service/flooring-cement-screed` ➔ Displays *“HDB Flooring & Pre-Packed Cement Screed Contractor Singapore”*
+  * `/service/false-ceiling-drywall-partition` ➔ Displays *“Commercial False Ceiling & Drywall Partition Contractor Singapore”*
+  * `/service/painting-plastering` ➔ Displays *“Direct Painting & Wall Plastering Contractor Singapore”*
+  * `/service/plumbing-sanitary` ➔ Displays *“PUB Licensed Direct Plumbing & Sanitary Contractor Singapore”*
+  * `/service/electrical-lighting` ➔ Displays *“EMA Licensed Electrical Rewiring & DB Box Upgrading SG”*
+  * `/service/waterproofing-pu-injection` ➔ Displays *“Waterproofing Contractor SG | Non-Hacking PU Injection Leak Repair”*
+  * `/service/metal-fabrication-grilles` ➔ Displays *“Custom Metal Fabrication, Mild Steel Gates & Window Grilles SG”*
+  * `/service/home-extensions-alterations` ➔ Displays *“Landed Home Extensions, Mezzanines & Structural Alterations SG”*
+* **1-Click Social Sharing**:
+  * Each service card on the website and each dedicated service page includes instant **WhatsApp**, **Facebook**, **LinkedIn**, and **Copy Link** buttons.
+  * On mobile phones, triggers the device's native share sheet (supporting WhatsApp, Instagram Stories/DMs, Telegram, and WeChat).
+
+### 2. Renovation & Construction Blog
+* **Public Blog (`/blog`)**: Displays articles with category filtering, instant keyword search, read time, publication date, and quick share triggers.
+* **Single Post View (`/blog/[slug]`)**: Features full SEO and Open Graph card metadata, table of contents, callouts (Pro Tips & Warnings), author bio, related guides, and sticky social share bar.
+
+### 3. Blog & User Admin Portal (`/admin`)
+An intuitive, modern admin dashboard designed for easy content management and user administration:
+
+* **Portal URL**: `https://tabeebgroup.com/admin/`
+* **Default Administrator Credentials**:
+  * **Username**: `admin`
+  * **Password**: `TabeebAdmin@2026!`
+* **Key Admin Features**:
+  1. **Dashboard Overview**: Metrics for total posts, published articles, drafts, and users.
+  2. **Live Social Card Simulator**: Preview in real-time exactly how any service or blog post will render in WhatsApp and Facebook chat.
+  3. **Blog Management (`/admin/posts.php`)**: Create, edit, draft, publish, and delete blog articles.
+  4. **Post Editor (`/admin/post-edit.php`)**:
+     * Auto slug generator from title.
+     * Category dropdown + custom category input.
+     * Live character counter for optimal SEO meta descriptions (120–160 chars).
+     * Image uploader (direct file upload to `images/blog/` or preset thumbnail selector).
+     * WYSIWYG formatting toolbar (Bold, Italic, Headings H2/H3, Bullet lists, Quotes, Callout boxes).
+     * Live interactive WhatsApp preview mockup updated in real-time.
+  5. **User Management (`/admin/users.php`)**:
+     * Add new users (Super Admin or Content Editor).
+     * Edit user profiles and reset passwords with built-in strong password generator.
+     * Deactivate or delete accounts with built-in safeguards (cannot delete self).
+  6. **Service Social Share Links Hub (`/admin/services.php`)**:
+     * Centralized dashboard with 1-click WhatsApp and Facebook share buttons for all 10 services.
+

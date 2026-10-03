@@ -1,0 +1,24 @@
+[
+  {
+    "id": "usr_admin_1",
+    "name": "Tabeeb Administrator",
+    "username": "admin",
+    "email": "admin@tabeebgroup.com",
+    "password": "$2b$12$89iy44bDqBGX70Vx2rOpyu3w0dtpax7I7WxKfGCtUqEOrcg8GBl7y",
+    "role": "super_admin",
+    "status": "active",
+    "created_at": "2026-10-01 10:00:00",
+    "last_login": null
+  },
+  {
+    "id": "usr_editor_2",
+    "name": "Content Editor",
+    "username": "editor",
+    "email": "editor@tabeebgroup.com",
+    "password": "$2b$12$Gk3kgG6Gd8u07eu/WRO1sObSnTuiN0cZq9.PZikNU.HlaZasyGOm2",
+    "role": "editor",
+    "status": "active",
+    "created_at": "2026-10-02 12:00:00",
+    "last_login": null
+  }
+]
