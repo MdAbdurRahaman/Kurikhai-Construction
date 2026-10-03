@@ -517,11 +517,13 @@ $baseUrl = get_base_url();
                 <span>Service Share Links</span>
             </a>
 
+            <?php if (is_super_admin()): ?>
             <div class="nav-category">Access Control</div>
             <a href="users.php" class="sidebar-link <?= $currentPage === 'users' ? 'active' : '' ?>">
                 <span class="sidebar-icon">👥</span>
                 <span>User Management</span>
             </a>
+            <?php endif; ?>
 
             <div class="nav-category">Quick View</div>
             <a href="/blog" target="_blank" class="sidebar-link">

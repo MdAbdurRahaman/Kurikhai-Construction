@@ -1,6 +1,8 @@
 <?php
-$pageTitle = 'User Management';
-require_once __DIR__ . '/header.php';
+require_once dirname(__DIR__) . '/includes/data.php';
+require_super_admin();
+
+$currentUser = current_user();
 
 // Handle Actions (Add, Edit, Delete)
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
@@ -85,6 +87,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         }
     }
 }
+
+$pageTitle = 'Access Control & User Management';
+require_once __DIR__ . '/header.php';
 
 $users = get_all_users();
 ?>

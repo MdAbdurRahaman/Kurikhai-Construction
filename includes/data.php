@@ -17,6 +17,9 @@ if (session_status() === PHP_SESSION_NONE) {
     ]);
     session_start();
 }
+if (!ob_get_level()) {
+    ob_start();
+}
 
 define('DATA_DIR', dirname(__DIR__) . '/data');
 define('POSTS_FILE', DATA_DIR . '/posts.json');
@@ -437,7 +440,7 @@ function require_login() {
 function require_super_admin() {
     require_login();
     if (!is_super_admin()) {
-        header('Location: index.php?error=unauthorized');
+        header('Location: index.php?error=' . urlencode('Access Denied: Only Super Admins have permission to access control options.'));
         exit;
     }
 }

@@ -34,13 +34,25 @@ $recentPosts = array_slice($allPosts, 0, 5);
         </div>
         <div class="stat-icon" style="background: #fef3c7; color: #d97706;">✏️</div>
     </div>
+    <?php if (is_super_admin()): ?>
+    <a href="users.php" style="text-decoration: none; color: inherit; display: block;">
+        <div class="stat-card">
+            <div>
+                <div class="stat-val"><?= count($allUsers) ?></div>
+                <div class="stat-label">Admin & Editors</div>
+            </div>
+            <div class="stat-icon" style="background: #f3e8ff; color: #9333ea;">👥</div>
+        </div>
+    </a>
+    <?php else: ?>
     <div class="stat-card">
         <div>
-            <div class="stat-val"><?= count($allUsers) ?></div>
-            <div class="stat-label">Admin & Editors</div>
+            <div class="stat-val" style="font-size: 18px; text-transform: capitalize; padding-top: 4px;"><?= htmlspecialchars($currentUser['role'] ?? 'Editor') ?></div>
+            <div class="stat-label">Your Role</div>
         </div>
-        <div class="stat-icon" style="background: #f3e8ff; color: #9333ea;">👥</div>
+        <div class="stat-icon" style="background: #f3e8ff; color: #9333ea;">👤</div>
     </div>
+    <?php endif; ?>
     <div class="stat-card">
         <div>
             <div class="stat-val"><?= count($allServices) ?></div>

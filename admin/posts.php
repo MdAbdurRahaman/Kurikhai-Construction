@@ -1,6 +1,6 @@
 <?php
-$pageTitle = 'Blog Posts Management';
-require_once __DIR__ . '/header.php';
+require_once dirname(__DIR__) . '/includes/data.php';
+require_login();
 
 // Handle Actions (Toggle status, Delete)
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
@@ -28,6 +28,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         }
     }
 }
+
+$pageTitle = 'Blog Posts Management';
+require_once __DIR__ . '/header.php';
 
 $allPosts = get_all_posts(false);
 $filterStatus = $_GET['status'] ?? 'all';
