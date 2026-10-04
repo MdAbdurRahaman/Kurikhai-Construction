@@ -24,7 +24,8 @@ RewriteRule ^services/([a-zA-Z0-9_-]+)/?$ service.php?slug=$1 [L,QSA]
 RewriteCond %{THE_REQUEST} ^[A-Z]{3,9}\ /index\.html\ HTTP/
 RewriteRule ^index\.html$ / [R=301,L]
 
-# 5. Redirect /page.html to /page
+# 5. Redirect /page.html to /page (excluding Google verification files)
+RewriteCond %{REQUEST_URI} !^/google.*\.html$ [NC]
 RewriteCond %{THE_REQUEST} ^[A-Z]{3,9}\ /([^.]+)\.html\ HTTP/
 RewriteRule ^([^.]+)\.html$ /$1 [R=301,L]
 
