@@ -1780,6 +1780,21 @@ textarea.form-control {
     flex-shrink: 0;
 }
 
+.service-number-badge {
+    background-color: var(--color-gold);
+    color: #07274d;
+    font-weight: 800;
+    font-size: 13px;
+    width: 24px;
+    height: 24px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 4px;
+    flex-shrink: 0;
+    line-height: 1;
+}
+
 .poster-service-header h3 {
     color: #ffffff;
     font-size: 15px;

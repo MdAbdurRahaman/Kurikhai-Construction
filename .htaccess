@@ -10,31 +10,34 @@ RewriteEngine On
     </IfModule>
 </FilesMatch>
 
-# 1. Clean URLs for Blog Posts: /blog/article-slug -> blog-post.php?slug=article-slug
-RewriteRule ^blog/([a-zA-Z0-9_-]+)/?$ blog-post.php?slug=$1 [L,QSA]
+# 1. Clean URLs for Dedicated Services (High-Relevance SEO Landing Pages)
+RewriteRule ^(renovation-contractor-singapore|hdb-renovation|tiling-works|vinyl-flooring|painting-works|waterproofing|hacking-demolition|plumbing|electrical|ceiling-partition|reinstatement|plastering)/?$ service.php?slug=$1 [L,QSA]
 
-# 2. Clean URL for Main Blog Listing: /blog -> blog.php
-RewriteRule ^blog/?$ blog.php [L,QSA]
-
-# 3. Clean URLs for Dedicated Services: /service/slug -> service.php?slug=slug
+# 2. Backward compatibility for legacy /service/slug and /services/slug
 RewriteRule ^service/([a-zA-Z0-9_-]+)/?$ service.php?slug=$1 [L,QSA]
 RewriteRule ^services/([a-zA-Z0-9_-]+)/?$ service.php?slug=$1 [L,QSA]
 
-# 4. Redirect /index.html to /
+# 3. Clean URLs for Blog Posts: /blog/article-slug -> blog-post.php?slug=article-slug
+RewriteRule ^blog/([a-zA-Z0-9_-]+)/?$ blog-post.php?slug=$1 [L,QSA]
+
+# 4. Clean URL for Main Blog Listing: /blog -> blog.php
+RewriteRule ^blog/?$ blog.php [L,QSA]
+
+# 5. Redirect /index.html to /
 RewriteCond %{THE_REQUEST} ^[A-Z]{3,9}\ /index\.html\ HTTP/
 RewriteRule ^index\.html$ / [R=301,L]
 
-# 5. Redirect /page.html to /page (excluding Google verification files)
+# 6. Redirect /page.html to /page (excluding Google verification files)
 RewriteCond %{REQUEST_URI} !^/google.*\.html$ [NC]
 RewriteCond %{THE_REQUEST} ^[A-Z]{3,9}\ /([^.]+)\.html\ HTTP/
 RewriteRule ^([^.]+)\.html$ /$1 [R=301,L]
 
-# 6. Internal rewrite from /page to /page.html
+# 7. Internal rewrite from /page to /page.html
 RewriteCond %{REQUEST_FILENAME} !-d
 RewriteCond %{REQUEST_FILENAME}\.html -f
 RewriteRule ^([^/]+)$ $1.html [L]
 
-# 7. Internal rewrite from /page to /page.php
+# 8. Internal rewrite from /page to /page.php
 RewriteCond %{REQUEST_FILENAME} !-d
 RewriteCond %{REQUEST_FILENAME}\.php -f
 RewriteRule ^([^/]+)$ $1.php [L]

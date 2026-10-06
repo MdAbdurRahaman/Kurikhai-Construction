@@ -87,14 +87,14 @@ $relatedPosts = array_slice($relatedPosts, 0, 3);
       "author": {
         "@type": "Organization",
         "name": <?= json_encode($post['author'] ?? 'Tabeeb Contractor Pte Ltd') ?>,
-        "url": "https://www.tabeebcontractor.com/"
+        "url": "https://www.tabeebgroup.com/"
       },
       "publisher": {
         "@type": "Organization",
         "name": "Tabeeb Contractor Pte Ltd",
         "logo": {
           "@type": "ImageObject",
-          "url": "https://www.tabeebcontractor.com/images/logo-horizontal.png"
+          "url": "https://www.tabeebgroup.com/images/logo-horizontal.png"
         }
       },
       "mainEntityOfPage": {
@@ -514,11 +514,13 @@ $relatedPosts = array_slice($relatedPosts, 0, 3);
                         <div class="sidebar-box">
                             <h4 style="font-size: 18px; margin-bottom: 14px; color: var(--color-primary);">Direct Contractor Services</h4>
                             <ul style="list-style: none; padding: 0; margin: 0; font-size: 14px;">
-                                <li style="margin-bottom: 8px;"><a href="/service/demolition-hacking" style="color: #475569;">🔨 HDB Wall Hacking & Demolition</a></li>
-                                <li style="margin-bottom: 8px;"><a href="/service/commercial-office-reinstatement" style="color: #475569;">🏢 Office Tenancy Reinstatement</a></li>
-                                <li style="margin-bottom: 8px;"><a href="/service/waterproofing-pu-injection" style="color: #475569;">💧 PU Injection Waterproofing</a></li>
-                                <li style="margin-bottom: 8px;"><a href="/service/flooring-cement-screed" style="color: #475569;">🪵 BCA Cement Screed & Tiling</a></li>
-                                <li style="margin-bottom: 8px;"><a href="/service/false-ceiling-drywall-partition" style="color: #475569;">🏠 False Ceiling & Partitions</a></li>
+                                <li style="margin-bottom: 8px;"><a href="/renovation-contractor-singapore/" style="color: #475569;">🏠 Renovation Contractor Singapore</a></li>
+                                <li style="margin-bottom: 8px;"><a href="/hdb-renovation/" style="color: #475569;">🏢 HDB Renovation Works</a></li>
+                                <li style="margin-bottom: 8px;"><a href="/hacking-demolition/" style="color: #475569;">🔨 HDB Wall Hacking & Demolition</a></li>
+                                <li style="margin-bottom: 8px;"><a href="/reinstatement/" style="color: #475569;">🏢 Tenancy Reinstatement Works</a></li>
+                                <li style="margin-bottom: 8px;"><a href="/tiling-works/" style="color: #475569;">🪵 Tiles & Vinyl Flooring</a></li>
+                                <li style="margin-bottom: 8px;"><a href="/waterproofing/" style="color: #475569;">💧 Waterproofing Works</a></li>
+                                <li style="margin-bottom: 8px;"><a href="/ceiling-partition/" style="color: #475569;">📐 Ceiling & Partition Works</a></li>
                             </ul>
                         </div>
 
@@ -551,13 +553,15 @@ $relatedPosts = array_slice($relatedPosts, 0, 3);
                     </ul>
                 </div>
                 <div class="footer-col">
-                    <h3>Direct Services</h3>
+                    <h3>Dedicated Services</h3>
                     <ul>
-                        <li><a href="/service/demolition-hacking">Hacking & Demolition</a></li>
-                        <li><a href="/service/commercial-office-reinstatement">Office Reinstatement</a></li>
-                        <li><a href="/service/flooring-cement-screed">Flooring & Screeding</a></li>
-                        <li><a href="/service/waterproofing-pu-injection">Waterproofing & Leak Repair</a></li>
-                        <li><a href="/service/electrical-lighting">Electrical & Lighting</a></li>
+                        <li><a href="/renovation-contractor-singapore/">Renovation Contractor Singapore</a></li>
+                        <li><a href="/hdb-renovation/">HDB Renovation</a></li>
+                        <li><a href="/hacking-demolition/">Hacking & Demolition</a></li>
+                        <li><a href="/tiling-works/">Tiles Flooring</a></li>
+                        <li><a href="/vinyl-flooring/">Vinyl Flooring</a></li>
+                        <li><a href="/waterproofing/">Waterproofing Works</a></li>
+                        <li><a href="/reinstatement/">Reinstatement Works</a></li>
                     </ul>
                 </div>
                 <div class="footer-col">

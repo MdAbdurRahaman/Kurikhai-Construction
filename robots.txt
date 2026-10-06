@@ -5,4 +5,4 @@ Allow: /
 Disallow: /images/*_old.*
 
 # Sitemap location
-Sitemap: https://www.tabeebcontractor.com/sitemap.xml
+Sitemap: https://www.tabeebgroup.com/sitemap.xml

@@ -465,13 +465,15 @@ $ogImage = $baseUrl . '/images/hero-bg.jpg';
                     </ul>
                 </div>
                 <div class="footer-col">
-                    <h3>Direct Services</h3>
+                    <h3>Dedicated Services</h3>
                     <ul>
-                        <li><a href="/service/demolition-hacking">Hacking & Demolition</a></li>
-                        <li><a href="/service/commercial-office-reinstatement">Office Reinstatement</a></li>
-                        <li><a href="/service/flooring-cement-screed">Flooring & Screeding</a></li>
-                        <li><a href="/service/waterproofing-pu-injection">Waterproofing & Leak Repair</a></li>
-                        <li><a href="/service/electrical-lighting">Electrical & Lighting</a></li>
+                        <li><a href="/renovation-contractor-singapore/">Renovation Contractor Singapore</a></li>
+                        <li><a href="/hdb-renovation/">HDB Renovation</a></li>
+                        <li><a href="/hacking-demolition/">Hacking & Demolition</a></li>
+                        <li><a href="/tiling-works/">Tiles Flooring</a></li>
+                        <li><a href="/vinyl-flooring/">Vinyl Flooring</a></li>
+                        <li><a href="/waterproofing/">Waterproofing Works</a></li>
+                        <li><a href="/reinstatement/">Reinstatement Works</a></li>
                     </ul>
                 </div>
                 <div class="footer-col">

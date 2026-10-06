@@ -16,7 +16,7 @@ if (!$service) {
 }
 
 $baseUrl = get_base_url();
-$canonicalUrl = $baseUrl . '/service/' . htmlspecialchars($service['slug']);
+$canonicalUrl = $baseUrl . '/' . htmlspecialchars($service['slug']) . '/';
 $imageUrl = (strpos($service['image'], 'http') === 0) ? $service['image'] : ($baseUrl . '/' . ltrim($service['image'], '/'));
 $ogTitle = $service['og_title'] ?? ($service['name'] . ' | Tabeeb Contractor Singapore');
 $ogDesc = $service['og_description'] ?? $service['overview'];
@@ -80,7 +80,7 @@ $twitterShareUrl = 'https://twitter.com/intent/tweet?text=' . urlencode($service
         "@type": "GeneralContractor",
         "name": "Tabeeb Contractor Pte Ltd",
         "telephone": "+65 8648 4883",
-        "url": "https://www.tabeebcontractor.com/",
+        "url": "https://www.tabeebgroup.com/",
         "address": {
           "@type": "PostalAddress",
           "streetAddress": "61 Kaki Bukit Ave 1, #03-34 Shun Li Industrial Park",
@@ -502,7 +502,7 @@ $twitterShareUrl = 'https://twitter.com/intent/tweet?text=' . urlencode($service
 
                     <!-- Why Choose Tabeeb for this trade -->
                     <h2 style="font-size: 24px; margin: 40px 0 10px;">Why Engage Tabeeb Contractor</h2>
-                    <p style="color: var(--color-text-muted); font-size: 15px;">We are a direct builder with certified tradesmen—delivering cost savings, rapid timelines, and strict compliance with Singapore statutory regulations.</p>
+                    <p style="color: var(--color-text-muted); font-size: 15px;">We are a direct builder with experienced, in-house craftsmen—delivering cost savings, rapid timelines, and strict compliance with Singapore statutory regulations.</p>
 
                     <div class="benefit-card-grid">
                         <?php if (!empty($service['key_benefits'])): ?>
@@ -585,7 +585,7 @@ $twitterShareUrl = 'https://twitter.com/intent/tweet?text=' . urlencode($service
 
                         <div style="font-size: 13px; color: #94a3b8; line-height: 1.5; border-top: 1px solid rgba(255,255,255,0.1); padding-top: 16px;">
                             ✓ Free on-site consultation<br>
-                            ✓ BCA / HDB compliant workmanship<br>
+                            ✓ Strict safety & workmanship standards<br>
                             ✓ Official written quotation
                         </div>
                     </div>
@@ -600,7 +600,7 @@ $twitterShareUrl = 'https://twitter.com/intent/tweet?text=' . urlencode($service
                                 $isActive = ($other['slug'] === $service['slug']);
                             ?>
                                 <li style="margin-bottom: 10px;">
-                                    <a href="/service/<?= htmlspecialchars($other['slug']) ?>" style="display: flex; align-items: center; justify-content: space-between; font-size: 14px; padding: 8px 12px; border-radius: 8px; text-decoration: none; color: <?= $isActive ? '#07274d' : '#475569' ?>; background: <?= $isActive ? '#e0f2fe' : 'transparent' ?>; font-weight: <?= $isActive ? '600' : '400' ?>;">
+                                    <a href="/<?= htmlspecialchars($other['slug']) ?>/" style="display: flex; align-items: center; justify-content: space-between; font-size: 14px; padding: 8px 12px; border-radius: 8px; text-decoration: none; color: <?= $isActive ? '#07274d' : '#475569' ?>; background: <?= $isActive ? '#e0f2fe' : 'transparent' ?>; font-weight: <?= $isActive ? '600' : '400' ?>;">
                                         <span><?= $other['icon'] ?> <?= htmlspecialchars($other['short_title'] ?? $other['name']) ?></span>
                                         <span style="font-size: 12px; color: #94a3b8;">➔</span>
                                     </a>
@@ -647,11 +647,17 @@ $twitterShareUrl = 'https://twitter.com/intent/tweet?text=' . urlencode($service
                 <div class="footer-col">
                     <h3>Direct Services</h3>
                     <ul>
-                        <li><a href="/service/demolition-hacking">Hacking & Demolition</a></li>
-                        <li><a href="/service/commercial-office-reinstatement">Office Reinstatement</a></li>
-                        <li><a href="/service/flooring-cement-screed">Flooring & Screeding</a></li>
-                        <li><a href="/service/waterproofing-pu-injection">Waterproofing & Leak Repair</a></li>
-                        <li><a href="/service/electrical-lighting">Electrical & Lighting</a></li>
+                        <li><a href="/renovation-contractor-singapore/">Renovation Contractor</a></li>
+                        <li><a href="/hdb-renovation/">HDB Renovation</a></li>
+                        <li><a href="/tiling-works/">Tiles Flooring Works</a></li>
+                        <li><a href="/vinyl-flooring/">Vinyl Flooring Works</a></li>
+                        <li><a href="/hacking-demolition/">Hacking & Demolition</a></li>
+                        <li><a href="/painting-works/">Painting & Plastering</a></li>
+                        <li><a href="/waterproofing/">Waterproofing Works</a></li>
+                        <li><a href="/plumbing/">Plumbing Works</a></li>
+                        <li><a href="/electrical/">Electrical Works</a></li>
+                        <li><a href="/ceiling-partition/">Ceiling & Partition</a></li>
+                        <li><a href="/reinstatement/">Reinstatement Works</a></li>
                     </ul>
                 </div>
                 <div class="footer-col">

@@ -248,9 +248,24 @@ function get_all_services() {
 }
 
 function get_service_by_slug($slug) {
+    $aliasMap = [
+        'demolition-hacking' => 'hacking-demolition',
+        'commercial-office-reinstatement' => 'reinstatement',
+        'flooring-cement-screed' => 'tiling-works',
+        'false-ceiling-drywall-partition' => 'ceiling-partition',
+        'painting-plastering' => 'painting-works',
+        'plumbing-sanitary' => 'plumbing',
+        'electrical-lighting' => 'electrical',
+        'waterproofing-pu-injection' => 'waterproofing',
+        'plastering' => 'painting-works',
+        'metal-fabrication-grilles' => 'renovation-contractor-singapore',
+        'home-extensions-alterations' => 'renovation-contractor-singapore'
+    ];
+    $targetSlug = $aliasMap[$slug] ?? $slug;
+
     $services = read_json_file(SERVICES_FILE, []);
     foreach ($services as $service) {
-        if (isset($service['slug']) && ($service['slug'] === $slug || $service['id'] === $slug)) {
+        if (isset($service['slug']) && ($service['slug'] === $targetSlug || $service['id'] === $targetSlug)) {
             return $service;
         }
     }

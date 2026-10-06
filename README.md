@@ -7,7 +7,8 @@ A premium, highly responsive multi-page static website for **Tabeeb Contractor P
 * **Office Address**: 61 Kaki Bukit Ave 1, #03-34 Shun Li Industrial Park, Singapore 417943
 * **Hotline / Telephone**: [+65 8648 4883](tel:+6586484883)
 * **WhatsApp Direct**: [Chat on WhatsApp (+65 8648 4883)](https://wa.me/6586484883)
-* **Email**: [info@tabeebcontractor.com](mailto:info@tabeebcontractor.com)
+* **Email**: [info@tabeebgroup.com](mailto:info@tabeebgroup.com)
+* **Website**: [www.tabeebgroup.com](https://www.tabeebgroup.com)
 * **Operating Hours**: Monday - Saturday: 9:00 AM - 6:00 PM (Closed on Sundays & Public Holidays)
 
 ---
@@ -15,7 +16,7 @@ A premium, highly responsive multi-page static website for **Tabeeb Contractor P
 ## 🎨 Design & Features (Inspired by Leong Yik Standards)
 * **Corporate Palette**: Deep Contractor Navy (`#0a1128`), Industrial Slate Navy (`#16224f`), Architectural Gold (`#d4af37`), and Vibrant Engineering Cyan (`#00b4d8`).
 * **Top Bar**: Fast contact access across all pages displaying Singapore HQ address, operating hours, phone hotline, and instant WhatsApp chat.
-* **Trust & Accreditations Bar**: BizSAFE Star safety compliance standards, BCA regulatory approvals, commercial & residential capabilities, and handover guarantees.
+* **Trust & Value Bar**: Quality Workmanship, Reliable Team, On Time Delivery, and Competitive Pricing (Direct Contractor Rates).
 * **Floating WhatsApp Widget**: Persistent, pulsating WhatsApp contact button with pre-filled greeting for rapid customer conversions.
 * **Interactive Map**: Embedded Google Maps location directly pinpointing Shun Li Industrial Park at 61 Kaki Bukit Ave 1, Singapore.
 * **Fonts**: Google Fonts `Outfit` (headings) and `Inter` (body text).
