@@ -11,6 +11,7 @@ $baseUrl = get_base_url();
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="robots" content="noindex, nofollow">
     <title><?= $pageTitle ?? 'Admin Dashboard' ?> | Tabeeb Contractor Admin</title>
     
     <!-- Google Fonts -->
@@ -501,8 +502,25 @@ $baseUrl = get_base_url();
                 <span>Overview & Analytics</span>
             </a>
 
-            <div class="nav-category">Blog Management</div>
-            <a href="posts.php" class="sidebar-link <?= ($currentPage === 'posts' || $currentPage === 'post-edit') ? 'active' : '' ?>">
+            <div class="nav-category">Sales & CRM</div>
+            <a href="leads.php" class="sidebar-link <?= ($currentPage === 'leads' || $currentPage === 'lead-detail') ? 'active' : '' ?>">
+                <span class="sidebar-icon">🎯</span>
+                <span>Leads & Inquiries</span>
+                <?php 
+                $newLeadsBadge = DB::isConnected() ? (int)db_val("SELECT COUNT(*) FROM `leads` WHERE `status` = 'new'") : 0;
+                if ($newLeadsBadge > 0): ?>
+                    <span style="background: #ef4444; color: #fff; font-size: 11px; font-weight: 700; padding: 2px 7px; border-radius: 9999px; margin-left: auto;"><?= $newLeadsBadge ?></span>
+                <?php endif; ?>
+            </a>
+
+            <div class="nav-category">Client Verification</div>
+            <a href="business-info.php" class="sidebar-link <?= $currentPage === 'business-info' ? 'active' : '' ?>">
+                <span class="sidebar-icon">📋</span>
+                <span>Business Info Tracker</span>
+            </a>
+
+            <div class="nav-category">Content Management</div>
+            <a href="posts.php" class="sidebar-link <?= ($currentPage === 'posts' || ($currentPage === 'post-edit' && !empty($_GET['id']))) ? 'active' : '' ?>">
                 <span class="sidebar-icon">📝</span>
                 <span>All Blog Posts</span>
             </a>
@@ -510,18 +528,28 @@ $baseUrl = get_base_url();
                 <span class="sidebar-icon">✍️</span>
                 <span>Write New Post</span>
             </a>
-
-            <div class="nav-category">Social Share Hub</div>
             <a href="services.php" class="sidebar-link <?= $currentPage === 'services' ? 'active' : '' ?>">
                 <span class="sidebar-icon">🔗</span>
-                <span>Service Share Links</span>
+                <span>Service Share Hub</span>
             </a>
 
             <?php if (is_super_admin()): ?>
-            <div class="nav-category">Access Control</div>
+            <div class="nav-category">Platform Control</div>
             <a href="users.php" class="sidebar-link <?= $currentPage === 'users' ? 'active' : '' ?>">
                 <span class="sidebar-icon">👥</span>
-                <span>User Management</span>
+                <span>User Accounts</span>
+            </a>
+            <a href="notifications.php" class="sidebar-link <?= $currentPage === 'notifications' ? 'active' : '' ?>">
+                <span class="sidebar-icon">🔔</span>
+                <span>Notification Routing</span>
+            </a>
+            <a href="settings.php" class="sidebar-link <?= $currentPage === 'settings' ? 'active' : '' ?>">
+                <span class="sidebar-icon">⚙️</span>
+                <span>Website Settings</span>
+            </a>
+            <a href="audit-logs.php" class="sidebar-link <?= $currentPage === 'audit-logs' ? 'active' : '' ?>">
+                <span class="sidebar-icon">🛡️</span>
+                <span>Security Audit Trail</span>
             </a>
             <?php endif; ?>
 
@@ -543,12 +571,15 @@ $baseUrl = get_base_url();
                 </div>
                 <div>
                     <div class="user-name"><?= htmlspecialchars($currentUser['name'] ?? 'Administrator') ?></div>
-                    <div class="user-role"><?= htmlspecialchars($currentUser['role'] ?? 'Editor') ?></div>
+                    <div class="user-role"><?= htmlspecialchars($currentUser['role_name'] ?? $currentUser['role'] ?? 'Editor') ?></div>
                 </div>
             </div>
-            <a href="logout.php" class="logout-btn" title="Sign Out">
-                <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/></svg>
-            </a>
+            <form method="POST" action="logout.php" style="margin: 0;">
+                <?= csrf_input_field() ?>
+                <button type="submit" class="logout-btn" title="Sign Out Safely" style="background: none; border: none; cursor: pointer; color: inherit; padding: 4px;">
+                    <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/></svg>
+                </button>
+            </form>
         </div>
     </aside>
 

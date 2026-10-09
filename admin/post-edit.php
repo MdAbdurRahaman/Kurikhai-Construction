@@ -1,6 +1,6 @@
 <?php
 require_once dirname(__DIR__) . '/includes/data.php';
-require_login();
+require_permission('content.manage');
 
 $postId = $_GET['id'] ?? '';
 $isEdit = !empty($postId);
@@ -34,25 +34,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $tags = trim($_POST['tags'] ?? '');
     $imagePath = trim($_POST['image_url'] ?? 'images/page-header-bg.jpg');
 
-    // Handle Direct File Upload if provided
+    // Handle Secure File Upload
     if (isset($_FILES['cover_upload']) && $_FILES['cover_upload']['error'] === UPLOAD_ERR_OK) {
-        $uploadDir = dirname(__DIR__) . '/images/blog/';
-        if (!is_dir($uploadDir)) {
-            @mkdir($uploadDir, 0755, true);
-        }
-
-        $tmpName = $_FILES['cover_upload']['tmp_name'];
-        $originalName = basename($_FILES['cover_upload']['name']);
-        $ext = strtolower(pathinfo($originalName, PATHINFO_EXTENSION));
-        
-        $allowedExts = ['jpg', 'jpeg', 'png', 'webp', 'gif'];
-        if (in_array($ext, $allowedExts)) {
-            $newFileName = 'blog_' . time() . '_' . substr(md5(uniqid()), 0, 6) . '.' . $ext;
-            $destination = $uploadDir . $newFileName;
-            
-            if (move_uploaded_file($tmpName, $destination)) {
-                $imagePath = 'images/blog/' . $newFileName;
-            }
+        $uploadResult = secure_upload_image($_FILES['cover_upload'], dirname(__DIR__) . '/images/blog/');
+        if ($uploadResult['success']) {
+            $imagePath = 'images/blog/' . $uploadResult['filename'];
+        } else {
+            $error = $uploadResult['error'];
         }
     }
 

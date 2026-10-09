@@ -1,8 +1,8 @@
-// Google Apps Script Web App URL to save data to Google Sheets & send email notification.
-// Deploy your Apps Script, get the Web App URL, and paste it here.
-const GOOGLE_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbyqOfAk9exKThIZ3Ffo-kMhNdlagfgn00MvBDd6bAMx9BlKqdfHuwvpi2WH-Kjyf2zlpg/exec';
+// Secure Same-Origin Lead Ingestion Endpoint (MySQL CRM + SMTP Notifications)
+const LEAD_API_ENDPOINT = '/api/leads';
 
 document.addEventListener('DOMContentLoaded', () => {
+    window.__formLoadedTime = Math.floor(Date.now() / 1000);
 
     // 1. Sticky Header Scroll Effect (only for pages where header is transparent by default)
     const header = document.getElementById('header');
@@ -227,7 +227,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 const submitBtn = form.querySelector('button[type="submit"]');
                 const originalText = submitBtn.textContent;
                 submitBtn.disabled = true;
-                submitBtn.textContent = 'Submitting...';
+                submitBtn.textContent = 'Submitting Request...';
 
                 // Collect form values
                 const formData = new FormData(form);
@@ -236,56 +236,69 @@ document.addEventListener('DOMContentLoaded', () => {
                     data[key] = value;
                 });
 
-                // Prevent Google Sheets formula parse error if phone starts with '+'
-                if (data['phone']) {
-                    const cleanPhone = data['phone'].trim();
-                    if (cleanPhone.startsWith('+')) {
-                        data['phone'] = "'" + cleanPhone;
-                    } else {
-                        data['phone'] = cleanPhone;
-                    }
-                }
+                // Anti-spam & attribution metadata
+                data['form_loaded_ts'] = window.__formLoadedTime || Math.floor(Date.now() / 1000) - 5;
+                data['website_url_hp'] = form.querySelector('input[name="website_url_hp"]')?.value || '';
+                data['landing_page'] = window.location.href;
+                data['referrer'] = document.referrer || '';
+                data['source'] = 'website_quote_form';
 
-                // Add company metadata
-                data['companyName'] = 'Tabeeb Contractor Pte Ltd.';
-                data['submittedAt'] = new Date().toLocaleString();
+                // Remove existing form-level error message if any
+                const existingAlert = form.querySelector('.form-alert-msg');
+                if (existingAlert) existingAlert.remove();
 
-                const showSuccess = () => {
-                    if (successModal) {
-                        successModal.classList.add('active');
-                    }
-                    form.reset();
+                const showServerError = (msg) => {
                     submitBtn.disabled = false;
                     submitBtn.textContent = originalText;
-                    if (onSuccessCallback) {
-                        onSuccessCallback();
-                    }
+
+                    const alertDiv = document.createElement('div');
+                    alertDiv.className = 'form-alert-msg';
+                    alertDiv.style.cssText = 'background: #fef2f2; border: 1px solid #fecaca; color: #b91c1c; padding: 12px 16px; border-radius: 8px; margin-bottom: 16px; font-size: 13px; line-height: 1.5;';
+                    alertDiv.innerHTML = `<strong>Submission Notice:</strong> ${msg || 'Unable to submit your request at this moment.'} <br>You can also reach our duty supervisor directly via <strong><a href="tel:+6586484883" style="color: #b91c1c; text-decoration: underline;">+65 8648 4883</a></strong> or <strong><a href="https://wa.me/6586484883" target="_blank" style="color: #15803d; text-decoration: underline;">WhatsApp</a></strong>.`;
+                    submitBtn.parentNode.insertBefore(alertDiv, submitBtn);
                 };
 
-                if (GOOGLE_SCRIPT_URL && GOOGLE_SCRIPT_URL !== 'YOUR_GOOGLE_APPS_SCRIPT_URL_HERE') {
-                    // Post data to Google Apps Script Web App
-                    fetch(GOOGLE_SCRIPT_URL, {
-                        method: 'POST',
-                        mode: 'no-cors',
-                        headers: {
-                            'Content-Type': 'application/json'
-                        },
-                        body: JSON.stringify(data)
-                    })
-                        .then(() => {
-                            showSuccess();
-                        })
-                        .catch((err) => {
-                            console.error('Submission error:', err);
-                            // Fallback to show success modal so user experience doesn't break
-                            showSuccess();
-                        });
-                } else {
-                    // Fallback to simulated submission if URL is not configured yet
-                    setTimeout(() => {
-                        showSuccess();
-                    }, 1000);
-                }
+                fetch(LEAD_API_ENDPOINT, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Accept': 'application/json'
+                    },
+                    body: JSON.stringify(data)
+                })
+                .then(async (response) => {
+                    let result;
+                    try {
+                        result = await response.json();
+                    } catch (e) {
+                        result = { success: false, message: 'Server returned an invalid response.' };
+                    }
+
+                    if (response.ok && result.success) {
+                        // Success modal with real lead reference ID
+                        if (successModal) {
+                            const refElem = successModal.querySelector('.modal-lead-ref');
+                            if (refElem && result.lead_id) {
+                                refElem.textContent = 'Reference ID: ' + result.lead_id;
+                            }
+                            successModal.classList.add('active');
+                        }
+                        form.reset();
+                        submitBtn.disabled = false;
+                        submitBtn.textContent = originalText;
+
+                        if (onSuccessCallback) {
+                            onSuccessCallback();
+                        }
+                    } else {
+                        // Honest error reporting
+                        showServerError(result.message || 'Submission failed. Please check required fields.');
+                    }
+                })
+                .catch((err) => {
+                    console.error('Submission network error:', err);
+                    showServerError('Network error or connection lost. Please verify your connection.');
+                });
             }
         });
 

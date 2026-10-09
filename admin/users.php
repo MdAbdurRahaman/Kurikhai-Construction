@@ -225,8 +225,12 @@ $users = get_all_users();
                 <div class="form-group">
                     <label class="form-label" for="addRole">Role:</label>
                     <select id="addRole" name="role" class="form-control-adm">
-                        <option value="editor">Content Editor</option>
-                        <option value="super_admin">Super Admin</option>
+                        <option value="super_admin">Super Administrator</option>
+                        <option value="administrator">Administrator</option>
+                        <option value="sales_manager">Sales Manager</option>
+                        <option value="sales_rep">Sales Representative</option>
+                        <option value="editor" selected>Content Editor</option>
+                        <option value="analyst">Analyst (Read Only)</option>
                     </select>
                 </div>
                 <div class="form-group">
@@ -286,8 +290,12 @@ $users = get_all_users();
                 <div class="form-group">
                     <label class="form-label" for="editRole">Role:</label>
                     <select id="editRole" name="role" class="form-control-adm">
+                        <option value="super_admin">Super Administrator</option>
+                        <option value="administrator">Administrator</option>
+                        <option value="sales_manager">Sales Manager</option>
+                        <option value="sales_rep">Sales Representative</option>
                         <option value="editor">Content Editor</option>
-                        <option value="super_admin">Super Admin</option>
+                        <option value="analyst">Analyst (Read Only)</option>
                     </select>
                 </div>
                 <div class="form-group">

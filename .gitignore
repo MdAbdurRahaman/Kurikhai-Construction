@@ -1,1 +1,16 @@
 website.zip
+website-deploy.zip
+*.zip
+.env
+.env.local
+.env.*.local
+*.log
+*.sql
+!config/schema.sql
+*.sqlite
+*.bak
+*.tmp
+data/backup_*
+node_modules/
+.DS_Store
+Thumbs.db

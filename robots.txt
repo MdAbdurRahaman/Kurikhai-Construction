@@ -1,8 +1,10 @@
 User-agent: *
 Allow: /
 
-# Disallow system files and hidden assets
+# Disallow administrative and API endpoints
+Disallow: /admin/
+Disallow: /api/
 Disallow: /images/*_old.*
 
-# Sitemap location
-Sitemap: https://www.tabeebgroup.com/sitemap.xml
+# Canonical Sitemap location
+Sitemap: https://tabeebgroup.com/sitemap.xml

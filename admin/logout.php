@@ -1,15 +1,15 @@
 <?php
 require_once dirname(__DIR__) . '/includes/data.php';
 
-$_SESSION = [];
-if (ini_get("session.use_cookies")) {
-    $params = session_get_cookie_params();
-    setcookie(session_name(), '', time() - 42000,
-        $params["path"], $params["domain"],
-        $params["secure"], $params["httponly"]
-    );
+// If POST request, verify CSRF token
+if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    $token = $_POST['csrf_token'] ?? '';
+    if (!verify_csrf_token($token)) {
+        // Still logout safely, but log warning
+        error_log('[Security Warning] Logout called with invalid CSRF token.');
+    }
 }
-session_destroy();
 
+logout_user('User initiated sign out');
 header('Location: login.php?msg=' . urlencode('You have been signed out safely.'));
 exit;

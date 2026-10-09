@@ -86,12 +86,12 @@ $relatedPosts = array_slice($relatedPosts, 0, 3);
       "dateModified": <?= json_encode(date('c', strtotime($post['updated_at'] ?? $post['created_at']))) ?>,
       "author": {
         "@type": "Organization",
-        "name": <?= json_encode($post['author'] ?? 'Tabeeb Contractor Pte Ltd') ?>,
+        "name": <?= json_encode($post['author'] ?? 'Tabeeb Contractor') ?>,
         "url": "https://www.tabeebgroup.com/"
       },
       "publisher": {
         "@type": "Organization",
-        "name": "Tabeeb Contractor Pte Ltd",
+        "name": "Tabeeb Contractor",
         "logo": {
           "@type": "ImageObject",
           "url": "https://www.tabeebgroup.com/images/logo-horizontal.png"
@@ -359,8 +359,8 @@ $relatedPosts = array_slice($relatedPosts, 0, 3);
         <div class="header-main">
             <div class="container">
                 <div class="header-wrapper">
-                    <a href="/" class="logo" id="header-logo" aria-label="Tabeeb Contractor Pte Ltd">
-                        <img src="/images/logo-horizontal.png?v=3.3" alt="Tabeeb Contractor Pte Ltd" class="header-logo-img">
+                    <a href="/" class="logo" id="header-logo" aria-label="Tabeeb Contractor">
+                        <img src="/images/logo-horizontal.png?v=3.3" alt="Tabeeb Contractor" class="header-logo-img">
                     </a>
                     <nav>
                         <ul class="nav-list" id="nav-list">
@@ -466,8 +466,8 @@ $relatedPosts = array_slice($relatedPosts, 0, 3);
                                 🏗️
                             </div>
                             <div>
-                                <h4 style="margin: 0 0 6px; font-size: 17px; color: var(--color-primary);"><?= htmlspecialchars($post['author'] ?? 'Tabeeb Contractor Pte Ltd') ?></h4>
-                                <p style="margin: 0; font-size: 14px; color: #64748b; line-height: 1.5;">Direct commercial & residential contractor in Singapore. Licensed specialists in office reinstatement, HDB wall hacking, waterproofing, tiling, and turnkey construction.</p>
+                                <h4 style="margin: 0 0 6px; font-size: 17px; color: var(--color-primary);"><?= htmlspecialchars($post['author'] ?? 'Tabeeb Contractor') ?></h4>
+                                <p style="margin: 0; font-size: 14px; color: #64748b; line-height: 1.5;">Direct commercial & residential contractor in Singapore. Specialists in office reinstatement, HDB wall hacking, waterproofing, tiling, and alterations.</p>
                             </div>
                         </div>
 
@@ -536,10 +536,10 @@ $relatedPosts = array_slice($relatedPosts, 0, 3);
         <div class="container">
             <div class="footer-grid">
                 <div class="footer-col footer-brand-col">
-                    <a href="/" class="footer-logo-link" aria-label="Tabeeb Contractor Pte Ltd">
-                        <img src="/images/logo-white.png?v=3.3" alt="Tabeeb Contractor Pte Ltd" class="footer-logo-img" width="220">
+                    <a href="/" class="footer-logo-link" aria-label="Tabeeb Contractor">
+                        <img src="/images/logo-white.png?v=3.3" alt="Tabeeb Contractor" class="footer-logo-img" width="220">
                     </a>
-                    <p>Tabeeb Contractor Pte Ltd is a premier direct contracting firm specializing in commercial office reinstatement, HDB wall hacking, architectural tiling, waterproofing, and structural alterations in Singapore.</p>
+                    <p>Tabeeb Contractor is a premier direct contracting firm specializing in commercial office reinstatement, HDB wall hacking, architectural tiling, waterproofing, and structural alterations in Singapore.</p>
                 </div>
                 <div class="footer-col">
                     <h3>Quick Links</h3>
@@ -578,7 +578,11 @@ $relatedPosts = array_slice($relatedPosts, 0, 3);
                 </div>
             </div>
             <div class="footer-bottom">
-                <p>&copy; <?= date('Y') ?> Tabeeb Contractor Pte Ltd. All Rights Reserved. Reg No: 202324681W.</p>
+                <p>&copy; <?= date('Y') ?> Tabeeb Contractor. All Rights Reserved. UEN: 202506878W.</p>
+                <div class="footer-legal-links" style="display: flex; gap: 16px;">
+                    <a href="/privacy" style="color: #94a3b8; font-size: 13px; text-decoration: none;">Privacy Policy</a>
+                    <a href="/terms" style="color: #94a3b8; font-size: 13px; text-decoration: none;">Terms of Service</a>
+                </div>
             </div>
         </div>
     </footer>

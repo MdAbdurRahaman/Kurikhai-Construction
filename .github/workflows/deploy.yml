@@ -8,7 +8,7 @@ on:
 
 jobs:
   web-deploy:
-    name: 🌐 Direct Deploy to cPanel (HTTPS)
+    name: 🌐 Secure Deploy to cPanel (HTTPS UAPI)
     runs-on: ubuntu-latest
     steps:
       - name: 🚚 Checkout latest code
@@ -16,9 +16,9 @@ jobs:
 
       - name: 📦 Package Website Files
         run: |
-          zip -r website-deploy.zip . -x ".git*" ".github*" "*.md" ".cpanel.yml" "*.zip"
+          zip -r website-deploy.zip . -x ".git*" ".github*" "*.md" ".cpanel.yml" "*.zip" ".env*" "data/backup_*"
 
-      - name: 🚀 Upload and Extract to cPanel public_html
+      - name: 🚀 Upload and Securely Extract via cPanel UAPI
         run: |
           CPANEL_USER="${{ secrets.CPANEL_USERNAME || 'tabeebgroup' }}"
           CPANEL_HOST="${{ secrets.CPANEL_HOST || '151.158.158.31' }}"
@@ -29,17 +29,27 @@ jobs:
             exit 1
           fi
 
-          echo "1️⃣ Uploading zip and extractor to cPanel public_html..."
+          echo "1️⃣ Uploading package archive to cPanel public_html..."
           UPLOAD_RES=$(curl -k -s -X POST \
             -H "Authorization: cpanel ${CPANEL_USER}:${API_TOKEN}" \
             -F "dir=public_html" \
             -F "file-1=@website-deploy.zip" \
-            -F "file-2=@unzip.php" \
             "https://${CPANEL_HOST}:2083/execute/Fileman/upload_files")
           echo "Upload Response: $UPLOAD_RES"
 
-          echo "2️⃣ Triggering file extraction..."
-          EXTRACT_RES=$(curl -k -s -L "https://tabeebgroup.com/unzip.php" || true)
-          echo "Extractor Response: $EXTRACT_RES"
+          echo "2️⃣ Triggering native authenticated cPanel extraction..."
+          EXTRACT_RES=$(curl -k -s -X POST \
+            -H "Authorization: cpanel ${CPANEL_USER}:${API_TOKEN}" \
+            -d "dir=public_html" \
+            -d "file=website-deploy.zip" \
+            "https://${CPANEL_HOST}:2083/execute/Fileman/extract_files")
+          echo "Extraction Response: $EXTRACT_RES"
 
-          echo "🎉 Website deployed successfully to live server!"
+          echo "3️⃣ Cleaning up temporary deployment archive..."
+          curl -k -s -X POST \
+            -H "Authorization: cpanel ${CPANEL_USER}:${API_TOKEN}" \
+            -d "dir=public_html" \
+            -d "files=website-deploy.zip" \
+            "https://${CPANEL_HOST}:2083/execute/Fileman/delete_files" > /dev/null || true
+
+          echo "🎉 Website securely deployed to production server!"

@@ -4,15 +4,15 @@
     "slug": "renovation-contractor-singapore",
     "name": "Renovation Contractor in Singapore",
     "short_title": "Renovation Contractor SG",
-    "og_title": "Tabeeb Contractor Pte Ltd – Renovation Contractor in Singapore",
-    "og_description": "Singapore's trusted direct renovation contractor. Residential & commercial renovations, hacking, tiling, ceilings, electrical & reinstatement. Free site assessment.",
+    "og_title": "Tabeeb Contractor – Renovation Contractor in Singapore",
+    "og_description": "Singapore's trusted direct renovation contractor. Residential & commercial renovations, hacking, tiling, ceilings, electrical & reinstatement. Request a site assessment.",
     "category": "renovation",
     "category_name": "Turnkey Renovation",
     "badge": "Trusted Renovation Partner",
     "icon": "🏗️",
     "image": "images/hero-bg.jpg",
-    "hero_tagline": "Tabeeb Contractor Pte Ltd – Renovation Contractor in Singapore. Residential, Commercial, Quality, On Time.",
-    "overview": "Tabeeb Contractor Pte Ltd is your trusted direct renovation contractor in Singapore. We specialize in comprehensive residential and commercial renovations, delivering complete peace of mind with in-house craftsmen, transparent direct-contractor pricing, and guaranteed on-time handovers.",
+    "hero_tagline": "Tabeeb Contractor – Renovation Contractor in Singapore. Residential, Commercial, Quality, On Time.",
+    "overview": "Tabeeb Contractor is your trusted direct renovation contractor in Singapore. We specialize in comprehensive residential and commercial renovations, delivering complete peace of mind with experienced craftsmen, transparent direct-contractor pricing, and reliable project scheduling.",
     "scope_of_work": [
       "Residential renovations (HDB BTO, resale flats, condominiums, landed homes)",
       "Commercial renovations (offices, retail boutiques, F&B outlets, commercial spaces)",
@@ -22,9 +22,9 @@
       "End-to-end site management, authority submissions, and quality inspection"
     ],
     "key_benefits": [
-      {"title": "Direct Contractor Pricing", "desc": "Zero middleman markups. Save 20% to 35% compared to interior design firm commissions."},
+      {"title": "Direct Contractor Pricing", "desc": "Direct rates without middleman agency commissions or hidden markups."},
       {"title": "Reliable In-House Team", "desc": "Experienced, safe, and dedicated in-house craftsmen across all construction trades."},
-      {"title": "On Time Delivery", "desc": "Strict milestone planning and punctual handover guarantees on every project."},
+      {"title": "On Time Delivery", "desc": "Strict milestone planning and structured scheduling on every project."},
       {"title": "Quality Workmanship", "desc": "Premium building materials, rigorous quality control, and warranty-backed finishing."}
     ],
     "process": [

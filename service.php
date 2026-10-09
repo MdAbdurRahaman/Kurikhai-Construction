@@ -78,7 +78,7 @@ $twitterShareUrl = 'https://twitter.com/intent/tweet?text=' . urlencode($service
       "description": <?= json_encode($service['overview']) ?>,
       "provider": {
         "@type": "GeneralContractor",
-        "name": "Tabeeb Contractor Pte Ltd",
+        "name": "Tabeeb Contractor",
         "telephone": "+65 8648 4883",
         "url": "https://www.tabeebgroup.com/",
         "address": {
@@ -393,8 +393,8 @@ $twitterShareUrl = 'https://twitter.com/intent/tweet?text=' . urlencode($service
         <div class="header-main">
             <div class="container">
                 <div class="header-wrapper">
-                    <a href="/" class="logo" id="header-logo" aria-label="Tabeeb Contractor Pte Ltd">
-                        <img src="/images/logo-horizontal.png?v=3.3" alt="Tabeeb Contractor Pte Ltd" class="header-logo-img">
+                    <a href="/" class="logo" id="header-logo" aria-label="Tabeeb Contractor">
+                        <img src="/images/logo-horizontal.png?v=3.3" alt="Tabeeb Contractor" class="header-logo-img">
                     </a>
                     <nav>
                         <ul class="nav-list" id="nav-list">
@@ -628,10 +628,10 @@ $twitterShareUrl = 'https://twitter.com/intent/tweet?text=' . urlencode($service
         <div class="container">
             <div class="footer-grid">
                 <div class="footer-col footer-brand-col">
-                    <a href="/" class="footer-logo-link" aria-label="Tabeeb Contractor Pte Ltd">
-                        <img src="/images/logo-white.png?v=3.3" alt="Tabeeb Contractor Pte Ltd" class="footer-logo-img" width="220">
+                    <a href="/" class="footer-logo-link" aria-label="Tabeeb Contractor">
+                        <img src="/images/logo-white.png?v=3.3" alt="Tabeeb Contractor" class="footer-logo-img" width="220">
                     </a>
-                    <p>Tabeeb Contractor Pte Ltd is a premier direct contracting firm specializing in commercial office reinstatement, HDB wall hacking, architectural tiling, waterproofing, and structural alterations in Singapore.</p>
+                    <p>Tabeeb Contractor is a direct contracting firm specializing in commercial office reinstatement, HDB wall hacking, architectural tiling, waterproofing, and structural alterations in Singapore.</p>
                 </div>
                 <div class="footer-col">
                     <h3>Quick Links</h3>
@@ -674,7 +674,11 @@ $twitterShareUrl = 'https://twitter.com/intent/tweet?text=' . urlencode($service
                 </div>
             </div>
             <div class="footer-bottom">
-                <p>&copy; <?= date('Y') ?> Tabeeb Contractor Pte Ltd. All Rights Reserved. Reg No: 202324681W.</p>
+                <p>&copy; <?= date('Y') ?> Tabeeb Contractor. All Rights Reserved. UEN: 202506878W.</p>
+                <div class="footer-legal-links" style="display: flex; gap: 16px;">
+                    <a href="/privacy" style="color: #94a3b8; font-size: 13px; text-decoration: none;">Privacy Policy</a>
+                    <a href="/terms" style="color: #94a3b8; font-size: 13px; text-decoration: none;">Terms of Service</a>
+                </div>
             </div>
         </div>
     </footer>

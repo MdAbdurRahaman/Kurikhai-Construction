@@ -31,16 +31,10 @@ The deployment pipeline is powered by two files in the repository:
 ### 1. `.github/workflows/deploy.yml`
 Handles the CI/CD pipeline when commits are pushed:
 - **Triggers:** On push to `main` or `rebrand-tabeeb-contractor`.
-- **Packaging:** Bundles the website into `website-deploy.zip` while excluding git metadata, markdown docs, and temp files.
-- **Upload:** Sends the zip and `unzip.php` to `/home/tabeebgroup/public_html/` using cPanel's `Fileman/upload_files` UAPI over HTTPS port 2083.
-- **Extraction:** Pings `https://tabeebgroup.com/unzip.php` to immediately unpack all files directly into the web root.
-
-### 2. `unzip.php`
-A lightweight server-side helper executed by PHP on the LiteSpeed server:
-- Opens `website-deploy.zip`.
-- Overwrites/updates all files in `public_html/`.
-- Deletes `website-deploy.zip` after successful extraction.
-- Returns a JSON status report to GitHub Actions.
+- **Packaging:** Bundles the website into `website-deploy.zip` while excluding git metadata, markdown docs, secrets, and temp files.
+- **Upload:** Sends the zip to `/home/tabeebgroup/public_html/` using cPanel's `Fileman/upload_files` UAPI over HTTPS port 2083.
+- **Secure Extraction:** Executes cPanel's native authenticated `Fileman/extract_files` UAPI to unpack directly into the web root, and automatically removes the temporary zip via `Fileman/delete_files`.
+- **Security:** No unauthenticated web-accessible extraction scripts (`unzip.php`) exist on the server.
 
 ---
 

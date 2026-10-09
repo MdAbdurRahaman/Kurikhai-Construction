@@ -24,16 +24,16 @@
     <!-- Open Graph / Facebook -->
     <meta property="og:type" content="website">
     <meta property="og:url" content="https://www.tabeebgroup.com/contact">
-    <meta property="og:title" content="Contact Tabeeb Contractor Pte Ltd | Renovation Contractor Singapore">
-    <meta property="og:description" content="Request a free on-site consultation and quote for your renovation or reinstatement project in Singapore. Visit our Kaki Bukit office or WhatsApp +65 8648 4883.">
+    <meta property="og:title" content="Contact Tabeeb Contractor | Renovation Contractor Singapore">
+    <meta property="og:description" content="Request an on-site consultation and quote for your renovation or reinstatement project in Singapore. Visit our Kaki Bukit office or contact info@tabeebgroup.com / +65 8648 4883.">
     <meta property="og:image" content="https://www.tabeebgroup.com/images/hero-bg.jpg">
     <meta property="og:locale" content="en_SG">
 
     <!-- Twitter -->
     <meta property="twitter:card" content="summary_large_image">
     <meta property="twitter:url" content="https://www.tabeebgroup.com/contact">
-    <meta property="twitter:title" content="Contact Tabeeb Contractor Pte Ltd | Renovation Contractor Singapore">
-    <meta property="twitter:description" content="Request a free on-site consultation and quote for your renovation or reinstatement project in Singapore. Visit our Kaki Bukit office or WhatsApp +65 8648 4883.">
+    <meta property="twitter:title" content="Contact Tabeeb Contractor | Renovation Contractor Singapore">
+    <meta property="twitter:description" content="Request an on-site consultation and quote for your renovation or reinstatement project in Singapore. Visit our Kaki Bukit office or contact info@tabeebgroup.com / +65 8648 4883.">
     <meta property="twitter:image" content="https://www.tabeebgroup.com/images/hero-bg.jpg">
     
     <!-- Structured Data JSON-LD (ContactPage + LocalBusiness) -->
@@ -45,17 +45,17 @@
           "@type": "ContactPage",
           "@id": "https://www.tabeebgroup.com/contact#webpage",
           "url": "https://www.tabeebgroup.com/contact",
-          "name": "Contact Tabeeb Contractor Pte Ltd",
+          "name": "Contact Tabeeb Contractor",
           "isPartOf": {
             "@type": "WebSite",
-            "name": "Tabeeb Contractor Pte Ltd",
+            "name": "Tabeeb Contractor",
             "url": "https://www.tabeebgroup.com/"
           }
         },
         {
           "@type": ["GeneralContractor", "HomeAndConstructionBusiness"],
           "@id": "https://www.tabeebgroup.com/#organization",
-          "name": "Tabeeb Contractor Pte Ltd",
+          "name": "Tabeeb Contractor",
           "telephone": "+65 8648 4883",
           "email": "info@tabeebgroup.com",
           "address": {
@@ -65,11 +65,9 @@
             "postalCode": "417943",
             "addressCountry": "SG"
           },
-          "geo": {
-            "@type": "GeoCoordinates",
-            "latitude": 1.3364,
-            "longitude": 103.9066
-          },
+          "sameAs": [
+            "https://www.google.com/maps/place/TABEEB+CONTRACTOR+PTE+LTD/@1.3363576,103.9091695,1128m/data=!3m2!1e3!4b1!4m6!3m5!1s0x31da17d8a42c489f:0x834162f16ce7e27b!8m2!3d1.3363576!4d103.9117444!16s%2Fg%2F11zxps0z_m?entry=ttu"
+          ],
           "openingHoursSpecification": [
             {
               "@type": "OpeningHoursSpecification",
@@ -125,8 +123,8 @@
         <div class="header-main">
             <div class="container">
                 <div class="header-wrapper">
-                    <a href="/" class="logo" id="header-logo" aria-label="Tabeeb Contractor Pte Ltd">
-                        <img src="images/logo-horizontal.png?v=3.3" alt="Tabeeb Contractor Pte Ltd - Building Better Spaces" class="header-logo-img">
+                    <a href="/" class="logo" id="header-logo" aria-label="Tabeeb Contractor">
+                        <img src="images/logo-horizontal.png?v=3.3" alt="Tabeeb Contractor - Building Better Spaces" class="header-logo-img">
                     </a>
                     <nav>
                         <ul class="nav-list" id="nav-list">
@@ -193,7 +191,7 @@
                                     <p>Shun Li Industrial Park, Singapore 417943</p>
                                     <p style="font-size: 13px; margin-top: 6px; color: var(--color-accent);">Mon - Sat: 9:00 AM - 6:00 PM (Closed on Sundays & PH)</p>
                                     <p style="margin-top: 6px;">
-                                        <a href="https://maps.google.com/?q=61+Kaki+Bukit+Ave+1,+Shun+Li+Industrial+Park,+Singapore+417943" target="_blank" rel="noopener noreferrer" style="color: var(--color-accent); font-size: 13px; font-weight: 600; text-decoration: underline;">
+                                        <a href="https://www.google.com/maps/place/TABEEB+CONTRACTOR+PTE+LTD/@1.3363576,103.9091695,1128m/data=!3m2!1e3!4b1!4m6!3m5!1s0x31da17d8a42c489f:0x834162f16ce7e27b!8m2!3d1.3363576!4d103.9117444!16s%2Fg%2F11zxps0z_m?entry=ttu&amp;g_ep=EgoyMDI2MTAwNS4wIKXMDSoASAFQAw%3D%3D" target="_blank" rel="noopener noreferrer" style="color: var(--color-accent); font-size: 13px; font-weight: 600; text-decoration: underline;">
                                             Open in Google Maps ➔
                                         </a>
                                     </p>
@@ -220,6 +218,8 @@
                 <!-- Right Column: Detail Form -->
                 <div class="contact-form-panel fade-in-up">
                     <form id="leadForm" novalidate>
+                        <!-- Anti-Spam Honeypot Field -->
+                        <input type="text" name="website_url_hp" style="display:none !important;" tabindex="-1" autocomplete="off" aria-hidden="true">
                         <div class="form-group-row">
                             <div class="form-group">
                                 <label for="name">Your Name *</label>
@@ -269,11 +269,11 @@
                             <textarea id="message" name="message" class="form-control" placeholder="Please specify the property type (HDB, Condo, Landed, Office, Industrial), square footage, materials required, and timeline..." required></textarea>
                         </div>
                         
-                        <!-- Compliance awareness check -->
+                        <!-- PDPA and Compliance awareness check -->
                         <div class="form-group" style="display: flex; align-items: flex-start; gap: 10px; margin-top: 25px;">
                             <input type="checkbox" id="consent" name="consent" style="margin-top: 5px; cursor: pointer;" required>
                             <label for="consent" style="font-weight: 500; font-size: 13px; color: var(--color-text-muted); cursor: pointer; line-height: 1.4;">
-                                I acknowledge that home extensions and alteration works are subject to approvals and confirm that the details provided are accurate. *
+                                I consent to Tabeeb Contractor collecting and using my contact details to respond to this quotation inquiry in accordance with the Singapore Personal Data Protection Act (PDPA) and the <a href="/privacy" style="color: var(--color-accent); text-decoration: underline;" target="_blank">Privacy Policy</a>. *
                             </label>
                         </div>
                         
@@ -294,7 +294,7 @@
                         <h3 style="font-size: 20px; color: var(--color-primary); font-family: var(--font-heading);">Our Office Location</h3>
                         <p style="color: var(--color-text-muted); font-size: 14px;">61 Kaki Bukit Ave 1, #03-34 Shun Li Industrial Park, Singapore 417943</p>
                     </div>
-                    <a href="https://maps.google.com/?q=61+Kaki+Bukit+Ave+1,+Shun+Li+Industrial+Park,+Singapore+417943" target="_blank" rel="noopener noreferrer" class="btn btn-secondary" style="padding: 8px 18px; font-size: 13px;">
+                    <a href="https://www.google.com/maps/place/TABEEB+CONTRACTOR+PTE+LTD/@1.3363576,103.9091695,1128m/data=!3m2!1e3!4b1!4m6!3m5!1s0x31da17d8a42c489f:0x834162f16ce7e27b!8m2!3d1.3363576!4d103.9117444!16s%2Fg%2F11zxps0z_m?entry=ttu&amp;g_ep=EgoyMDI2MTAwNS4wIKXMDSoASAFQAw%3D%3D" target="_blank" rel="noopener noreferrer" class="btn btn-secondary" style="padding: 8px 18px; font-size: 13px;">
                         Get Directions
                     </a>
                 </div>
@@ -319,7 +319,7 @@
         <div class="modal-content">
             <div class="modal-icon">✓</div>
             <h3 class="modal-title">Request Submitted</h3>
-            <p class="modal-message">Thank you for contacting Tabeeb Contractor Pte Ltd. One of our project estimators will review your plan and contact you within 24 hours to schedule a consultation.</p>
+            <p class="modal-message">Thank you for contacting Tabeeb Contractor. One of our project estimators will review your inquiry and follow up with you shortly.</p>
             <button class="btn btn-dark" id="closeModalBtn">Close Window</button>
         </div>
     </div>
@@ -329,10 +329,10 @@
         <div class="container">
             <div class="footer-grid">
                 <div class="footer-col footer-brand-col">
-                    <a href="/" class="footer-logo-link" aria-label="Tabeeb Contractor Pte Ltd">
-                        <img src="images/logo-white.png?v=3.3" alt="Tabeeb Contractor Pte Ltd - Building Better Spaces" class="footer-logo-img" width="220">
+                    <a href="/" class="footer-logo-link" aria-label="Tabeeb Contractor">
+                        <img src="images/logo-white.png?v=3.3" alt="Tabeeb Contractor - Building Better Spaces" class="footer-logo-img" width="220">
                     </a>
-                    <p>Tabeeb Contractor Pte Ltd is a premier contracting firm specializing in commercial and residential renovation, hacking, reinstatement, architectural finishing, waterproofing, and structural alterations in Singapore.</p>
+                    <p>Tabeeb Contractor is a contracting firm specializing in commercial and residential renovation, hacking, reinstatement, architectural finishing, waterproofing, and alterations in Singapore.</p>
                 </div>
                 <div class="footer-col">
                     <h3>Quick Links</h3>
@@ -378,10 +378,10 @@
                 </div>
             </div>
             <div class="footer-bottom">
-                <p class="footer-copyright">&copy; 2026 Tabeeb Contractor Pte Ltd. All rights reserved.</p>
+                <p class="footer-copyright">&copy; 2026 Tabeeb Contractor. All rights reserved. UEN: 202506878W.</p>
                 <div class="footer-legal-links">
-                    <a href="#">Privacy Policy</a>
-                    <a href="#">Terms of Service</a>
+                    <a href="/privacy">Privacy Policy</a>
+                    <a href="/terms">Terms of Service</a>
                 </div>
             </div>
         </div>
@@ -394,6 +394,8 @@
             <h3 style="font-size: 24px; margin-bottom: 10px; font-family: var(--font-heading); color: var(--color-text-dark);">Request a Free Quote</h3>
             <p style="color: var(--color-text-muted); font-size: 14px; margin-bottom: 25px;">Provide details about your project and we'll get back to you with a competitive estimation within 24 hours.</p>
             <form id="popupQuoteForm" novalidate>
+                <!-- Anti-Spam Honeypot Field -->
+                <input type="text" name="website_url_hp" style="display:none !important;" tabindex="-1" autocomplete="off" aria-hidden="true">
                 <div class="form-group-row">
                     <div class="form-group">
                         <label for="popup-name">Your Name *</label>
@@ -429,6 +431,12 @@
                 <div class="form-group">
                     <label for="popup-message">Project Description & Requirements *</label>
                     <textarea id="popup-message" name="message" class="form-control" placeholder="Describe the scope of works, target completion timeline, and any specific requirements..." required></textarea>
+                </div>
+                <div class="form-group" style="display: flex; align-items: flex-start; gap: 10px; margin-top: 15px;">
+                    <input type="checkbox" id="popup-consent" name="consent" style="margin-top: 4px; cursor: pointer;" required>
+                    <label for="popup-consent" style="font-weight: 500; font-size: 12px; color: var(--color-text-muted); cursor: pointer; line-height: 1.4;">
+                        I consent to Tabeeb Contractor collecting and using my information to contact me regarding this quotation in accordance with the <a href="/privacy" style="color: var(--color-accent); text-decoration: underline;" target="_blank">Privacy Policy</a>. *
+                    </label>
                 </div>
                 <button type="submit" class="btn btn-primary" style="width: 100%;">Submit Quote Request</button>
             </form>

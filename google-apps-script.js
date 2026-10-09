@@ -1,12 +1,8 @@
 /**
- * Google Apps Script Web App for Tabeeb Contractor Pte Ltd.
- * 
- * Instructions:
- * 1. Open your target Google Sheet.
- * 2. Go to Extensions > Apps Script.
- * 3. Replace all existing code with this script.
- * 4. Click Save, then click "Deploy" > "Manage deployments" > Edit (pencil icon) > choose "New version" > Deploy.
- *    (Or if setting up for the first time: Deploy > New deployment > Web app > Execute as Me > Who has access: Anyone).
+ * [DEPRECATED / OBSOLETE]
+ * Google Apps Script Web App for Tabeeb Contractor.
+ * Superseded by the secure MySQL same-origin endpoint: POST /api/leads
+ * Kept for historical reference only. Do not deploy to production.
  */
 
 function doPost(e) {
@@ -40,8 +36,8 @@ function doPost(e) {
       data.companyName || "Tabeeb Contractor Pte Ltd."
     ]);
     
-    // Send email alert to both recipients
-    var emailRecipients = "infotabeebcontractor@gmail.com, abdurrahaman1a1@gmail.com";
+    // Send email alert to recipients
+    var emailRecipients = "info@tabeebgroup.com";
     var subject = "Tabeeb Contractor Website Leads";
     
     var emailBody = "Hello,\n\n" +
