@@ -1,6 +1,6 @@
 <?php
 require_once dirname(__DIR__) . '/includes/data.php';
-require_login();
+require_permission('content.manage');
 
 // Handle Actions (Toggle status, Delete)
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {

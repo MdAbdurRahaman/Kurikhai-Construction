@@ -60,8 +60,10 @@ RewriteRule ^service/([a-zA-Z0-9_-]+)/?$ service.php?slug=$1 [L,QSA]
 RewriteRule ^services/([a-zA-Z0-9_-]+)/?$ service.php?slug=$1 [L,QSA]
 
 # ----------------------------------------------------------------------
-# 6. BLOG CLEAN URLS
+# 6. BLOG & PROJECTS CLEAN URLS
 # ----------------------------------------------------------------------
+RewriteRule ^projects/([a-zA-Z0-9_-]+)/?$ project.php?slug=$1 [L,QSA]
+RewriteRule ^projects/?$ projects.php [L,QSA]
 RewriteRule ^blog/([a-zA-Z0-9_-]+)/?$ blog-post.php?slug=$1 [L,QSA]
 RewriteRule ^blog/?$ blog.php [L,QSA]
 

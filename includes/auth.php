@@ -2,9 +2,13 @@
 /**
  * Authentication & Access Control System - Tabeeb Contractor
  * 
- * Provides session lifecycle management, rate-limited login,
- * password hashing (Argon2id/Bcrypt), role-based permissions,
- * and last-super-admin safeguards.
+ * Provides:
+ * 1. Secure Session Lifecycle & Idle/Absolute Timeout Management
+ * 2. Fail-Closed Authentication (Strictly MySQL Backed, Zero JSON Identity Fallback)
+ * 3. Active Account & Session Version Revalidation on Every Request
+ * 4. Mandatory Enforced Password Rotation (force_password_change)
+ * 5. Strict Role-Based Permissions (RBAC) across 6 granular roles
+ * 6. Concurrency-Safe Final Super Admin Safeguard
  */
 
 require_once dirname(__DIR__) . '/config/config.php';
@@ -12,7 +16,7 @@ require_once __DIR__ . '/db.php';
 require_once __DIR__ . '/security.php';
 
 /**
- * 1. SECURE SESSION INITIALIZATION
+ * 1. SECURE SESSION INITIALIZATION & LIFECYCLE
  */
 function init_secure_session(): void {
     if (session_status() === PHP_SESSION_ACTIVE) {
@@ -37,7 +41,7 @@ function init_secure_session(): void {
 
     session_start();
 
-    // Enforce idle timeout and absolute session lifetime
+    // Check session timeout & database account status
     if (!empty($_SESSION['tabeeb_admin_user'])) {
         $now = time();
         $createdAt = $_SESSION['session_created_at'] ?? $now;
@@ -50,14 +54,85 @@ function init_secure_session(): void {
         }
 
         $_SESSION['session_last_activity'] = $now;
+
+        // Revalidate account status against database (Fail-Closed)
+        revalidate_active_session();
     }
 }
 
-// Auto-run session setup
+/**
+ * 2. ACTIVE SESSION REVALIDATION (Fail-Closed)
+ */
+function revalidate_active_session(): bool {
+    if (empty($_SESSION['tabeeb_admin_user']['id'])) {
+        return false;
+    }
+
+    $userId = (int)$_SESSION['tabeeb_admin_user']['id'];
+    $sessionVer = (int)($_SESSION['tabeeb_admin_user']['session_version'] ?? 1);
+
+    // If database is unavailable, fail closed
+    if (!DB::isConnected()) {
+        logout_user('Database connection unavailable for session validation.');
+        if (php_sapi_name() !== 'cli') {
+            header('Location: /admin/login.php?error=' . urlencode('Authentication database is temporarily unavailable. Please try again shortly.'));
+            exit;
+        }
+        return false;
+    }
+
+    try {
+        $user = db_one(
+            "SELECT u.id, u.status, u.role_id, u.force_password_change, u.session_version, u.deleted_at,
+                    r.slug AS role_slug, r.name AS role_name 
+             FROM `users` u 
+             JOIN `roles` r ON u.role_id = r.id 
+             WHERE u.id = ? LIMIT 1",
+            [$userId]
+        );
+
+        if (!$user || $user['status'] !== 'active' || !empty($user['deleted_at'])) {
+            logout_user('Account deactivated, suspended, or deleted.');
+            if (php_sapi_name() !== 'cli') {
+                header('Location: /admin/login.php?error=' . urlencode('Your account has been deactivated or removed.'));
+                exit;
+            }
+            return false;
+        }
+
+        // Session version mismatch (triggered by password change or privilege revocation)
+        $dbVer = (int)($user['session_version'] ?? 1);
+        if ($dbVer !== $sessionVer) {
+            logout_user('Session revoked due to password or privilege change.');
+            if (php_sapi_name() !== 'cli') {
+                header('Location: /admin/login.php?msg=' . urlencode('Your session was revoked due to a password or role update. Please sign in again.'));
+                exit;
+            }
+            return false;
+        }
+
+        // Synchronize updated role and flags in active session
+        $_SESSION['tabeeb_admin_user']['role_id'] = (int)$user['role_id'];
+        $_SESSION['tabeeb_admin_user']['role'] = $user['role_slug'];
+        $_SESSION['tabeeb_admin_user']['role_name'] = $user['role_name'];
+        $_SESSION['tabeeb_admin_user']['force_password_change'] = !empty($user['force_password_change']);
+        return true;
+    } catch (Throwable $t) {
+        error_log('[Session Revalidation Error] ' . $t->getMessage());
+        logout_user('Session validation error.');
+        if (php_sapi_name() !== 'cli') {
+            header('Location: /admin/login.php?error=' . urlencode('Session validation error. Please sign in again.'));
+            exit;
+        }
+        return false;
+    }
+}
+
+// Auto-run session lifecycle on include
 init_secure_session();
 
 /**
- * 2. AUTHENTICATION (Login / Logout)
+ * 3. FAIL-CLOSED AUTHENTICATION (Login / Logout)
  */
 function login_user(string $username, string $password): array {
     $cleanUsername = strtolower(trim($username));
@@ -69,8 +144,15 @@ function login_user(string $username, string $password): array {
         return ['success' => false, 'message' => $rateCheck['message']];
     }
 
-    $user = null;
-    if (DB::isConnected()) {
+    // Fail closed: database connection must be available
+    if (!DB::isConnected()) {
+        return [
+            'success' => false,
+            'message' => 'Authentication service is temporarily unavailable. Database connection could not be established.'
+        ];
+    }
+
+    try {
         $user = db_one(
             "SELECT u.*, r.slug AS role_slug, r.name AS role_name 
              FROM `users` u 
@@ -80,89 +162,67 @@ function login_user(string $username, string $password): array {
              LIMIT 1",
             [$cleanUsername, $cleanUsername]
         );
-    } else {
-        // Fallback to JSON user storage if DB is migrating
-        $jsonUsers = @file_get_contents(DATA_DIR . '/users.json');
-        if ($jsonUsers) {
-            $all = json_decode($jsonUsers, true) ?: [];
-            foreach ($all as $u) {
-                if (strtolower($u['username']) === $cleanUsername || strtolower($u['email']) === $cleanUsername) {
-                    $user = $u;
-                    $user['password_hash'] = $u['password'];
-                    $user['role_slug'] = $u['role'];
-                    $user['role_name'] = ucfirst(str_replace('_', ' ', $u['role']));
-                    break;
-                }
-            }
+
+        if (!$user) {
+            audit_log('auth.login_failed', 'user', null, null, ['username' => $cleanUsername, 'reason' => 'user_not_found']);
+            return ['success' => false, 'message' => 'Invalid username or password.'];
         }
-    }
 
-    if (!$user) {
-        audit_log('auth.login_failed', 'user', null, null, ['username' => $cleanUsername, 'reason' => 'user_not_found']);
-        return ['success' => false, 'message' => 'Invalid username or password.'];
-    }
+        // Account active check
+        if ($user['status'] !== 'active') {
+            audit_log('auth.login_denied', 'user', (string)$user['id'], null, ['status' => $user['status']]);
+            return ['success' => false, 'message' => 'Account is deactivated. Please contact an administrator.'];
+        }
 
-    // Check account status
-    if (isset($user['status']) && $user['status'] !== 'active') {
-        audit_log('auth.login_denied', 'user', (string)$user['id'], null, ['status' => $user['status']]);
-        return ['success' => false, 'message' => 'Account is deactivated. Please contact an administrator.'];
-    }
+        // Lockout timestamp check
+        if (!empty($user['locked_until']) && strtotime($user['locked_until']) > time()) {
+            $waitMins = ceil((strtotime($user['locked_until']) - time()) / 60);
+            return ['success' => false, 'message' => "Account is temporarily locked. Try again in {$waitMins} minute(s)."];
+        }
 
-    // Check lockout timestamp
-    if (!empty($user['locked_until']) && strtotime($user['locked_until']) > time()) {
-        $waitMins = ceil((strtotime($user['locked_until']) - time()) / 60);
-        return ['success' => false, 'message' => "Account is temporarily locked. Try again in {$waitMins} minute(s)."];
-    }
-
-    // Verify password hash
-    $hash = $user['password_hash'] ?? $user['password'] ?? '';
-    if (!password_verify($password, $hash)) {
-        if (DB::isConnected()) {
+        // Verify password hash
+        $hash = $user['password_hash'] ?? '';
+        if (!password_verify($password, $hash)) {
             $newFailed = ((int)$user['failed_login_count']) + 1;
             $lockedUntil = null;
             if ($newFailed >= MAX_LOGIN_ATTEMPTS) {
                 $lockedUntil = date('Y-m-d H:i:s', time() + LOGIN_LOCKOUT_TIME);
             }
             db_exec("UPDATE `users` SET `failed_login_count` = ?, `locked_until` = ? WHERE `id` = ?", [$newFailed, $lockedUntil, $user['id']]);
+            audit_log('auth.login_failed', 'user', (string)$user['id'], null, ['username' => $cleanUsername, 'reason' => 'invalid_password']);
+            return ['success' => false, 'message' => 'Invalid username or password.'];
         }
-        audit_log('auth.login_failed', 'user', (string)$user['id'], null, ['username' => $cleanUsername, 'reason' => 'invalid_password']);
-        return ['success' => false, 'message' => 'Invalid username or password.'];
-    }
 
-    // Successful Login: Rotate session ID to prevent session fixation
-    session_regenerate_id(true);
+        // Rotate session ID to prevent session fixation
+        session_regenerate_id(true);
 
-    $_SESSION['tabeeb_admin_user'] = [
-        'id'        => $user['id'],
-        'name'      => $user['name'],
-        'username'  => $user['username'],
-        'email'     => $user['email'],
-        'role_id'   => $user['role_id'] ?? 1,
-        'role'      => $user['role_slug'] ?? 'super_admin',
-        'role_name' => $user['role_name'] ?? 'Super Administrator',
-        'force_password_change' => !empty($user['force_password_change'])
-    ];
-    $_SESSION['session_created_at'] = time();
-    $_SESSION['session_last_activity'] = time();
+        $_SESSION['tabeeb_admin_user'] = [
+            'id'                    => (int)$user['id'],
+            'name'                  => $user['name'],
+            'username'              => $user['username'],
+            'email'                 => $user['email'],
+            'role_id'               => (int)$user['role_id'],
+            'role'                  => $user['role_slug'],
+            'role_name'             => $user['role_name'],
+            'session_version'       => (int)($user['session_version'] ?? 1),
+            'force_password_change' => !empty($user['force_password_change'])
+        ];
+        $_SESSION['session_created_at'] = time();
+        $_SESSION['session_last_activity'] = time();
 
-    // Reset failed counter & record login timestamp
-    if (DB::isConnected()) {
+        // Reset failed counter and update login timestamp
         db_exec(
             "UPDATE `users` SET `failed_login_count` = 0, `locked_until` = NULL, `last_login_at` = NOW() WHERE `id` = ?",
             [$user['id']]
         );
 
-        // Rehash password if stronger algorithm is now available
-        $algo = defined('PASSWORD_ARGON2ID') ? PASSWORD_ARGON2ID : PASSWORD_DEFAULT;
-        if (password_needs_rehash($hash, $algo)) {
-            $newHash = password_hash($password, $algo);
-            db_exec("UPDATE `users` SET `password_hash` = ? WHERE `id` = ?", [$newHash, $user['id']]);
-        }
+        audit_log('auth.login_success', 'user', (string)$user['id'], null, ['username' => $cleanUsername]);
+
+        return ['success' => true, 'user' => $_SESSION['tabeeb_admin_user']];
+    } catch (Throwable $t) {
+        error_log('[Authentication Failure] ' . $t->getMessage());
+        return ['success' => false, 'message' => 'An unexpected authentication error occurred.'];
     }
-
-    audit_log('auth.login_success', 'user', (string)$user['id'], null, ['username' => $cleanUsername]);
-
-    return ['success' => true, 'user' => $_SESSION['tabeeb_admin_user']];
 }
 
 function logout_user(?string $reason = null): void {
@@ -171,7 +231,7 @@ function logout_user(?string $reason = null): void {
     }
 
     $_SESSION = [];
-    if (ini_get("session.use_cookies")) {
+    if (ini_get("session.use_cookies") && !headers_sent()) {
         $params = session_get_cookie_params();
         setcookie(session_name(), '', time() - 42000,
             $params["path"], $params["domain"],
@@ -182,7 +242,16 @@ function logout_user(?string $reason = null): void {
 }
 
 /**
- * 3. CURRENT USER & ACCESS CHECKS
+ * Invalidate all active sessions for a user (e.g., after password reset or deactivation)
+ */
+function revoke_user_sessions(int $userId): void {
+    if (DB::isConnected()) {
+        db_exec("UPDATE `users` SET `session_version` = `session_version` + 1 WHERE `id` = ?", [$userId]);
+    }
+}
+
+/**
+ * 4. CURRENT USER & ACCESS CHECKS
  */
 function is_logged_in(): bool {
     return !empty($_SESSION['tabeeb_admin_user']);
@@ -194,7 +263,7 @@ function current_user(): ?array {
 
 function is_super_admin(): bool {
     $user = current_user();
-    return $user && ($user['role'] === 'super_admin');
+    return $user && (($user['role'] ?? '') === 'super_admin' || (int)($user['role_id'] ?? 0) === 1);
 }
 
 function has_permission(string $permSlug): bool {
@@ -220,17 +289,33 @@ function has_permission(string $permSlug): bool {
     return false;
 }
 
+/**
+ * Require login and enforce mandatory password change
+ */
 function require_login(): void {
     if (!is_logged_in()) {
         header('Location: /admin/login.php');
         exit;
+    }
+
+    // Enforce force_password_change before permitting any other protected action
+    $user = current_user();
+    if (!empty($user['force_password_change'])) {
+        $currentScript = basename($_SERVER['PHP_SELF'] ?? '');
+        if ($currentScript !== 'change-password.php' && $currentScript !== 'logout.php') {
+            header('Location: /admin/change-password.php');
+            exit;
+        }
     }
 }
 
 function require_super_admin(): void {
     require_login();
     if (!is_super_admin()) {
-        header('Location: /admin/index.php?error=' . urlencode('Access Denied: Super Administrator privileges are required.'));
+        http_response_code(403);
+        include dirname(__DIR__) . '/admin/header.php';
+        echo '<div style="padding: 40px; text-align: center;"><h2>403 Forbidden</h2><p>Access Denied: Super Administrator privileges are required.</p><a href="/admin/index.php" class="btn-adm btn-adm-primary">Return to Dashboard</a></div>';
+        include dirname(__DIR__) . '/admin/footer.php';
         exit;
     }
 }
@@ -247,7 +332,9 @@ function require_permission(string $permSlug): void {
 }
 
 /**
- * 4. LAST SUPER ADMIN SAFEGUARD
+ * 5. FINAL ACTIVE SUPER ADMIN INVARIANT
+ * 
+ * Ensures an edit, role demotion, deactivation, or deletion cannot leave 0 active super admins.
  */
 function count_active_super_admins(): int {
     if (DB::isConnected()) {
@@ -260,19 +347,34 @@ function count_active_super_admins(): int {
     return 1;
 }
 
-function can_deactivate_or_delete_user(int $targetUserId): bool {
-    if (DB::isConnected()) {
-        $user = db_one(
-            "SELECT u.id, u.status, r.slug AS role_slug FROM `users` u 
-             JOIN `roles` r ON u.role_id = r.id 
-             WHERE u.id = ? LIMIT 1",
-            [$targetUserId]
-        );
-        if ($user && $user['role_slug'] === 'super_admin') {
-            if (count_active_super_admins() <= 1) {
-                return false;
-            }
+function can_modify_super_admin_status(int $targetUserId, ?int $newRoleId = null, ?string $newStatus = null, bool $isDelete = false): bool {
+    if (!DB::isConnected()) {
+        return false;
+    }
+
+    $target = db_one(
+        "SELECT u.id, u.status, u.role_id, r.slug AS role_slug 
+         FROM `users` u 
+         JOIN `roles` r ON u.role_id = r.id 
+         WHERE u.id = ? LIMIT 1",
+        [$targetUserId]
+    );
+
+    if (!$target || $target['role_slug'] !== 'super_admin' || $target['status'] !== 'active') {
+        return true; // Not an active super admin, no invariant violation
+    }
+
+    $superAdminRoleId = (int)db_val("SELECT `id` FROM `roles` WHERE `slug` = 'super_admin' LIMIT 1");
+
+    $isDemoted = ($newRoleId !== null && $newRoleId !== $superAdminRoleId);
+    $isDeactivated = ($newStatus !== null && $newStatus !== 'active');
+
+    if ($isDelete || $isDemoted || $isDeactivated) {
+        $activeSuperAdmins = count_active_super_admins();
+        if ($activeSuperAdmins <= 1) {
+            return false; // Invariant violated: cannot remove or demote the last active super admin
         }
     }
+
     return true;
 }

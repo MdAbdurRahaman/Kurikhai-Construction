@@ -2,186 +2,222 @@
 /**
  * Database Migration & Data Seeding Utility - Tabeeb Contractor
  * 
- * Safely creates tables from config/schema.sql and imports legacy JSON records
- * (users.json, posts.json, services.json) into MySQL/MariaDB idempotently.
+ * Safely executes versioned migrations and imports legacy data idempotently.
+ * Strictly CLI-only. Supports --dry-run flag.
  * 
- * Run from terminal:
- *   php scripts/migrate.php
+ * Usage:
+ *   php scripts/migrate.php [--dry-run]
  */
+
+// 1. Strict CLI enforcement - fail immediately if accessed via web server
+if (php_sapi_name() !== 'cli') {
+    http_response_code(403);
+    header('Content-Type: text/plain');
+    echo "403 Forbidden: Migration utility may only be executed via CLI.\n";
+    exit(1);
+}
 
 require_once dirname(__DIR__) . '/config/config.php';
 require_once dirname(__DIR__) . '/includes/db.php';
 require_once dirname(__DIR__) . '/includes/business_tracker.php';
 
-$isCli = (php_sapi_name() === 'cli');
+$isDryRun = in_array('--dry-run', $argv ?? [], true);
 
-function log_msg(string $msg): void {
-    global $isCli;
-    echo $isCli ? "{$msg}\n" : "<p style='font-family: monospace;'>" . htmlspecialchars($msg) . "</p>\n";
+function log_cli(string $msg): void {
+    echo $msg . "\n";
 }
 
-log_msg("=== Starting Tabeeb Contractor Portal Migration ===");
+log_cli("==========================================================");
+log_cli("  Tabeeb Contractor Portal - Database Migration Utility  ");
+log_cli("==========================================================");
+if ($isDryRun) {
+    log_cli("🔍 MODE: DRY-RUN (No database modifications will be committed)");
+}
 
-// 1. Verify Database Connectivity
+// 2. Verify Database Connectivity
 if (!DB::isConnected()) {
-    log_msg("❌ Error: Unable to connect to database (" . DB_HOST . ":" . DB_PORT . "/" . DB_NAME . ").");
-    log_msg("Details: " . (DB::getLastError() ?? 'Unknown error'));
-    log_msg("Please verify database credentials in config/config.php or .env.");
+    log_cli("❌ Error: Unable to connect to MySQL database (" . DB_HOST . ":" . DB_PORT . "/" . DB_NAME . ").");
+    log_cli("Details: " . (DB::getLastError() ?? 'Unknown error'));
+    log_cli("Please verify DB_HOST, DB_NAME, DB_USER, DB_PASS in .env or config/config.php.");
     exit(1);
 }
-log_msg("✅ Connected to MySQL database successfully.");
+log_cli("✅ Connected to MySQL database (" . DB_NAME . ") successfully.");
 
-// 2. Execute Schema Migration SQL
-$schemaFile = dirname(__DIR__) . '/config/schema.sql';
-if (!file_exists($schemaFile)) {
-    log_msg("❌ Error: Schema file {$schemaFile} not found.");
-    exit(1);
-}
-
-log_msg("📦 Executing DDL statements from config/schema.sql...");
-$schemaSql = file_get_contents($schemaFile);
 $pdo = DB::getConnection();
 
-try {
-    $pdo->exec($schemaSql);
-    log_msg("✅ Database tables and indexes created/verified successfully.");
-} catch (PDOException $e) {
-    log_msg("❌ Schema execution error: " . $e->getMessage());
-    exit(1);
+// 3. Ensure schema_migrations table exists
+if (!$isDryRun) {
+    $pdo->exec("CREATE TABLE IF NOT EXISTS `schema_migrations` (
+        `version` VARCHAR(100) PRIMARY KEY,
+        `applied_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP
+    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci");
 }
 
-// 3. Backup Legacy JSON Files
-log_msg("💾 Creating safety backups of legacy JSON files in data/...");
+// 4. Run Base Schema if not yet applied
+$baseSchemaFile = dirname(__DIR__) . '/config/schema.sql';
+if (file_exists($baseSchemaFile)) {
+    $baseMigrated = (bool)db_val("SELECT 1 FROM information_schema.TABLES WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'leads'");
+    if (!$baseMigrated) {
+        log_cli("📦 Applying base schema from config/schema.sql...");
+        if (!$isDryRun) {
+            $pdo->exec(file_get_contents($baseSchemaFile));
+            $pdo->exec("INSERT IGNORE INTO `schema_migrations` (`version`) VALUES ('001_base_schema')");
+        }
+        log_cli("✅ Base schema applied successfully.");
+    } else {
+        log_cli("ℹ️ Base schema already applied. Skipping.");
+    }
+}
+
+// 5. Run Versioned Migrations in config/migrations/
+$migrationsDir = dirname(__DIR__) . '/config/migrations';
+if (is_dir($migrationsDir)) {
+    $migrationFiles = glob($migrationsDir . '/*.sql');
+    sort($migrationFiles);
+
+    foreach ($migrationFiles as $migFile) {
+        $migName = basename($migFile, '.sql');
+        $alreadyRun = (bool)db_val("SELECT 1 FROM `schema_migrations` WHERE `version` = ? LIMIT 1", [$migName]);
+        if (!$alreadyRun) {
+            log_cli("🚀 Applying versioned migration: {$migName}...");
+            $sql = file_get_contents($migFile);
+            if (!$isDryRun) {
+                // Execute multi-query SQL migration
+                $pdo->exec($sql);
+                $stmt = $pdo->prepare("INSERT INTO `schema_migrations` (`version`) VALUES (?)");
+                $stmt->execute([$migName]);
+            }
+            log_cli("✅ Migration {$migName} completed successfully.");
+        } else {
+            log_cli("ℹ️ Migration {$migName} already recorded. Skipping.");
+        }
+    }
+}
+
+// 6. Safe Backup of Legacy JSON Files
+log_cli("💾 Creating private timestamped safety backup of legacy JSON stores...");
 $backupTime = date('Ymd_His');
-foreach (['users.json', 'posts.json', 'services.json'] as $f) {
+foreach (['users.json', 'posts.json', 'services.json', 'leads_queue.json'] as $f) {
     $src = DATA_DIR . '/' . $f;
     if (file_exists($src)) {
         $dest = DATA_DIR . '/backup_' . $backupTime . '_' . $f;
-        @copy($src, $dest);
+        if (!$isDryRun) {
+            @copy($src, $dest);
+        }
+        log_cli("   Backed up {$f} -> " . basename($dest));
     }
 }
-log_msg("✅ JSON backups created.");
 
-// 4. Migrate Services (data/services.json -> services table)
-log_msg("🏢 Migrating services...");
+// 7. Non-Destructive Import of Services (Never overwrite existing MySQL edits)
+log_cli("🏢 Checking services import...");
 $servicesJsonFile = DATA_DIR . '/services.json';
 if (file_exists($servicesJsonFile)) {
     $services = json_decode(file_get_contents($servicesJsonFile), true) ?: [];
-    $countSrv = 0;
+    $importedSrv = 0;
     foreach ($services as $srv) {
-        $featuresJson = !empty($srv['features']) ? json_encode($srv['features'], JSON_UNESCAPED_UNICODE) : null;
-        $processJson = !empty($srv['process']) ? json_encode($srv['process'], JSON_UNESCAPED_UNICODE) : null;
-        $faqsJson = !empty($srv['faqs']) ? json_encode($srv['faqs'], JSON_UNESCAPED_UNICODE) : null;
+        $srvId = $srv['id'] ?? $srv['slug'];
+        $exists = (bool)db_val("SELECT 1 FROM `services` WHERE `id` = ? OR `slug` = ? LIMIT 1", [$srvId, $srv['slug']]);
+        if (!$exists) {
+            $featuresJson = !empty($srv['features']) ? json_encode($srv['features'], JSON_UNESCAPED_UNICODE) : null;
+            $processJson = !empty($srv['process']) ? json_encode($srv['process'], JSON_UNESCAPED_UNICODE) : null;
+            $faqsJson = !empty($srv['faqs']) ? json_encode($srv['faqs'], JSON_UNESCAPED_UNICODE) : null;
 
-        $stmt = $pdo->prepare(
-            "INSERT INTO `services` 
-             (`id`, `slug`, `name`, `category_name`, `overview`, `features_json`, `process_json`, `faqs_json`, `og_title`, `og_description`, `image`, `display_order`, `is_published`) 
-             VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 1)
-             ON DUPLICATE KEY UPDATE 
-             `name` = VALUES(`name`), `overview` = VALUES(`overview`), `features_json` = VALUES(`features_json`),
-             `process_json` = VALUES(`process_json`), `faqs_json` = VALUES(`faqs_json`), `og_title` = VALUES(`og_title`),
-             `og_description` = VALUES(`og_description`), `image` = VALUES(`image`)"
-        );
-        $stmt->execute([
-            $srv['id'] ?? $srv['slug'],
-            $srv['slug'],
-            $srv['name'],
-            $srv['category_name'] ?? 'Contracting',
-            $srv['overview'] ?? '',
-            $featuresJson,
-            $processJson,
-            $faqsJson,
-            $srv['og_title'] ?? null,
-            $srv['og_description'] ?? null,
-            $srv['image'] ?? 'images/services/renovation.jpg',
-            $countSrv++
-        ]);
+            if (!$isDryRun) {
+                $stmt = $pdo->prepare(
+                    "INSERT INTO `services` 
+                     (`id`, `slug`, `name`, `category_name`, `overview`, `features_json`, `process_json`, `faqs_json`, `og_title`, `og_description`, `image`, `display_order`, `is_published`) 
+                     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 1)"
+                );
+                $stmt->execute([
+                    $srvId, $srv['slug'], $srv['name'], $srv['category_name'] ?? 'Contracting',
+                    $srv['overview'] ?? '', $featuresJson, $processJson, $faqsJson,
+                    $srv['og_title'] ?? null, $srv['og_description'] ?? null,
+                    $srv['image'] ?? 'images/services/renovation.jpg', $importedSrv
+                ]);
+            }
+            $importedSrv++;
+        }
     }
-    log_msg("✅ Migrated {$countSrv} services successfully.");
+    log_cli("✅ Imported {$importedSrv} new services without overwriting existing records.");
 }
 
-// 5. Migrate Blog Posts (data/posts.json -> posts table)
-log_msg("📝 Migrating blog posts...");
+// 8. Non-Destructive Import of Blog Posts (Never overwrite existing MySQL edits)
+log_cli("📝 Checking blog posts import...");
 $postsJsonFile = DATA_DIR . '/posts.json';
 if (file_exists($postsJsonFile)) {
     $posts = json_decode(file_get_contents($postsJsonFile), true) ?: [];
-    $countPosts = 0;
+    $importedPosts = 0;
     foreach ($posts as $p) {
-        $tagsJson = !empty($p['tags']) ? json_encode($p['tags'], JSON_UNESCAPED_UNICODE) : null;
-        $stmt = $pdo->prepare(
-            "INSERT INTO `posts` 
-             (`id`, `slug`, `title`, `category`, `author`, `excerpt`, `content`, `read_time`, `tags_json`, `image`, `status`, `published_at`, `created_at`, `updated_at`) 
-             VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-             ON DUPLICATE KEY UPDATE 
-             `title` = VALUES(`title`), `excerpt` = VALUES(`excerpt`), `content` = VALUES(`content`),
-             `tags_json` = VALUES(`tags_json`), `image` = VALUES(`image`), `status` = VALUES(`status`)"
-        );
-        $stmt->execute([
-            $p['id'],
-            $p['slug'],
-            $p['title'],
-            $p['category'] ?? 'General',
-            $p['author'] ?? 'Tabeeb Technical Team',
-            $p['excerpt'] ?? '',
-            $p['content'] ?? '',
-            $p['read_time'] ?? '5 min read',
-            $tagsJson,
-            $p['image'] ?? 'images/page-header-bg.jpg',
-            $p['status'] ?? 'draft',
-            ($p['status'] === 'published') ? ($p['created_at'] ?? date('Y-m-d H:i:s')) : null,
-            $p['created_at'] ?? date('Y-m-d H:i:s'),
-            $p['updated_at'] ?? date('Y-m-d H:i:s')
-        ]);
-        $countPosts++;
+        $exists = (bool)db_val("SELECT 1 FROM `posts` WHERE `id` = ? OR `slug` = ? LIMIT 1", [$p['id'], $p['slug']]);
+        if (!$exists) {
+            $tagsJson = !empty($p['tags']) ? json_encode($p['tags'], JSON_UNESCAPED_UNICODE) : null;
+            if (!$isDryRun) {
+                $stmt = $pdo->prepare(
+                    "INSERT INTO `posts` 
+                     (`id`, `slug`, `title`, `category`, `author`, `excerpt`, `content`, `read_time`, `tags_json`, `image`, `status`, `published_at`, `created_at`, `updated_at`) 
+                     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)"
+                );
+                $stmt->execute([
+                    $p['id'], $p['slug'], $p['title'], $p['category'] ?? 'General',
+                    $p['author'] ?? 'Tabeeb Technical Team', $p['excerpt'] ?? '',
+                    $p['content'] ?? '', $p['read_time'] ?? '5 min read',
+                    $tagsJson, $p['image'] ?? 'images/page-header-bg.jpg',
+                    $p['status'] ?? 'draft',
+                    ($p['status'] === 'published') ? ($p['created_at'] ?? date('Y-m-d H:i:s')) : null,
+                    $p['created_at'] ?? date('Y-m-d H:i:s'),
+                    $p['updated_at'] ?? date('Y-m-d H:i:s')
+                ]);
+            }
+            $importedPosts++;
+        }
     }
-    log_msg("✅ Migrated {$countPosts} blog posts successfully.");
+    log_cli("✅ Imported {$importedPosts} new blog posts without overwriting existing records.");
 }
 
-// 6. Migrate Users (data/users.json -> users table)
-log_msg("👥 Migrating administrative users...");
+// 9. Non-Destructive Import of Administrative Users with Forced Password Change
+log_cli("👥 Checking administrative users...");
 $usersJsonFile = DATA_DIR . '/users.json';
 if (file_exists($usersJsonFile)) {
     $users = json_decode(file_get_contents($usersJsonFile), true) ?: [];
-    $countUsers = 0;
+    $importedUsers = 0;
     foreach ($users as $u) {
         $roleSlug = $u['role'] ?? 'editor';
         $roleId = (int)db_val("SELECT `id` FROM `roles` WHERE `slug` = ? LIMIT 1", [$roleSlug]) ?: 2;
-        $exists = db_val("SELECT `id` FROM `users` WHERE `username` = ? LIMIT 1", [$u['username']]);
+        $exists = (bool)db_val("SELECT 1 FROM `users` WHERE `username` = ? LIMIT 1", [$u['username']]);
 
         if (!$exists) {
-            $stmt = $pdo->prepare(
-                "INSERT INTO `users` 
-                 (`name`, `username`, `email`, `password_hash`, `role_id`, `status`, `force_password_change`, `created_at`) 
-                 VALUES (?, ?, ?, ?, ?, ?, 1, ?)"
-            );
-            $stmt->execute([
-                $u['name'],
-                $u['username'],
-                $u['email'],
-                $u['password'],
-                $roleId,
-                $u['status'] ?? 'active',
-                $u['created_at'] ?? date('Y-m-d H:i:s')
-            ]);
-            $countUsers++;
+            if (!$isDryRun) {
+                $stmt = $pdo->prepare(
+                    "INSERT INTO `users` 
+                     (`name`, `username`, `email`, `password_hash`, `role_id`, `status`, `force_password_change`, `created_at`) 
+                     VALUES (?, ?, ?, ?, ?, ?, 1, ?)"
+                );
+                $stmt->execute([
+                    $u['name'], $u['username'], $u['email'],
+                    $u['password'], $roleId, $u['status'] ?? 'active',
+                    $u['created_at'] ?? date('Y-m-d H:i:s')
+                ]);
+            }
+            $importedUsers++;
         }
     }
-    log_msg("✅ Imported {$countUsers} new user accounts (with force_password_change = 1 flag).");
+    log_cli("✅ Imported {$importedUsers} user accounts (force_password_change = 1 enforced).");
 }
 
-// 7. Seed Business Information Tracker
-log_msg("📋 Seeding Business Information Tracker items...");
-BusinessTracker::seedInitialItems();
-log_msg("✅ Business Information Tracker items seeded.");
+// 10. Seed Initial Business Information Tracker Items
+log_cli("📋 Checking Business Information Tracker...");
+if (!$isDryRun) {
+    BusinessTracker::seedInitialItems();
+}
+log_cli("✅ Business Information Tracker checked.");
 
-// 8. Seed Notification Recipient (info@tabeebgroup.com)
-$rcptExists = db_val("SELECT `id` FROM `notification_recipients` WHERE `email` = 'info@tabeebgroup.com' LIMIT 1");
-if (!$rcptExists) {
-    db_exec(
-        "INSERT INTO `notification_recipients` (`name`, `email`, `is_active`, `notification_type`, `recipient_type`) 
-         VALUES ('General Enquiries', 'info@tabeebgroup.com', 1, 'all_leads', 'to')"
-    );
-    log_msg("✅ Registered info@tabeebgroup.com as active notification recipient.");
+// 11. Notification Routing Note (Do not auto-enable public mailbox without admin setup)
+$rcptCount = (int)db_val("SELECT COUNT(*) FROM `notification_recipients`");
+if ($rcptCount === 0) {
+    log_cli("ℹ️ Routing Notice: No notification recipients are currently enabled.");
+    log_cli("   Configure recipients under Admin Portal -> Notification Routing (/admin/notifications.php).");
 }
 
-log_msg("=== Migration Completed Successfully ===");
+log_cli("==========================================================");
+log_cli("✅ Migration process completed successfully.");
+log_cli("==========================================================");

@@ -97,16 +97,11 @@ Every service has its own dedicated page and individual Open Graph metadata:
 
 ### 2. Admin Portal (`/admin`)
 * **Portal URL**: `https://tabeebgroup.com/admin/` (or `https://tabeebgroup.com/admin/login.php`)
-* **Administrator Access Credentials**:
-  * **Super Administrator**:
-    * **Username**: `admin`
-    * **Password**: `TabeebAdmin@2026!`
-    * **Role**: Super Admin (Full access to Leads CRM, Business Information Tracker, Notifications, Users & Settings)
-  * **Content Editor**:
-    * **Username**: `editor`
-    * **Password**: `TabeebEditor@2026!`
-    * **Role**: Content Editor (Blog articles and Service content updates)
-  * *Security Notice:* Credentials have been completely removed from the website login UI to prevent unauthorized visibility. Administrators can rotate passwords at any time under **Users (`/admin/users.php`)**.
+* **Administrator Access Policy**:
+  * Default/published passwords have been completely revoked and removed.
+  * Initial credentials must be set directly via secure environment initialization or database migration.
+  * All newly migrated or newly created accounts have `force_password_change = 1` enforced, requiring immediate password rotation upon first authentication via `/admin/change-password.php`.
+  * Passwords must be a minimum of 10 characters with uppercase, lowercase, and numeric complexity.
 * **Features**:
   * Real-time KPI Lead Pipeline & Analytics
   * Complete CRM with Lead Assignment, Status Funnel & Activity Timelines

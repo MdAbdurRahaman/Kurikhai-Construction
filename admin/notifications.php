@@ -1,8 +1,8 @@
 <?php
-$pageTitle = 'Notification Routing & Logs';
-require_once __DIR__ . '/header.php';
+require_once dirname(__DIR__) . '/includes/data.php';
+require_once dirname(__DIR__) . '/includes/mailer.php';
 
-require_super_admin();
+require_permission('notifications.manage');
 
 $msg = '';
 $error = '';
@@ -38,19 +38,29 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $curr = (int)db_val("SELECT is_active FROM notification_recipients WHERE id = ?", [$id]);
             $new = $curr ? 0 : 1;
             db_exec("UPDATE notification_recipients SET is_active = ? WHERE id = ?", [$new, $id]);
+            audit_log('notification.recipient_toggled', 'notification_recipients', (string)$id, ['is_active' => $curr], ['is_active' => $new]);
             $msg = 'Recipient status updated.';
 
         } elseif ($action === 'delete_recipient') {
             $id = (int)($_POST['recipient_id'] ?? 0);
             db_exec("DELETE FROM notification_recipients WHERE id = ?", [$id]);
+            audit_log('notification.recipient_deleted', 'notification_recipients', (string)$id, null, null);
             $msg = 'Recipient removed.';
+
+        } elseif ($action === 'process_outbox') {
+            $queueRes = Mailer::processOutboxQueue(50);
+            $msg = "Outbox queue processed: {$queueRes['processed']} processed, {$queueRes['sent']} sent, {$queueRes['simulated']} simulated, {$queueRes['failed']} failed.";
 
         } elseif ($action === 'send_test_email') {
             $testEmail = strtolower(trim($_POST['test_email'] ?? ''));
             if (filter_var($testEmail, FILTER_VALIDATE_EMAIL)) {
                 $res = Mailer::sendTestEmail($testEmail);
                 if ($res['success']) {
-                    $msg = "Test email dispatched successfully to '{$testEmail}'!";
+                    if (!empty($res['simulated'])) {
+                        $msg = "Simulated delivery recorded (staging/unconfigured mode): Email was not dispatched over live network because SMTP credentials are not yet configured in .env.";
+                    } else {
+                        $msg = "Verified test email dispatched successfully over authenticated SMTP to '{$testEmail}'!";
+                    }
                 } else {
                     $error = "Test email failed: " . ($res['error'] ?? 'Unknown SMTP error');
                 }
@@ -61,9 +71,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
 }
 
-// Fetch recipients & logs
+$pageTitle = 'Notification Routing & Logs';
+require_once __DIR__ . '/header.php';
+
+// Fetch recipients, outbox items & logs
 $recipients = db_all("SELECT * FROM `notification_recipients` ORDER BY `id` ASC");
-$logs = db_all("SELECT * FROM `notification_logs` ORDER BY `created_at` DESC LIMIT 25");
+$outboxItems = db_all("SELECT * FROM `notification_outbox` ORDER BY `created_at` DESC LIMIT 15");
+$logs = db_all("SELECT * FROM `notification_logs` ORDER BY `sent_at` DESC LIMIT 25");
 ?>
 
 <?php if (!empty($msg)): ?>

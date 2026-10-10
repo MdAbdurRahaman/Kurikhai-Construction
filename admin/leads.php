@@ -1,18 +1,35 @@
 <?php
-$pageTitle = 'Leads & Inquiry Management';
-require_once __DIR__ . '/header.php';
+require_once dirname(__DIR__) . '/includes/data.php';
 
-require_permission('leads.view');
+// Check view permissions before emitting any HTML output
+if (!has_permission('leads.view') && !has_permission('leads.view_assigned')) {
+    http_response_code(403);
+    require_once __DIR__ . '/header.php';
+    echo '<div style="padding: 40px; text-align: center;"><h2>403 Forbidden</h2><p>You do not have permission to view leads.</p><a href="/admin/index.php" class="btn-adm btn-adm-primary">Return to Dashboard</a></div>';
+    require_once __DIR__ . '/footer.php';
+    exit;
+}
 
-// Handle CSV Export
+// Scoping: If user only has assigned leads permission, restrict query scope
+$currentUser = current_user();
+$isAssignedOnly = !has_permission('leads.view') && has_permission('leads.view_assigned');
+$assignedUserId = (int)($currentUser['id'] ?? 0);
+
+// Handle CSV Export before any HTML is sent to the client
 if (isset($_GET['export']) && $_GET['export'] === 'csv') {
     require_permission('leads.export');
 
     $exportSql = "SELECT `lead_number`, `name`, `phone`, `email`, `preferred_contact_method`, 
                          `service_requested`, `property_type`, `estimated_budget`, `project_description`, 
                          `status`, `priority`, `source`, `created_at` 
-                  FROM `leads` WHERE `deleted_at` IS NULL ORDER BY `created_at` DESC";
-    $exportRows = db_all($exportSql);
+                  FROM `leads` WHERE `deleted_at` IS NULL";
+    $exportParams = [];
+    if ($isAssignedOnly) {
+        $exportSql .= " AND `assigned_user_id` = ?";
+        $exportParams[] = $assignedUserId;
+    }
+    $exportSql .= " ORDER BY `created_at` DESC";
+    $exportRows = db_all($exportSql, $exportParams);
 
     header('Content-Type: text/csv; charset=utf-8');
     header('Content-Disposition: attachment; filename=tabeeb_leads_' . date('Ymd_His') . '.csv');
@@ -51,6 +68,9 @@ if (isset($_GET['export']) && $_GET['export'] === 'csv') {
     audit_log('leads.exported', 'lead', null, null, ['count' => count($exportRows)]);
     exit;
 }
+
+$pageTitle = 'Leads & Inquiry Management';
+require_once __DIR__ . '/header.php';
 
 // Filtering & Search
 $search = trim($_GET['q'] ?? '');

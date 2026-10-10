@@ -214,6 +214,28 @@ class BusinessTracker {
                 'status'            => 'pending',
                 'publication_state' => 'hidden',
                 'next_action'       => 'Collect approved client reviews with publication permission.'
+            ],
+            [
+                'item_key'          => 'operating_hours',
+                'category'          => 'contacts',
+                'title'             => 'Operating Hours',
+                'current_value'     => null,
+                'draft_value'       => null,
+                'status'            => 'pending',
+                'publication_state' => 'hidden',
+                'internal_notes'    => 'Awaiting client confirmation of business operating hours. Keep hidden until confirmed.',
+                'next_action'       => 'Confirm operating hours before publishing to website.'
+            ],
+            [
+                'item_key'          => 'warranty_policy',
+                'category'          => 'credentials',
+                'title'             => 'Workmanship Warranty Policy',
+                'current_value'     => null,
+                'draft_value'       => null,
+                'status'            => 'pending',
+                'publication_state' => 'hidden',
+                'internal_notes'    => 'Awaiting client confirmation of standard warranty duration and terms.',
+                'next_action'       => 'Do not publish warranty claims until verified in writing.'
             ]
         ];
 
@@ -242,20 +264,96 @@ class BusinessTracker {
     }
 
     /**
-     * Get single published value for public website rendering
+     * Retrieve single business information record
+     */
+    public static function getItem(string $itemKey): ?array {
+        if (!DB::isConnected()) {
+            return null;
+        }
+
+        $row = db_one(
+            "SELECT * FROM `business_information` WHERE `item_key` = ? LIMIT 1",
+            [$itemKey]
+        );
+
+        return $row ?: null;
+    }
+
+    /**
+     * Get single published value for public website rendering.
+     * Enforces strict publication boundary:
+     * - If item exists in DB and publication_state !== 'published', returns '' (NEVER falls back to default).
+     * - If item does not exist in DB or DB disconnected, returns safe default.
      */
     public static function getPublicValue(string $itemKey, string $default = ''): string {
         if (!DB::isConnected()) {
             return $default;
         }
 
-        $val = db_val(
-            "SELECT `current_value` FROM `business_information` 
-             WHERE `item_key` = ? AND `publication_state` = 'published' LIMIT 1",
-            [$itemKey]
-        );
+        $item = self::getItem($itemKey);
+        if ($item === null) {
+            return $default;
+        }
 
-        return ($val !== false && $val !== null) ? (string)$val : $default;
+        if (($item['publication_state'] ?? '') !== 'published') {
+            return '';
+        }
+
+        $val = $item['current_value'] ?? '';
+        return ($val !== null && $val !== '') ? (string)$val : '';
+    }
+
+    /**
+     * Check if a business information item is actively published with a non-empty value
+     */
+    public static function isPublished(string $itemKey): bool {
+        if (!DB::isConnected()) {
+            return false;
+        }
+
+        $item = self::getItem($itemKey);
+        return ($item !== null && ($item['publication_state'] ?? '') === 'published' && !empty($item['current_value']));
+    }
+
+    /**
+     * Dynamically compute normalized telephone digits from approved main_phone
+     */
+    public static function getPhoneRaw(): string {
+        $phone = self::getPublicValue('main_phone', '+65 8648 4883');
+        if (empty($phone)) {
+            return '';
+        }
+        $digits = preg_replace('/[^\d]/', '', $phone);
+        return $digits;
+    }
+
+    /**
+     * Dynamically compute normalized WhatsApp number digits
+     */
+    public static function getWhatsAppRaw(): string {
+        $wa = self::getPublicValue('whatsapp_number', '+65 8648 4883');
+        if (empty($wa)) {
+            return '';
+        }
+        $digits = preg_replace('/[^\d]/', '', $wa);
+        return $digits;
+    }
+
+    /**
+     * Get approved Google Maps link
+     */
+    public static function getGoogleMapsUrl(): string {
+        return self::getPublicValue(
+            'google_maps_url',
+            'https://www.google.com/maps/place/TABEEB+CONTRACTOR+PTE+LTD/@1.3363576,103.9091695,1128m/data=!3m2!1e3!4b1!4m6!3m5!1s0x31da17d8a42c489f:0x834162f16ce7e27b!8m2!3d1.3363576!4d103.9117444!16s%2Fg%2F11zxps0z_m?entry=ttu&g_ep=EgoyMDI2MTAwNS4wIKXMDSoASAFQAw%3D%3D'
+        );
+    }
+
+    /**
+     * Get approved operating hours (empty if pending/hidden)
+     */
+    public static function getOperatingHours(): string {
+        return self::getPublicValue('operating_hours', '');
     }
 
     /**

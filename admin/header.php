@@ -502,6 +502,7 @@ $baseUrl = get_base_url();
                 <span>Overview & Analytics</span>
             </a>
 
+            <?php if (has_permission('leads.view') || has_permission('leads.view_assigned')): ?>
             <div class="nav-category">Sales & CRM</div>
             <a href="leads.php" class="sidebar-link <?= ($currentPage === 'leads' || $currentPage === 'lead-detail') ? 'active' : '' ?>">
                 <span class="sidebar-icon">🎯</span>
@@ -512,14 +513,33 @@ $baseUrl = get_base_url();
                     <span style="background: #ef4444; color: #fff; font-size: 11px; font-weight: 700; padding: 2px 7px; border-radius: 9999px; margin-left: auto;"><?= $newLeadsBadge ?></span>
                 <?php endif; ?>
             </a>
+            <?php endif; ?>
 
+            <?php if (has_permission('baseline.manage') || has_permission('analytics.view')): ?>
+            <div class="nav-category">Marketing & Baseline</div>
+            <a href="baseline.php" class="sidebar-link <?= $currentPage === 'baseline' ? 'active' : '' ?>">
+                <span class="sidebar-icon">📈</span>
+                <span>SEO Baseline (Day 1)</span>
+            </a>
+            <?php endif; ?>
+
+            <?php if (has_permission('business_info.manage')): ?>
             <div class="nav-category">Client Verification</div>
             <a href="business-info.php" class="sidebar-link <?= $currentPage === 'business-info' ? 'active' : '' ?>">
                 <span class="sidebar-icon">📋</span>
                 <span>Business Info Tracker</span>
             </a>
+            <?php endif; ?>
 
+            <?php if (has_permission('content.manage') || has_permission('projects.manage')): ?>
             <div class="nav-category">Content Management</div>
+            <?php if (has_permission('projects.manage')): ?>
+            <a href="projects.php" class="sidebar-link <?= ($currentPage === 'projects' || $currentPage === 'project-edit') ? 'active' : '' ?>">
+                <span class="sidebar-icon">🏗️</span>
+                <span>Projects & Media</span>
+            </a>
+            <?php endif; ?>
+            <?php if (has_permission('content.manage')): ?>
             <a href="posts.php" class="sidebar-link <?= ($currentPage === 'posts' || ($currentPage === 'post-edit' && !empty($_GET['id']))) ? 'active' : '' ?>">
                 <span class="sidebar-icon">📝</span>
                 <span>All Blog Posts</span>
@@ -532,6 +552,8 @@ $baseUrl = get_base_url();
                 <span class="sidebar-icon">🔗</span>
                 <span>Service Share Hub</span>
             </a>
+            <?php endif; ?>
+            <?php endif; ?>
 
             <?php if (is_super_admin()): ?>
             <div class="nav-category">Platform Control</div>

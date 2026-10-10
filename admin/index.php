@@ -5,6 +5,12 @@ require_once __DIR__ . '/header.php';
 $allPosts = get_all_posts(false);
 $allServices = get_all_services();
 
+$currentUser = current_user();
+$canViewAllLeads = has_permission('leads.view');
+$canViewAssignedLeads = has_permission('leads.view_assigned');
+$canViewAnalytics = has_permission('analytics.view');
+$canManageContent = has_permission('content.manage');
+
 // Real Database Metrics
 $dbConnected = DB::isConnected();
 $leadsToday = 0;
@@ -19,7 +25,7 @@ $recentLeads = [];
 $serviceDistribution = [];
 $statusCounts = [];
 
-if ($dbConnected) {
+if ($dbConnected && ($canViewAnalytics || $canViewAllLeads || $canViewAssignedLeads)) {
     $leadsToday = (int)db_val("SELECT COUNT(*) FROM `leads` WHERE DATE(`created_at`) = CURDATE() AND `deleted_at` IS NULL");
     $leadsWeek = (int)db_val("SELECT COUNT(*) FROM `leads` WHERE `created_at` >= DATE_SUB(CURDATE(), INTERVAL 7 DAY) AND `deleted_at` IS NULL");
     $totalLeads = (int)db_val("SELECT COUNT(*) FROM `leads` WHERE `deleted_at` IS NULL");
@@ -29,13 +35,25 @@ if ($dbConnected) {
     $leadsWon = (int)db_val("SELECT COUNT(*) FROM `leads` WHERE `status` = 'won' AND `deleted_at` IS NULL");
     $pipelineValue = (float)db_val("SELECT COALESCE(SUM(`estimated_deal_value`), 0) FROM `leads` WHERE `status` NOT IN ('lost', 'spam', 'archived') AND `deleted_at` IS NULL");
 
-    $recentLeads = db_all(
-        "SELECT l.*, u.name AS assigned_name 
-         FROM `leads` l 
-         LEFT JOIN `users` u ON l.assigned_user_id = u.id 
-         WHERE l.deleted_at IS NULL 
-         ORDER BY l.created_at DESC LIMIT 5"
-    );
+    // Only query recent customer details if authorized to view leads
+    if ($canViewAllLeads) {
+        $recentLeads = db_all(
+            "SELECT l.*, u.name AS assigned_name 
+             FROM `leads` l 
+             LEFT JOIN `users` u ON l.assigned_user_id = u.id 
+             WHERE l.deleted_at IS NULL 
+             ORDER BY l.created_at DESC LIMIT 5"
+        );
+    } elseif ($canViewAssignedLeads) {
+        $recentLeads = db_all(
+            "SELECT l.*, u.name AS assigned_name 
+             FROM `leads` l 
+             LEFT JOIN `users` u ON l.assigned_user_id = u.id 
+             WHERE l.deleted_at IS NULL AND l.assigned_user_id = ? 
+             ORDER BY l.created_at DESC LIMIT 5",
+            [$currentUser['id'] ?? 0]
+        );
+    }
 
     $serviceRows = db_all(
         "SELECT `service_requested`, COUNT(*) AS count 
@@ -125,6 +143,7 @@ $trackerMetrics = BusinessTracker::getMetrics();
     </div>
 </div>
 
+<?php if ($canViewAllLeads || $canViewAssignedLeads): ?>
 <!-- Recent Leads Table -->
 <div class="table-card" style="margin-bottom: 35px;">
     <div class="table-header">
@@ -195,6 +214,7 @@ $trackerMetrics = BusinessTracker::getMetrics();
         </table>
     </div>
 </div>
+<?php endif; ?>
 
 <!-- Social Share Simulator Box (Client WhatsApp Feature) -->
 <div class="table-card" style="margin-bottom: 35px; border-left: 4px solid var(--admin-accent);">

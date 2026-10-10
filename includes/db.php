@@ -1,9 +1,9 @@
 <?php
 /**
- * Database Connection & Query Helper (PDO Singleton)
+ * Database Connection & Query Helper (PDO Singleton) - Tabeeb Contractor
  * 
- * Provides prepared statement execution, transaction management,
- * and error suppression in production.
+ * Provides strict write contracts, transactional execution,
+ * prepared statements, and secure error propagation.
  */
 
 require_once dirname(__DIR__) . '/config/config.php';
@@ -48,10 +48,28 @@ class DB {
             return self::$instance;
         } catch (PDOException $e) {
             self::$lastError = $e->getMessage();
-            error_log('[Database Connection Failure] ' . $e->getMessage());
+            error_log('[Database Connection Failure] Host: ' . DB_HOST . ' | DB: ' . DB_NAME . ' | ' . $e->getMessage());
             self::$instance = null;
             return null;
         }
+    }
+
+    /**
+     * Reset connection instance (useful for tests or reconnection)
+     */
+    public static function resetConnection(): void {
+        self::$instance = null;
+        self::$connectionAttempted = false;
+        self::$lastError = null;
+    }
+
+    /**
+     * Inject custom connection instance (for testing/mocking)
+     */
+    public static function setConnection(?PDO $pdo): void {
+        self::$instance = $pdo;
+        self::$connectionAttempted = ($pdo !== null);
+        self::$lastError = null;
     }
 
     /**
@@ -70,11 +88,15 @@ class DB {
 
     /**
      * Execute a prepared SQL statement
+     * Strictly propagates PDOException on failure so callers/transactions cannot mistake failure for success.
+     * 
+     * @throws PDOException
+     * @throws RuntimeException if DB connection is unavailable
      */
-    public static function query(string $sql, array $params = []): ?PDOStatement {
+    public static function query(string $sql, array $params = []): PDOStatement {
         $pdo = self::getConnection();
         if (!$pdo) {
-            return null;
+            throw new RuntimeException('Database connection unavailable for query.');
         }
 
         try {
@@ -83,10 +105,7 @@ class DB {
             return $stmt;
         } catch (PDOException $e) {
             error_log('[SQL Query Error] ' . $e->getMessage() . ' | SQL: ' . $sql);
-            if (APP_DEBUG) {
-                throw $e;
-            }
-            return null;
+            throw $e;
         }
     }
 
@@ -94,33 +113,71 @@ class DB {
      * Fetch all matching records
      */
     public static function fetchAll(string $sql, array $params = []): array {
-        $stmt = self::query($sql, $params);
-        return $stmt ? $stmt->fetchAll() : [];
+        if (!self::isConnected()) {
+            return [];
+        }
+        try {
+            $stmt = self::query($sql, $params);
+            return $stmt->fetchAll();
+        } catch (Throwable $t) {
+            return [];
+        }
     }
 
     /**
      * Fetch a single matching record
      */
     public static function fetchOne(string $sql, array $params = []): ?array {
-        $stmt = self::query($sql, $params);
-        $result = $stmt ? $stmt->fetch() : false;
-        return $result ?: null;
+        if (!self::isConnected()) {
+            return null;
+        }
+        try {
+            $stmt = self::query($sql, $params);
+            $result = $stmt->fetch();
+            return $result ?: null;
+        } catch (Throwable $t) {
+            return null;
+        }
     }
 
     /**
      * Fetch a single scalar value
      */
     public static function fetchColumn(string $sql, array $params = [], int $col = 0) {
-        $stmt = self::query($sql, $params);
-        return $stmt ? $stmt->fetchColumn($col) : false;
+        if (!self::isConnected()) {
+            return false;
+        }
+        try {
+            $stmt = self::query($sql, $params);
+            return $stmt->fetchColumn($col);
+        } catch (Throwable $t) {
+            return false;
+        }
     }
 
     /**
      * Execute an INSERT / UPDATE / DELETE and return affected row count
+     * Throws on failure.
      */
     public static function execute(string $sql, array $params = []): int {
         $stmt = self::query($sql, $params);
-        return $stmt ? $stmt->rowCount() : 0;
+        return $stmt->rowCount();
+    }
+
+    /**
+     * Execute an INSERT statement, verify insertion, and return the auto-increment ID
+     * Throws RuntimeException if no rows were affected.
+     */
+    public static function insert(string $sql, array $params = []): string {
+        $pdo = self::getConnection();
+        if (!$pdo) {
+            throw new RuntimeException('Database unavailable for insert.');
+        }
+        $stmt = self::query($sql, $params);
+        if ($stmt->rowCount() <= 0) {
+            throw new RuntimeException('Insert failed: no rows were inserted.');
+        }
+        return $pdo->lastInsertId();
     }
 
     /**
@@ -129,6 +186,50 @@ class DB {
     public static function lastInsertId(): string {
         $pdo = self::getConnection();
         return $pdo ? $pdo->lastInsertId() : '0';
+    }
+
+    /**
+     * Begin transaction
+     */
+    public static function beginTransaction(): bool {
+        $pdo = self::getConnection();
+        if (!$pdo) {
+            throw new RuntimeException('Database unavailable for transaction.');
+        }
+        return $pdo->beginTransaction();
+    }
+
+    /**
+     * Commit transaction
+     */
+    public static function commit(): bool {
+        $pdo = self::getConnection();
+        if (!$pdo) {
+            throw new RuntimeException('Database unavailable for commit.');
+        }
+        return $pdo->commit();
+    }
+
+    /**
+     * Rollback transaction
+     */
+    public static function rollBack(): bool {
+        $pdo = self::getConnection();
+        if (!$pdo) {
+            return false;
+        }
+        if ($pdo->inTransaction()) {
+            return $pdo->rollBack();
+        }
+        return false;
+    }
+
+    /**
+     * Check if currently in transaction
+     */
+    public static function inTransaction(): bool {
+        $pdo = self::getConnection();
+        return $pdo ? $pdo->inTransaction() : false;
     }
 
     /**
@@ -146,7 +247,9 @@ class DB {
             $pdo->commit();
             return $result;
         } catch (Throwable $t) {
-            $pdo->rollBack();
+            if ($pdo->inTransaction()) {
+                $pdo->rollBack();
+            }
             error_log('[Transaction Rollback] ' . $t->getMessage());
             throw $t;
         }
@@ -160,7 +263,7 @@ function db(): ?PDO {
     return DB::getConnection();
 }
 
-function db_query(string $sql, array $params = []): ?PDOStatement {
+function db_query(string $sql, array $params = []): PDOStatement {
     return DB::query($sql, $params);
 }
 
@@ -178,4 +281,8 @@ function db_val(string $sql, array $params = [], int $col = 0) {
 
 function db_exec(string $sql, array $params = []): int {
     return DB::execute($sql, $params);
+}
+
+function db_insert(string $sql, array $params = []): string {
+    return DB::insert($sql, $params);
 }

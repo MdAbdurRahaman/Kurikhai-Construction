@@ -7,6 +7,7 @@ website-deploy.zip
 *.log
 *.sql
 !config/schema.sql
+!config/migrations/*.sql
 *.sqlite
 *.bak
 *.tmp

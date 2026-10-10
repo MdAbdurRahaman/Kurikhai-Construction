@@ -1,18 +1,23 @@
 <?php
 require_once __DIR__ . '/includes/data.php';
+require_once __DIR__ . '/includes/business_tracker.php';
+require_once __DIR__ . '/includes/tracking.php';
 
-$slug = $_GET['slug'] ?? '';
-$post = get_post_by_slug($slug);
+$slug = trim($_GET['slug'] ?? '');
+$isStaffPreview = is_logged_in() && has_permission('content.manage');
+$post = get_post_by_slug($slug, !$isStaffPreview);
 
-if (!$post) {
-    header('Location: /blog');
+if (!$post || (!$isStaffPreview && (($post['status'] ?? '') !== 'published' || (!empty($post['published_at']) && strtotime($post['published_at']) > time())))) {
+    http_response_code(404);
+    require __DIR__ . '/404.php';
     exit;
 }
 
+$company = get_company_info();
 $baseUrl = get_base_url();
 $canonicalUrl = $baseUrl . '/blog/' . htmlspecialchars($post['slug']);
 $imageUrl = (strpos($post['image'], 'http') === 0) ? $post['image'] : ($baseUrl . '/' . ltrim($post['image'], '/'));
-$ogTitle = $post['title'] . ' | Tabeeb Contractor Singapore';
+$ogTitle = $post['title'] . ' | ' . $company['brand_name'];
 $ogDesc = !empty($post['excerpt']) ? $post['excerpt'] : substr(strip_tags($post['content']), 0, 160);
 
 $whatsappShareText = urlencode($post['title'] . "\n" . $canonicalUrl);
@@ -72,7 +77,9 @@ $relatedPosts = array_slice($relatedPosts, 0, 3);
     <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon.png">
 
     <!-- Stylesheets -->
-    <link rel="stylesheet" href="/style.css?v=3.4">
+    <link rel="stylesheet" href="/style.css?v=3.5">
+
+    <?php render_gtm_head(); ?>
 
     <!-- Schema.org BlogPosting JSON-LD -->
     <script type="application/ld+json">
@@ -339,48 +346,8 @@ $relatedPosts = array_slice($relatedPosts, 0, 3);
     </style>
 </head>
 <body>
-
-    <!-- Header Navigation with Topbar -->
-    <header class="header scrolled" id="header">
-        <div class="topbar">
-            <div class="container">
-                <div class="topbar-left">
-                    <span class="topbar-item"><span class="topbar-icon">📍</span> 61 Kaki Bukit Ave 1, #03-34 Shun Li Industrial Park, Singapore 417943</span>
-                    <span class="topbar-item"><span class="topbar-icon">🕒</span> Mon - Sat: 9:00 AM - 6:00 PM</span>
-                </div>
-                <div class="topbar-right">
-                    <span class="topbar-item"><span class="topbar-icon">📞</span> <a href="tel:+6586484883">+65 8648 4883</a></span>
-                    <a href="https://wa.me/6586484883?text=Hello%20Tabeeb%20Contractor,%20I%20am%20inquiring%20about%20your%20services." target="_blank" rel="noopener noreferrer" class="topbar-whatsapp">
-                        <svg width="14" height="14" fill="currentColor" viewBox="0 0 24 24"><path d="M.057 24l1.687-6.163c-1.041-1.804-1.588-3.849-1.587-5.946.003-6.556 5.338-11.891 11.893-11.891 3.181.001 6.167 1.24 8.413 3.488 2.245 2.248 3.481 5.236 3.48 8.414-.003 6.557-5.338 11.892-11.893 11.892-1.99-.001-3.951-.5-5.688-1.448l-6.305 1.654zm6.597-3.807c1.676.995 3.276 1.591 5.392 1.592 5.448 0 9.886-4.434 9.889-9.885.002-5.462-4.415-9.89-9.881-9.892-5.452 0-9.887 4.434-9.889 9.884-.001 2.225.651 3.891 1.746 5.634l-.999 3.648 3.742-.981z"/></svg> WhatsApp Us
-                    </a>
-                </div>
-            </div>
-        </div>
-        <div class="header-main">
-            <div class="container">
-                <div class="header-wrapper">
-                    <a href="/" class="logo" id="header-logo" aria-label="Tabeeb Contractor">
-                        <img src="/images/logo-horizontal.png?v=3.3" alt="Tabeeb Contractor" class="header-logo-img">
-                    </a>
-                    <nav>
-                        <ul class="nav-list" id="nav-list">
-                            <li><a href="/" class="nav-link">Home</a></li>
-                            <li><a href="/services" class="nav-link">Services</a></li>
-                            <li><a href="/blog" class="nav-link active">Blog</a></li>
-                            <li><a href="/about" class="nav-link">About Us</a></li>
-                            <li><a href="/contact" class="nav-link">Contact</a></li>
-                            <li><a href="javascript:void(0)" class="btn btn-quote-header open-quote-modal-btn">Get a Quote</a></li>
-                        </ul>
-                    </nav>
-                    <button class="burger" id="burger-menu" aria-label="Toggle Menu">
-                        <div class="line1"></div>
-                        <div class="line2"></div>
-                        <div class="line3"></div>
-                    </button>
-                </div>
-            </div>
-        </div>
-    </header>
+    <?php render_gtm_body(); ?>
+    <?php $activeNav = 'blog'; require_once __DIR__ . '/includes/public_header.php'; ?>
 
     <!-- Article Hero -->
     <article>
@@ -532,69 +499,7 @@ $relatedPosts = array_slice($relatedPosts, 0, 3);
     </article>
 
     <!-- Footer -->
-    <footer class="footer">
-        <div class="container">
-            <div class="footer-grid">
-                <div class="footer-col footer-brand-col">
-                    <a href="/" class="footer-logo-link" aria-label="Tabeeb Contractor">
-                        <img src="/images/logo-white.png?v=3.3" alt="Tabeeb Contractor" class="footer-logo-img" width="220">
-                    </a>
-                    <p>Tabeeb Contractor is a premier direct contracting firm specializing in commercial office reinstatement, HDB wall hacking, architectural tiling, waterproofing, and structural alterations in Singapore.</p>
-                </div>
-                <div class="footer-col">
-                    <h3>Quick Links</h3>
-                    <ul>
-                        <li><a href="/">Home</a></li>
-                        <li><a href="/services">Our Services</a></li>
-                        <li><a href="/blog">Renovation Blog</a></li>
-                        <li><a href="/about">About Company</a></li>
-                        <li><a href="/contact">Contact Us</a></li>
-                        <li><a href="/admin">Admin Portal</a></li>
-                    </ul>
-                </div>
-                <div class="footer-col">
-                    <h3>Dedicated Services</h3>
-                    <ul>
-                        <li><a href="/renovation-contractor-singapore/">Renovation Contractor Singapore</a></li>
-                        <li><a href="/hdb-renovation/">HDB Renovation</a></li>
-                        <li><a href="/hacking-demolition/">Hacking & Demolition</a></li>
-                        <li><a href="/tiling-works/">Tiles Flooring</a></li>
-                        <li><a href="/vinyl-flooring/">Vinyl Flooring</a></li>
-                        <li><a href="/waterproofing/">Waterproofing Works</a></li>
-                        <li><a href="/reinstatement/">Reinstatement Works</a></li>
-                    </ul>
-                </div>
-                <div class="footer-col">
-                    <h3>Headquarters</h3>
-                    <p style="color: #cbd5e1; font-size: 14px; margin-bottom: 12px;">
-                        📍 61 Kaki Bukit Ave 1, #03-34 Shun Li Industrial Park, Singapore 417943
-                    </p>
-                    <p style="color: #cbd5e1; font-size: 14px; margin-bottom: 8px;">
-                        📞 Phone: <a href="tel:+6586484883" style="color: #38bdf8;">+65 8648 4883</a>
-                    </p>
-                    <p style="color: #cbd5e1; font-size: 14px;">
-                        🕒 Mon - Sat: 9:00 AM - 6:00 PM
-                    </p>
-                </div>
-            </div>
-            <div class="footer-bottom">
-                <p>&copy; <?= date('Y') ?> Tabeeb Contractor. All Rights Reserved. UEN: 202506878W.</p>
-                <div class="footer-legal-links" style="display: flex; gap: 16px;">
-                    <a href="/privacy" style="color: #94a3b8; font-size: 13px; text-decoration: none;">Privacy Policy</a>
-                    <a href="/terms" style="color: #94a3b8; font-size: 13px; text-decoration: none;">Terms of Service</a>
-                </div>
-            </div>
-        </div>
-    </footer>
-
-    <!-- Toast Notification -->
-    <div class="toast-copied" id="copyArticleToast">
-        <svg width="20" height="20" fill="none" stroke="#10b981" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>
-        <span>Article link copied! Ready to share on WhatsApp or Facebook.</span>
-    </div>
-
-    <!-- Scripts -->
-    <script src="/app.js?v=3.4"></script>
+    <?php require_once __DIR__ . '/includes/public_footer.php'; ?>
     <script>
         document.addEventListener('DOMContentLoaded', () => {
             const copyBtn = document.getElementById('copyArticleLinkBtn');

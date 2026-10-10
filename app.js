@@ -254,7 +254,21 @@ document.addEventListener('DOMContentLoaded', () => {
                     const alertDiv = document.createElement('div');
                     alertDiv.className = 'form-alert-msg';
                     alertDiv.style.cssText = 'background: #fef2f2; border: 1px solid #fecaca; color: #b91c1c; padding: 12px 16px; border-radius: 8px; margin-bottom: 16px; font-size: 13px; line-height: 1.5;';
-                    alertDiv.innerHTML = `<strong>Submission Notice:</strong> ${msg || 'Unable to submit your request at this moment.'} <br>You can also reach our duty supervisor directly via <strong><a href="tel:+6586484883" style="color: #b91c1c; text-decoration: underline;">+65 8648 4883</a></strong> or <strong><a href="https://wa.me/6586484883" target="_blank" style="color: #15803d; text-decoration: underline;">WhatsApp</a></strong>.`;
+                    
+                    const strongNotice = document.createElement('strong');
+                    strongNotice.textContent = 'Submission Notice: ';
+                    alertDiv.appendChild(strongNotice);
+
+                    const textSpan = document.createElement('span');
+                    textSpan.textContent = (msg || 'Unable to submit your request at this moment.') + ' ';
+                    alertDiv.appendChild(textSpan);
+
+                    alertDiv.appendChild(document.createElement('br'));
+
+                    const contactSpan = document.createElement('span');
+                    contactSpan.innerHTML = 'You can also reach our duty supervisor directly via <strong><a href="tel:+6586484883" style="color: #b91c1c; text-decoration: underline;">+65 8648 4883</a></strong> or <strong><a href="https://wa.me/6586484883" target="_blank" style="color: #15803d; text-decoration: underline;">WhatsApp</a></strong>.';
+                    alertDiv.appendChild(contactSpan);
+
                     submitBtn.parentNode.insertBefore(alertDiv, submitBtn);
                 };
 
@@ -275,6 +289,14 @@ document.addEventListener('DOMContentLoaded', () => {
                     }
 
                     if (response.ok && result.success) {
+                        // DataLayer conversion event (Committed lead persistence - Zero PII)
+                        window.dataLayer = window.dataLayer || [];
+                        window.dataLayer.push({
+                            event: 'generate_lead',
+                            lead_id: result.lead_id || '',
+                            service_id: data.service_id || 'general'
+                        });
+
                         // Success modal with real lead reference ID
                         if (successModal) {
                             const refElem = successModal.querySelector('.modal-lead-ref');
@@ -301,6 +323,18 @@ document.addEventListener('DOMContentLoaded', () => {
                 });
             }
         });
+
+        // Track form interaction start (Zero PII)
+        form.addEventListener('focusin', () => {
+            if (!form.__formStarted) {
+                form.__formStarted = true;
+                window.dataLayer = window.dataLayer || [];
+                window.dataLayer.push({
+                    event: 'form_start',
+                    form_id: form.id || 'quote_form'
+                });
+            }
+        }, { once: true });
 
         // Reset custom styles if user types or checks
         form.addEventListener('input', (e) => {
@@ -526,6 +560,43 @@ document.addEventListener('DOMContentLoaded', () => {
     };
 
     setupGlobalShare();
+
+    // 10. DataLayer Intent Click Tracking (Phone, WhatsApp, Email, Maps - Zero PII)
+    document.addEventListener('click', (e) => {
+        const target = e.target.closest('a');
+        if (!target) return;
+        const href = target.getAttribute('href') || '';
+
+        if (href.startsWith('tel:')) {
+            window.dataLayer = window.dataLayer || [];
+            window.dataLayer.push({
+                event: 'contact_click',
+                contact_type: 'phone',
+                element_id: target.id || ''
+            });
+        } else if (href.includes('wa.me') || href.includes('whatsapp.com')) {
+            window.dataLayer = window.dataLayer || [];
+            window.dataLayer.push({
+                event: 'contact_click',
+                contact_type: 'whatsapp',
+                element_id: target.id || ''
+            });
+        } else if (href.startsWith('mailto:')) {
+            window.dataLayer = window.dataLayer || [];
+            window.dataLayer.push({
+                event: 'contact_click',
+                contact_type: 'email',
+                element_id: target.id || ''
+            });
+        } else if (href.includes('google.com/maps') || href.includes('maps.google.com')) {
+            window.dataLayer = window.dataLayer || [];
+            window.dataLayer.push({
+                event: 'contact_click',
+                contact_type: 'maps',
+                element_id: target.id || ''
+            });
+        }
+    });
 });
 
 
