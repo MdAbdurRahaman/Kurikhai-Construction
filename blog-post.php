@@ -13,6 +13,15 @@ if (!$post || (!$isStaffPreview && (($post['status'] ?? '') !== 'published' || (
     exit;
 }
 
+$isStaffPreviewMode = $isStaffPreview && (($post['status'] ?? '') !== 'published' || (!empty($post['published_at']) && strtotime($post['published_at']) > time()));
+if ($isStaffPreviewMode) {
+    $GLOBALS['isStaffPreview'] = true;
+    header('X-Robots-Tag: noindex, nofollow, noarchive');
+    header('Cache-Control: private, no-cache, no-store, must-revalidate');
+    header('Pragma: no-cache');
+    header('Expires: 0');
+}
+
 $company = get_company_info();
 $baseUrl = get_base_url();
 $canonicalUrl = $baseUrl . '/blog/' . htmlspecialchars($post['slug']);
@@ -39,6 +48,9 @@ $relatedPosts = array_slice($relatedPosts, 0, 3);
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title><?= htmlspecialchars($ogTitle) ?></title>
     <meta name="description" content="<?= htmlspecialchars($ogDesc) ?>">
+    <?php if ($isStaffPreviewMode): ?>
+    <meta name="robots" content="noindex, nofollow, noarchive">
+    <?php endif; ?>
     
     <!-- Geo Targeting Singapore -->
     <meta name="geo.region" content="SG">

@@ -1,9 +1,18 @@
 <?php
+/**
+ * Terms of Service - Tabeeb Contractor Singapore
+ * URL: https://tabeebgroup.com/terms
+ */
+
 require_once __DIR__ . '/includes/data.php';
+require_once __DIR__ . '/includes/business_tracker.php';
+require_once __DIR__ . '/includes/tracking.php';
 
 $company = get_company_info();
 $baseUrl = get_base_url();
-$pageTitle = 'Terms of Service | Tabeeb Contractor Singapore';
+$canonicalUrl = $baseUrl . '/terms';
+$pageTitle = 'Terms of Service | ' . htmlspecialchars($company['brand_name']) . ' Singapore';
+$pageDesc = "Terms of Service for Tabeeb Contractor Singapore. Conditions for website usage, quotation requests, and site assessment surveys.";
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -11,40 +20,48 @@ $pageTitle = 'Terms of Service | Tabeeb Contractor Singapore';
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title><?= htmlspecialchars($pageTitle) ?></title>
-    <meta name="description" content="Terms of Service for Tabeeb Contractor Singapore. Conditions for website usage, quotation requests, and site assessment surveys.">
+    <meta name="description" content="<?= htmlspecialchars($pageDesc) ?>">
     
-    <link rel="canonical" href="<?= $baseUrl ?>/terms">
+    <!-- Geo Targeting Singapore -->
+    <meta name="geo.region" content="SG">
+    <meta name="geo.placename" content="Singapore">
+    <meta name="geo.position" content="1.3364;103.9066">
+    <meta name="ICBM" content="1.3364, 103.9066">
+
+    <!-- Favicon -->
     <link rel="icon" type="image/png" sizes="64x64" href="/images/favicon.png">
+    <link rel="icon" type="image/x-icon" href="/favicon.ico">
+    <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon.png">
+
+    <!-- Canonical URL -->
+    <link rel="canonical" href="<?= $canonicalUrl ?>">
+
+    <!-- Open Graph -->
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="<?= $canonicalUrl ?>">
+    <meta property="og:title" content="<?= htmlspecialchars($pageTitle) ?>">
+    <meta property="og:description" content="<?= htmlspecialchars($pageDesc) ?>">
+    <meta property="og:image" content="<?= $baseUrl ?>/images/hero-bg.webp">
+    <meta property="og:site_name" content="<?= htmlspecialchars($company['brand_name']) ?>">
+    <meta property="og:locale" content="en_SG">
+
+    <!-- Stylesheet -->
     <link rel="stylesheet" href="/style.css?v=3.5">
+
+    <!-- Google Analytics & Tag Manager (Privacy-preserving loader) -->
+    <?= render_analytics_head() ?>
 </head>
 <body>
-    <!-- Top Header -->
-    <header id="header" class="header scrolled">
-        <div class="container header-container">
-            <a href="/" class="logo">
-                <img src="/images/logo-horizontal.png?v=3.3" alt="Tabeeb Contractor">
-            </a>
-            <nav class="nav-desktop">
-                <ul class="nav-list">
-                    <li><a href="/" class="nav-link">Home</a></li>
-                    <li><a href="/services" class="nav-link">Services</a></li>
-                    <li><a href="/about" class="nav-link">About Us</a></li>
-                    <li><a href="/blog" class="nav-link">Blog</a></li>
-                    <li><a href="/contact" class="nav-link">Contact</a></li>
-                </ul>
-            </nav>
-            <div class="header-action">
-                <a href="/contact" class="btn btn-primary">Get a Quote</a>
-            </div>
-        </div>
-    </header>
+    <?= render_analytics_body() ?>
+    
+    <?php require_once __DIR__ . '/includes/public_header.php'; ?>
 
     <main style="padding: 140px 0 80px;">
         <div class="container" style="max-width: 800px;">
             <div style="background: #ffffff; border-radius: 16px; padding: 40px; border: 1px solid #e2e8f0; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05);">
                 <h1 style="font-size: 32px; color: #07274d; margin-bottom: 12px; font-family: var(--font-heading);">Terms of Service</h1>
                 <p style="color: #64748b; font-size: 14px; margin-bottom: 30px;">
-                    Last updated: 9 October 2026 &bull; Jurisdiction: Republic of Singapore
+                    Last updated: 11 October 2026 &bull; Jurisdiction: Republic of Singapore
                 </p>
 
                 <div style="font-size: 15px; line-height: 1.8; color: #334155;">
@@ -65,33 +82,14 @@ $pageTitle = 'Terms of Service | Tabeeb Contractor Singapore';
                     <div style="background: #f1f5f9; padding: 18px 24px; border-radius: 8px; margin-top: 16px;">
                         <strong><?= htmlspecialchars($company['brand_name']) ?></strong><br>
                         Address: <?= htmlspecialchars($company['address']) ?><br>
-                        Hotline: <?= htmlspecialchars($company['phone']) ?><br>
-                        Email: <?= htmlspecialchars($company['email']) ?>
+                        Hotline: <a href="tel:<?= htmlspecialchars($company['phone']) ?>" style="color: #0284c7;"><?= htmlspecialchars($company['phone']) ?></a><br>
+                        Email: <a href="mailto:<?= htmlspecialchars($company['email']) ?>" style="color: #0284c7;"><?= htmlspecialchars($company['email']) ?></a>
                     </div>
                 </div>
             </div>
         </div>
     </main>
 
-    <!-- Footer -->
-    <footer class="footer">
-        <div class="container footer-container">
-            <div class="footer-grid">
-                <div class="footer-col">
-                    <img src="/images/logo-horizontal.png?v=3.3" alt="Tabeeb Contractor" class="footer-logo">
-                    <p style="color: #94a3b8; font-size: 14px; margin-top: 12px;">
-                        <?= htmlspecialchars($company['brand_name']) ?> &bull; UEN: <?= htmlspecialchars($company['uen']) ?>
-                    </p>
-                </div>
-            </div>
-            <div class="footer-bottom">
-                <p>&copy; <?= date('Y') ?> <?= htmlspecialchars($company['brand_name']) ?>. All rights reserved.</p>
-                <div class="footer-legal-links">
-                    <a href="/privacy">Privacy Policy</a>
-                    <a href="/terms">Terms of Service</a>
-                </div>
-            </div>
-        </div>
-    </footer>
+    <?php require_once __DIR__ . '/includes/public_footer.php'; ?>
 </body>
 </html>

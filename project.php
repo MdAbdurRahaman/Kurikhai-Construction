@@ -10,13 +10,22 @@ require_once __DIR__ . '/includes/business_tracker.php';
 $slug = trim($_GET['slug'] ?? '');
 $isStaffPreview = is_logged_in() && has_permission('projects.manage');
 
-// If staff preview, allow viewing drafts; otherwise strictly published only
+// If staff preview, allow viewing drafts; otherwise strictly published & approved only
 $project = get_project_by_slug($slug, !$isStaffPreview);
 
 if (!$project) {
     http_response_code(404);
     require __DIR__ . '/404.php';
     exit;
+}
+
+$isStaffPreviewMode = $isStaffPreview && (($project['publication_state'] ?? '') !== 'published' || ($project['approval_status'] ?? '') !== 'approved');
+if ($isStaffPreviewMode) {
+    $GLOBALS['isStaffPreview'] = true;
+    header('X-Robots-Tag: noindex, nofollow, noarchive');
+    header('Cache-Control: private, no-cache, no-store, must-revalidate');
+    header('Pragma: no-cache');
+    header('Expires: 0');
 }
 
 $company = get_company_info();
@@ -41,6 +50,9 @@ $pageTitle = htmlspecialchars($ogTitle);
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title><?= $pageTitle ?></title>
     <meta name="description" content="<?= htmlspecialchars($ogDesc) ?>">
+    <?php if ($isStaffPreviewMode): ?>
+    <meta name="robots" content="noindex, nofollow, noarchive">
+    <?php endif; ?>
     
     <!-- Geo Targeting Singapore -->
     <meta name="geo.region" content="SG">

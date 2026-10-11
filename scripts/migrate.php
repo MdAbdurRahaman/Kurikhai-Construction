@@ -204,14 +204,66 @@ if (file_exists($usersJsonFile)) {
     log_cli("✅ Imported {$importedUsers} user accounts (force_password_change = 1 enforced).");
 }
 
-// 10. Seed Initial Business Information Tracker Items
+// 10. Non-Destructive Import of Projects & Client Media (Phase F System)
+log_cli("🏗️ Checking project case studies...");
+$projectsJsonFile = DATA_DIR . '/projects.json';
+if (file_exists($projectsJsonFile)) {
+    $projects = json_decode(file_get_contents($projectsJsonFile), true) ?: [];
+    $importedProjects = 0;
+    foreach ($projects as $proj) {
+        $exists = (bool)db_val("SELECT 1 FROM `projects` WHERE `id` = ? OR `slug` = ? LIMIT 1", [$proj['id'], $proj['slug']]);
+        if (!$exists) {
+            if (!$isDryRun) {
+                $stmt = $pdo->prepare(
+                    "INSERT INTO `projects` 
+                     (`id`, `slug`, `title`, `location_label`, `public_location`, `service_id`, `factual_summary`, `scope_details`, 
+                      `duration_label`, `materials_used`, `source_file`, `featured_image`, `video_path`, `video_poster`, 
+                      `publication_state`, `approval_status`, `og_title`, `og_description`, `display_order`, `created_at`, `updated_at`) 
+                     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)"
+                );
+                $stmt->execute([
+                    $proj['id'], $proj['slug'], $proj['title'], $proj['location_label'], $proj['public_location'], $proj['service_id'] ?? null,
+                    $proj['factual_summary'], $proj['scope_details'], $proj['duration_label'] ?? null, $proj['materials_used'] ?? null,
+                    $proj['source_file'] ?? null, $proj['featured_image'], $proj['video_path'] ?? null, $proj['video_poster'] ?? null,
+                    $proj['publication_state'] ?? 'draft', $proj['approval_status'] ?? 'pending',
+                    $proj['og_title'] ?? $proj['title'], $proj['og_description'] ?? $proj['factual_summary'],
+                    (int)($proj['display_order'] ?? 1), $proj['created_at'] ?? date('Y-m-d H:i:s'), $proj['updated_at'] ?? date('Y-m-d H:i:s')
+                ]);
+
+                if (!empty($proj['media']) && is_array($proj['media'])) {
+                    $mediaStmt = $pdo->prepare(
+                        "INSERT INTO `project_media` 
+                         (`project_id`, `media_stage`, `media_type`, `file_path`, `caption`, `alt_text`, `display_order`, `created_at`) 
+                         VALUES (?, ?, ?, ?, ?, ?, ?, ?)"
+                    );
+                    foreach ($proj['media'] as $m) {
+                        $mediaStmt->execute([
+                            $proj['id'],
+                            $m['media_stage'] ?? 'gallery',
+                            $m['media_type'] ?? 'image',
+                            $m['file_path'],
+                            $m['caption'] ?? '',
+                            $m['alt_text'] ?? '',
+                            (int)($m['display_order'] ?? 0),
+                            $proj['created_at'] ?? date('Y-m-d H:i:s')
+                        ]);
+                    }
+                }
+            }
+            $importedProjects++;
+        }
+    }
+    log_cli("✅ Imported {$importedProjects} project case studies and associated media.");
+}
+
+// 11. Seed Initial Business Information Tracker Items
 log_cli("📋 Checking Business Information Tracker...");
 if (!$isDryRun) {
     BusinessTracker::seedInitialItems();
 }
 log_cli("✅ Business Information Tracker checked.");
 
-// 11. Notification Routing Note (Do not auto-enable public mailbox without admin setup)
+// 12. Notification Routing Note (Do not auto-enable public mailbox without admin setup)
 $rcptCount = (int)db_val("SELECT COUNT(*) FROM `notification_recipients`");
 if ($rcptCount === 0) {
     log_cli("ℹ️ Routing Notice: No notification recipients are currently enabled.");

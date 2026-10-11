@@ -237,11 +237,21 @@ document.addEventListener('DOMContentLoaded', () => {
                 });
 
                 // Anti-spam & attribution metadata
-                data['form_loaded_ts'] = window.__formLoadedTime || Math.floor(Date.now() / 1000) - 5;
+                if (!data['form_loaded_ts']) {
+                    data['form_loaded_ts'] = form.querySelector('input[name="form_loaded_ts"]')?.value || '';
+                }
+                if (!data['source']) {
+                    data['source'] = form.querySelector('input[name="source"]')?.value || 'website_quote_form';
+                }
                 data['website_url_hp'] = form.querySelector('input[name="website_url_hp"]')?.value || '';
                 data['landing_page'] = window.location.href;
                 data['referrer'] = document.referrer || '';
-                data['source'] = 'website_quote_form';
+
+                // Client request idempotency key (stable across immediate retries within 10 minutes)
+                const phoneDigits = (data.phone || '').replace(/\D/g, '');
+                const srvVal = data.service || '';
+                const windowSlot = Math.floor(Date.now() / 600000);
+                data['idempotency_key'] = 'client_' + phoneDigits + '_' + srvVal + '_' + windowSlot;
 
                 // Remove existing form-level error message if any
                 const existingAlert = form.querySelector('.form-alert-msg');
@@ -289,21 +299,25 @@ document.addEventListener('DOMContentLoaded', () => {
                     }
 
                     if (response.ok && result.success) {
-                        // DataLayer conversion event (Committed lead persistence - Zero PII)
-                        window.dataLayer = window.dataLayer || [];
-                        window.dataLayer.push({
-                            event: 'generate_lead',
-                            lead_id: result.lead_id || '',
-                            service_id: data.service_id || 'general'
-                        });
+                        // DataLayer conversion event (Only emit if NOT duplicate - Zero PII)
+                        if (!result.is_duplicate) {
+                            window.dataLayer = window.dataLayer || [];
+                            window.dataLayer.push({
+                                event: 'generate_lead',
+                                lead_id: result.lead_id || '',
+                                service_id: result.service_id || data.service || 'general'
+                            });
+                        }
 
                         // Success modal with real lead reference ID
-                        if (successModal) {
-                            const refElem = successModal.querySelector('.modal-lead-ref');
-                            if (refElem && result.lead_id) {
-                                refElem.textContent = 'Reference ID: ' + result.lead_id;
-                            }
-                            successModal.classList.add('active');
+                        const activeModal = document.getElementById('successModal');
+                        if (activeModal) {
+                            const refElems = activeModal.querySelectorAll('#leadRefNumber, .modal-lead-ref');
+                            refElems.forEach(el => {
+                                el.textContent = result.lead_id || '';
+                            });
+                            activeModal.classList.add('active');
+                            activeModal.setAttribute('aria-hidden', 'false');
                         }
                         form.reset();
                         submitBtn.disabled = false;
@@ -391,19 +405,44 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-    // Close success modal actions
-    if (closeModalBtn && successModal) {
-        closeModalBtn.addEventListener('click', () => {
-            successModal.classList.remove('active');
-        });
+    // Close success modal actions (Accessible unified modal handling)
+    const successModalEl = document.getElementById('successModal');
+    const closeSuccessBtn = document.getElementById('closeSuccessModalBtn');
+    const closeSuccessX = document.getElementById('closeSuccessModalX');
+    const oldCloseBtn = document.getElementById('closeModalBtn');
+    const allCloseBtns = [closeSuccessBtn, closeSuccessX, oldCloseBtn].filter(Boolean);
 
-        // Close modal when clicking on the overlay backdrop
-        successModal.addEventListener('click', (e) => {
-            if (e.target === successModal) {
-                successModal.classList.remove('active');
+    const hideSuccessModal = () => {
+        if (successModalEl) {
+            successModalEl.classList.remove('active');
+            successModalEl.setAttribute('aria-hidden', 'true');
+        }
+    };
+
+    allCloseBtns.forEach(btn => {
+        btn.addEventListener('click', (e) => {
+            e.preventDefault();
+            hideSuccessModal();
+        });
+    });
+
+    if (successModalEl) {
+        successModalEl.addEventListener('click', (e) => {
+            if (e.target === successModalEl) {
+                hideSuccessModal();
             }
         });
     }
+
+    // Accessible Escape key listener for all open modals
+    document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape') {
+            hideSuccessModal();
+            if (quoteModal) {
+                quoteModal.classList.remove('active');
+            }
+        }
+    });
 
     // 8. FAQ Accordion Toggle (For SEO Rich FAQ Sections)
     const faqButtons = document.querySelectorAll('.faq-question');

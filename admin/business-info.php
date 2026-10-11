@@ -1,7 +1,6 @@
 <?php
-$pageTitle = 'Client Information Tracker';
-require_once __DIR__ . '/header.php';
-
+require_once dirname(__DIR__) . '/includes/data.php';
+require_login();
 require_permission('business_info.manage');
 
 $msg = '';
@@ -104,6 +103,9 @@ $categories = [
     'privacy'            => '🔒 Privacy & Data Retention',
     'marketing'          => '🌐 Marketing & References'
 ];
+
+$pageTitle = 'Client Information Tracker';
+require_once __DIR__ . '/header.php';
 ?>
 
 <?php if (!empty($msg)): ?>

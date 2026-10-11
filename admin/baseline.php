@@ -18,7 +18,7 @@ require_once __DIR__ . '/../includes/business_tracker.php';
 
 // Authentication & Authorization Gate (Must precede any HTML)
 require_login();
-if (!has_permission('baseline.manage') && !has_permission('analytics.view')) {
+if (!has_permission('baseline.view') && !has_permission('baseline.manage') && !has_permission('analytics.view')) {
     http_response_code(403);
     echo "<h1>403 Forbidden</h1><p>You do not have permission to view marketing baseline metrics.</p>";
     exit;
@@ -93,14 +93,28 @@ function get_baseline_metrics(): array {
     ];
 }
 
-// Live CRM Lead Count calculation for honest baseline comparison
+// Live CRM Lead Count calculation for honest baseline comparison (Strict 28-day window)
 $realCrmTotal = 0;
 $realCrmQualified = 0;
 $realCrmWon = 0;
+$crmHistoryAvailable = false;
 if (DB::isConnected()) {
-    $realCrmTotal = (int)db_val("SELECT COUNT(*) FROM `leads` WHERE `status` != 'spam'");
-    $realCrmQualified = (int)db_val("SELECT COUNT(*) FROM `leads` WHERE `status` IN ('qualified', 'in_progress', 'quoted')");
-    $realCrmWon = (int)db_val("SELECT COUNT(*) FROM `leads` WHERE `status` = 'won'");
+    $crmHistoryAvailable = true;
+    $realCrmTotal = (int)db_val(
+        "SELECT COUNT(*) FROM `leads` 
+         WHERE `deleted_at` IS NULL AND `status` != 'spam' 
+           AND `created_at` BETWEEN '2026-09-12 00:00:00' AND '2026-10-09 23:59:59'"
+    );
+    $realCrmQualified = (int)db_val(
+        "SELECT COUNT(*) FROM `leads` 
+         WHERE `deleted_at` IS NULL AND `status` = 'qualified' 
+           AND `created_at` BETWEEN '2026-09-12 00:00:00' AND '2026-10-09 23:59:59'"
+    );
+    $realCrmWon = (int)db_val(
+        "SELECT COUNT(*) FROM `leads` 
+         WHERE `deleted_at` IS NULL AND `status` = 'won' 
+           AND `created_at` BETWEEN '2026-09-12 00:00:00' AND '2026-10-09 23:59:59'"
+    );
 }
 
 // =============================================================================
@@ -110,8 +124,8 @@ if (isset($_GET['export']) && $_GET['export'] === 'csv') {
     $metrics = get_baseline_metrics();
     
     // Log export audit trail
-    if (function_exists('log_audit')) {
-        log_audit(get_current_user_id(), 'baseline.export_csv', 'Exported Day 1 marketing baseline CSV');
+    if (function_exists('audit_log')) {
+        audit_log('baseline.export_csv', 'baseline', null, null, ['count' => count($metrics)]);
     }
 
     $filename = 'tabeeb_marketing_baseline_day1_' . date('Y-m-d') . '.csv';
@@ -133,9 +147,15 @@ if (isset($_GET['export']) && $_GET['export'] === 'csv') {
 
     foreach ($metrics as $m) {
         $val = $m['metric_value'];
-        if ($m['metric_key'] === 'leads_persisted_total' && empty($val)) $val = (string)$realCrmTotal;
-        if ($m['metric_key'] === 'leads_qualified_total' && empty($val)) $val = (string)$realCrmQualified;
-        if ($m['metric_key'] === 'leads_won_total' && empty($val)) $val = (string)$realCrmWon;
+        if (($val === null || $val === '') && $m['metric_key'] === 'leads_persisted_total') {
+            $val = $crmHistoryAvailable ? (string)$realCrmTotal : 'Not available';
+        }
+        if (($val === null || $val === '') && $m['metric_key'] === 'leads_qualified_total') {
+            $val = $crmHistoryAvailable ? (string)$realCrmQualified : 'Not available';
+        }
+        if (($val === null || $val === '') && $m['metric_key'] === 'leads_won_total') {
+            $val = $crmHistoryAvailable ? (string)$realCrmWon : 'Not available';
+        }
 
         fputcsv($out, [
             sanitize_csv_cell($m['metric_key'] ?? ''),
@@ -204,10 +224,13 @@ if (isset($_GET['export']) && $_GET['export'] === 'markdown') {
 }
 
 // =============================================================================
-// POST: UPDATE METRIC VALUE
+// POST: UPDATE METRIC VALUE (Requires baseline.manage permission)
 // =============================================================================
-if ($_SERVER['REQUEST_METHOD'] === 'POST' && $canEdit) {
-    if (!verify_csrf_token($_POST['csrf_token'] ?? '')) {
+if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    if (!$canEdit) {
+        http_response_code(403);
+        $error = "Forbidden: You do not possess permission ('baseline.manage') to edit baseline metrics.";
+    } elseif (!verify_csrf($_POST['csrf_token'] ?? '')) {
         $error = "CSRF security verification failed. Please refresh and try again.";
     } else {
         $action = $_POST['action'] ?? '';
@@ -230,7 +253,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && $canEdit) {
                      WHERE `metric_key` = ?",
                     [$metricValue, $collectionStatus, $statusReason, $evidenceReference, $metricKey]
                 );
-                log_audit(get_current_user_id(), 'baseline.update_metric', "Updated baseline metric '{$metricKey}' to status '{$collectionStatus}'");
+                audit_log('baseline.update_metric', 'baseline', $metricKey, null, [
+                    'status' => $collectionStatus,
+                    'value'  => $metricValue
+                ]);
                 $success = "Metric updated successfully.";
             } else {
                 $error = "Database unavailable or invalid metric key.";
@@ -311,9 +337,15 @@ $metrics = get_baseline_metrics();
                 <?php foreach ($metrics as $m): ?>
                     <?php
                     $val = $m['metric_value'];
-                    if ($m['metric_key'] === 'leads_persisted_total' && empty($val)) $val = (string)$realCrmTotal;
-                    if ($m['metric_key'] === 'leads_qualified_total' && empty($val)) $val = (string)$realCrmQualified;
-                    if ($m['metric_key'] === 'leads_won_total' && empty($val)) $val = (string)$realCrmWon;
+                    if (($val === null || $val === '') && $m['metric_key'] === 'leads_persisted_total') {
+                        $val = $crmHistoryAvailable ? (string)$realCrmTotal : 'Not available';
+                    }
+                    if (($val === null || $val === '') && $m['metric_key'] === 'leads_qualified_total') {
+                        $val = $crmHistoryAvailable ? (string)$realCrmQualified : 'Not available';
+                    }
+                    if (($val === null || $val === '') && $m['metric_key'] === 'leads_won_total') {
+                        $val = $crmHistoryAvailable ? (string)$realCrmWon : 'Not available';
+                    }
 
                     $statusClass = 'badge-secondary';
                     $statusColor = '#64748b';
@@ -348,8 +380,8 @@ $metrics = get_baseline_metrics();
                         </td>
                         <td>
                             <div style="font-size: 14px; font-weight: 700; color: #1e293b;">
-                                <?= !empty($val) ? htmlspecialchars($val) : '<span style="color: #94a3b8; font-weight: 400;">—</span>' ?>
-                                <?php if (!empty($val) && !empty($m['unit']) && !in_array($val, ['Not previously tracked', 'Pending access', 'Not available'])): ?>
+                                <?= ($val !== null && $val !== '') ? htmlspecialchars((string)$val) : '<span style="color: #94a3b8; font-weight: 400;">—</span>' ?>
+                                <?php if ($val !== null && $val !== '' && !empty($m['unit']) && !in_array($val, ['Not previously tracked', 'Pending access', 'Not available'])): ?>
                                     <span style="font-size: 12px; font-weight: 400; color: var(--admin-muted);"><?= htmlspecialchars($m['unit']) ?></span>
                                 <?php endif; ?>
                             </div>
@@ -412,7 +444,7 @@ $metrics = get_baseline_metrics();
     <div style="background:#fff; border-radius:12px; padding:24px; width:100%; max-width:520px; box-shadow:0 20px 25px -5px rgba(0,0,0,0.1);">
         <h3 id="modalMetricTitle" style="font-size:18px; font-weight:700; color:var(--admin-navy); margin-bottom:16px;">Edit Baseline Metric</h3>
         <form method="POST">
-            <input type="hidden" name="csrf_token" value="<?= htmlspecialchars(generate_csrf_token()) ?>">
+            <input type="hidden" name="csrf_token" value="<?= htmlspecialchars(csrf_token()) ?>">
             <input type="hidden" name="action" value="update_metric">
             <input type="hidden" name="metric_key" id="editMetricKey">
             

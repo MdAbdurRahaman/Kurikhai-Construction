@@ -483,7 +483,7 @@ $twitterShareUrl = 'https://twitter.com/intent/tweet?text=' . urlencode($service
 
                     <!-- Why Choose Tabeeb for this trade -->
                     <h2 style="font-size: 24px; margin: 40px 0 10px;">Why Engage Tabeeb Contractor</h2>
-                    <p style="color: var(--color-text-muted); font-size: 15px;">We are a direct builder with experienced, in-house craftsmen—delivering cost savings, rapid timelines, and strict compliance with Singapore statutory regulations.</p>
+                    <p style="color: var(--color-text-muted); font-size: 15px;">We provide direct trade contracting solutions across residential and commercial properties in Singapore—delivering clear site coordination, structured project supervision, and compliance with statutory trade guidelines.</p>
 
                     <div class="benefit-card-grid">
                         <?php if (!empty($service['key_benefits'])): ?>

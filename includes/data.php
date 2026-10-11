@@ -465,43 +465,44 @@ function save_user(array $data): array {
         $roleId = (int)db_val("SELECT `id` FROM `roles` WHERE `slug` = ? LIMIT 1", [$roleSlug]) ?: (int)$existing['role_id'];
         $newStatus = $data['status'] ?? $existing['status'];
 
-        // Enforce final active super admin invariant
-        if (!can_modify_super_admin_status($id, $roleId, $newStatus)) {
-            return [
-                'success' => false,
-                'message' => 'Cannot demote or deactivate the final active Super Administrator.'
-            ];
+        try {
+            return DB::transaction(function($pdo) use ($id, $data, $existing, $roleId, $newStatus, $algo, $now) {
+                // Enforce final active super admin invariant strictly inside transaction with row-level lock
+                if (!can_modify_super_admin_status($id, $roleId, $newStatus, false, true)) {
+                    throw new RuntimeException('Cannot demote or deactivate the final active Super Administrator.');
+                }
+
+                if (!empty($data['password'])) {
+                    $passHash = password_hash($data['password'], $algo);
+                    db_exec(
+                        "UPDATE `users` SET `name` = ?, `email` = ?, `role_id` = ?, `status` = ?, `password_hash` = ?, `session_version` = `session_version` + 1, `updated_at` = ? WHERE `id` = ?",
+                        [trim($data['name']), strtolower(trim($data['email'])), $roleId, $newStatus, $passHash, $now, $id]
+                    );
+                } else {
+                    db_exec(
+                        "UPDATE `users` SET `name` = ?, `email` = ?, `role_id` = ?, `status` = ?, `session_version` = `session_version` + 1, `updated_at` = ? WHERE `id` = ?",
+                        [trim($data['name']), strtolower(trim($data['email'])), $roleId, $newStatus, $now, $id]
+                    );
+                }
+
+                // Revoke active sessions for target user so privileges are refreshed immediately
+                revoke_user_sessions($id);
+
+                audit_log('user.updated', 'user', (string)$id, [
+                    'name' => $existing['name'],
+                    'role' => $existing['role'],
+                    'status' => $existing['status']
+                ], [
+                    'name' => $data['name'],
+                    'role' => $data['role'] ?? $existing['role'],
+                    'status' => $newStatus
+                ]);
+
+                return ['success' => true];
+            });
+        } catch (Throwable $e) {
+            return ['success' => false, 'message' => $e->getMessage()];
         }
-
-        return DB::transaction(function($pdo) use ($id, $data, $existing, $roleId, $newStatus, $algo, $now) {
-            if (!empty($data['password'])) {
-                $passHash = password_hash($data['password'], $algo);
-                db_exec(
-                    "UPDATE `users` SET `name` = ?, `email` = ?, `role_id` = ?, `status` = ?, `password_hash` = ?, `session_version` = `session_version` + 1, `updated_at` = ? WHERE `id` = ?",
-                    [trim($data['name']), strtolower(trim($data['email'])), $roleId, $newStatus, $passHash, $now, $id]
-                );
-            } else {
-                db_exec(
-                    "UPDATE `users` SET `name` = ?, `email` = ?, `role_id` = ?, `status` = ?, `session_version` = `session_version` + 1, `updated_at` = ? WHERE `id` = ?",
-                    [trim($data['name']), strtolower(trim($data['email'])), $roleId, $newStatus, $now, $id]
-                );
-            }
-
-            // Revoke active sessions for target user so privileges are refreshed immediately
-            revoke_user_sessions($id);
-
-            audit_log('user.updated', 'user', (string)$id, [
-                'name' => $existing['name'],
-                'role' => $existing['role'],
-                'status' => $existing['status']
-            ], [
-                'name' => $data['name'],
-                'role' => $data['role'] ?? $existing['role'],
-                'status' => $newStatus
-            ]);
-
-            return ['success' => true];
-        });
     }
 }
 
@@ -513,21 +514,25 @@ function delete_user($id): array {
         return ['success' => false, 'message' => 'You cannot delete your own account while logged in.'];
     }
 
-    // Invariant check inside transaction
-    if (!can_modify_super_admin_status($targetId, null, null, true)) {
-        return ['success' => false, 'message' => 'Cannot delete the final active Super Administrator.'];
+    if (!DB::isConnected()) {
+        return ['success' => false, 'message' => 'Database operation unavailable.'];
     }
 
-    if (DB::isConnected()) {
+    try {
         return DB::transaction(function($pdo) use ($targetId) {
+            // Invariant check executed strictly inside mutation transaction under row lock
+            if (!can_modify_super_admin_status($targetId, null, null, true, true)) {
+                throw new RuntimeException('Cannot delete the final active Super Administrator.');
+            }
+
             db_exec("UPDATE `users` SET `deleted_at` = NOW(), `status` = 'inactive', `session_version` = `session_version` + 1 WHERE `id` = ?", [$targetId]);
             revoke_user_sessions($targetId);
             audit_log('user.deleted', 'user', (string)$targetId, null, null);
             return ['success' => true];
         });
+    } catch (Throwable $e) {
+        return ['success' => false, 'message' => $e->getMessage()];
     }
-
-    return ['success' => false, 'message' => 'Database operation unavailable.'];
 }
 
 // Global CSRF helper wrappers
@@ -547,7 +552,7 @@ function get_all_projects(bool $publishedOnly = true): array {
     if (DB::isConnected()) {
         $sql = "SELECT p.*, s.name AS service_name FROM `projects` p LEFT JOIN `services` s ON p.service_id = s.id";
         if ($publishedOnly) {
-            $sql .= " WHERE p.`publication_state` = 'published'";
+            $sql .= " WHERE p.`publication_state` = 'published' AND p.`approval_status` = 'approved'";
         }
         $sql .= " ORDER BY p.`display_order` ASC, p.`created_at` DESC";
         $projects = db_all($sql);
@@ -559,7 +564,7 @@ function get_all_projects(bool $publishedOnly = true): array {
 
     $projects = read_json_file(PROJECTS_FILE, []);
     if ($publishedOnly) {
-        $projects = array_filter($projects, fn($p) => ($p['publication_state'] ?? '') === 'published');
+        $projects = array_filter($projects, fn($p) => ($p['publication_state'] ?? '') === 'published' && ($p['approval_status'] ?? '') === 'approved');
     }
     return array_values($projects);
 }
@@ -568,7 +573,7 @@ function get_project_by_slug(string $slug, bool $publishedOnly = true): ?array {
     if (DB::isConnected()) {
         $sql = "SELECT p.*, s.name AS service_name FROM `projects` p LEFT JOIN `services` s ON p.service_id = s.id WHERE p.`slug` = ?";
         if ($publishedOnly) {
-            $sql .= " AND p.`publication_state` = 'published'";
+            $sql .= " AND p.`publication_state` = 'published' AND p.`approval_status` = 'approved'";
         }
         $sql .= " LIMIT 1";
         $proj = db_one($sql, [$slug]);
@@ -582,7 +587,7 @@ function get_project_by_slug(string $slug, bool $publishedOnly = true): ?array {
     $projects = read_json_file(PROJECTS_FILE, []);
     foreach ($projects as $p) {
         if ($p['slug'] === $slug) {
-            if ($publishedOnly && ($p['publication_state'] ?? '') !== 'published') {
+            if ($publishedOnly && (($p['publication_state'] ?? '') !== 'published' || ($p['approval_status'] ?? '') !== 'approved')) {
                 return null;
             }
             return $p;

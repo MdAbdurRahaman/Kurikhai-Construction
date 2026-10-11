@@ -1,7 +1,6 @@
 <?php
-$pageTitle = 'Website & Integration Settings';
-require_once __DIR__ . '/header.php';
-
+require_once dirname(__DIR__) . '/includes/data.php';
+require_login();
 require_super_admin();
 
 $msg = '';
@@ -57,6 +56,9 @@ $turnstileKey = get_setting('turnstile_key', getenv('TURNSTILE_SITE_KEY') ?: '')
 $titleSuffix = get_setting('meta_title_suffix', ' | Tabeeb Contractor Singapore');
 $retentionDays = get_setting('retention_days', '365');
 $privacyEmail = get_setting('privacy_contact_email', 'info@tabeebgroup.com');
+
+$pageTitle = 'Website & Integration Settings';
+require_once __DIR__ . '/header.php';
 ?>
 
 <?php if (!empty($msg)): ?>

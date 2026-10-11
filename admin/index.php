@@ -25,15 +25,21 @@ $recentLeads = [];
 $serviceDistribution = [];
 $statusCounts = [];
 
+// Role Scoping: If user only has assigned leads permission (Sales Rep), scope dashboard metrics
+$isAssignedOnly = !$canViewAnalytics && !$canViewAllLeads && $canViewAssignedLeads;
+$assignedUserId = (int)($currentUser['id'] ?? 0);
+$scopeSql = $isAssignedOnly ? " AND `assigned_user_id` = ?" : "";
+$scopeParams = $isAssignedOnly ? [$assignedUserId] : [];
+
 if ($dbConnected && ($canViewAnalytics || $canViewAllLeads || $canViewAssignedLeads)) {
-    $leadsToday = (int)db_val("SELECT COUNT(*) FROM `leads` WHERE DATE(`created_at`) = CURDATE() AND `deleted_at` IS NULL");
-    $leadsWeek = (int)db_val("SELECT COUNT(*) FROM `leads` WHERE `created_at` >= DATE_SUB(CURDATE(), INTERVAL 7 DAY) AND `deleted_at` IS NULL");
-    $totalLeads = (int)db_val("SELECT COUNT(*) FROM `leads` WHERE `deleted_at` IS NULL");
-    $leadsQualified = (int)db_val("SELECT COUNT(*) FROM `leads` WHERE `status` = 'qualified' AND `deleted_at` IS NULL");
-    $siteVisitsScheduled = (int)db_val("SELECT COUNT(*) FROM `leads` WHERE `status` = 'site_visit_scheduled' AND `deleted_at` IS NULL");
-    $quotationsSent = (int)db_val("SELECT COUNT(*) FROM `leads` WHERE `status` = 'quotation_sent' AND `deleted_at` IS NULL");
-    $leadsWon = (int)db_val("SELECT COUNT(*) FROM `leads` WHERE `status` = 'won' AND `deleted_at` IS NULL");
-    $pipelineValue = (float)db_val("SELECT COALESCE(SUM(`estimated_deal_value`), 0) FROM `leads` WHERE `status` NOT IN ('lost', 'spam', 'archived') AND `deleted_at` IS NULL");
+    $leadsToday = (int)db_val("SELECT COUNT(*) FROM `leads` WHERE DATE(`created_at`) = CURDATE() AND `deleted_at` IS NULL" . $scopeSql, $scopeParams);
+    $leadsWeek = (int)db_val("SELECT COUNT(*) FROM `leads` WHERE `created_at` >= DATE_SUB(CURDATE(), INTERVAL 7 DAY) AND `deleted_at` IS NULL" . $scopeSql, $scopeParams);
+    $totalLeads = (int)db_val("SELECT COUNT(*) FROM `leads` WHERE `deleted_at` IS NULL" . $scopeSql, $scopeParams);
+    $leadsQualified = (int)db_val("SELECT COUNT(*) FROM `leads` WHERE `status` = 'qualified' AND `deleted_at` IS NULL" . $scopeSql, $scopeParams);
+    $siteVisitsScheduled = (int)db_val("SELECT COUNT(*) FROM `leads` WHERE `status` = 'site_visit_scheduled' AND `deleted_at` IS NULL" . $scopeSql, $scopeParams);
+    $quotationsSent = (int)db_val("SELECT COUNT(*) FROM `leads` WHERE `status` = 'quotation_sent' AND `deleted_at` IS NULL" . $scopeSql, $scopeParams);
+    $leadsWon = (int)db_val("SELECT COUNT(*) FROM `leads` WHERE `status` = 'won' AND `deleted_at` IS NULL" . $scopeSql, $scopeParams);
+    $pipelineValue = (float)db_val("SELECT COALESCE(SUM(`estimated_deal_value`), 0) FROM `leads` WHERE `status` NOT IN ('lost', 'spam', 'archived') AND `deleted_at` IS NULL" . $scopeSql, $scopeParams);
 
     // Only query recent customer details if authorized to view leads
     if ($canViewAllLeads) {
@@ -57,8 +63,9 @@ if ($dbConnected && ($canViewAnalytics || $canViewAllLeads || $canViewAssignedLe
 
     $serviceRows = db_all(
         "SELECT `service_requested`, COUNT(*) AS count 
-         FROM `leads` WHERE `deleted_at` IS NULL 
-         GROUP BY `service_requested` ORDER BY count DESC LIMIT 6"
+         FROM `leads` WHERE `deleted_at` IS NULL" . $scopeSql . " 
+         GROUP BY `service_requested` ORDER BY count DESC LIMIT 6",
+        $scopeParams
     );
     foreach ($serviceRows as $sr) {
         $serviceDistribution[$sr['service_requested']] = (int)$sr['count'];
@@ -66,8 +73,9 @@ if ($dbConnected && ($canViewAnalytics || $canViewAllLeads || $canViewAssignedLe
 
     $statusRows = db_all(
         "SELECT `status`, COUNT(*) AS count 
-         FROM `leads` WHERE `deleted_at` IS NULL 
-         GROUP BY `status`"
+         FROM `leads` WHERE `deleted_at` IS NULL" . $scopeSql . " 
+         GROUP BY `status`",
+        $scopeParams
     );
     foreach ($statusRows as $str) {
         $statusCounts[$str['status']] = (int)$str['count'];
@@ -77,6 +85,12 @@ if ($dbConnected && ($canViewAnalytics || $canViewAllLeads || $canViewAssignedLe
 // Business Tracker Metrics
 $trackerMetrics = BusinessTracker::getMetrics();
 ?>
+
+<?php if ($isAssignedOnly): ?>
+    <div style="background: #e0f2fe; border: 1px solid #bae6fd; color: #0369a1; padding: 12px 18px; border-radius: 8px; margin-bottom: 20px; font-size: 13px; font-weight: 500;">
+        ℹ️ <strong>Assigned Lead View:</strong> Dashboard metrics reflect leads specifically assigned to your staff profile (<?= htmlspecialchars($currentUser['name'] ?? 'You') ?>).
+    </div>
+<?php endif; ?>
 
 <!-- Metric Stats Grid -->
 <div class="stat-grid" style="grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));">

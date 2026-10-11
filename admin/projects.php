@@ -3,8 +3,7 @@
  * Projects & Case Studies Portfolio Management - Tabeeb Contractor Portal
  */
 require_once dirname(__DIR__) . '/includes/data.php';
-require_once __DIR__ . '/header.php';
-
+require_login();
 require_permission('projects.manage');
 
 // Handle POST actions
@@ -13,7 +12,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $projId = $_POST['project_id'] ?? '';
     $csrf = $_POST['csrf_token'] ?? '';
 
-    if (verify_csrf($csrf) && !empty($projId)) {
+    if (verify_csrf_token($csrf) && !empty($projId)) {
         if ($action === 'toggle_status') {
             $proj = get_project_by_id($projId);
             if ($proj) {
@@ -49,6 +48,9 @@ $filtered = array_filter($allProjects, function($p) use ($filterState, $searchQu
     }
     return true;
 });
+
+$pageTitle = 'Case Studies & Projects Management';
+require_once __DIR__ . '/header.php';
 ?>
 
 <div class="table-card">

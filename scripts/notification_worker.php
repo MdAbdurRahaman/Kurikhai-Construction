@@ -27,4 +27,6 @@ $res = Mailer::processOutboxQueue(25);
 
 $timestamp = date('Y-m-d H:i:s');
 echo "[{$timestamp}] Outbox Worker Processed: {$res['processed']} | Sent: {$res['sent']} | Simulated: {$res['simulated']} | Failed: {$res['failed']}\n";
-exit(0);
+
+$hasErrors = !empty($res['error']) || ($res['failed'] > 0);
+exit($hasErrors ? 1 : 0);

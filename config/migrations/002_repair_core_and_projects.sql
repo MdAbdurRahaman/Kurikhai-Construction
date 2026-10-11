@@ -137,6 +137,20 @@ PREPARE stmt FROM @sql;
 EXECUTE stmt;
 DEALLOCATE PREPARE stmt;
 
+-- 6b. Idempotency key for atomic lead deduplication
+SET @col_ik_exists = (SELECT COUNT(*) FROM information_schema.COLUMNS WHERE TABLE_SCHEMA = @dbname AND TABLE_NAME = 'leads' AND COLUMN_NAME = 'idempotency_key');
+SET @sql = IF(@col_ik_exists = 0, 'ALTER TABLE `leads` ADD COLUMN `idempotency_key` VARCHAR(64) NULL UNIQUE AFTER `ip_hash`', 'SELECT 1');
+PREPARE stmt FROM @sql;
+EXECUTE stmt;
+DEALLOCATE PREPARE stmt;
+
+-- 6c. Align notification_logs delivery_status ENUM to include simulated
+SET @tbl_nl_exists = (SELECT COUNT(*) FROM information_schema.TABLES WHERE TABLE_SCHEMA = @dbname AND TABLE_NAME = 'notification_logs');
+SET @sql = IF(@tbl_nl_exists > 0, 'ALTER TABLE `notification_logs` MODIFY COLUMN `delivery_status` ENUM(\'queued\', \'sent\', \'failed\', \'retrying\', \'simulated\') NOT NULL DEFAULT \'queued\'', 'SELECT 1');
+PREPARE stmt FROM @sql;
+EXECUTE stmt;
+DEALLOCATE PREPARE stmt;
+
 -- 7. Seed Complete Least-Privilege Permissions Matrix for All 6 Roles
 -- Ensure all permissions exist
 INSERT INTO `permissions` (`slug`, `name`, `category`, `description`) VALUES
@@ -156,7 +170,8 @@ INSERT INTO `permissions` (`slug`, `name`, `category`, `description`) VALUES
 ('projects.manage', 'Manage Projects', 'Projects', 'Can create, edit, and approve case study projects'),
 ('audit.view', 'View Audit Logs', 'Security', 'Can inspect the administrative audit trail'),
 ('business_info.manage', 'Manage Business Info', 'Business Tracker', 'Can review and publish business information'),
-('baseline.manage', 'Manage SEO Baseline', 'Marketing Baseline', 'Can record and export marketing baselines')
+('baseline.view', 'View SEO Baseline', 'Marketing Baseline', 'Can view and export marketing baseline metrics'),
+('baseline.manage', 'Manage SEO Baseline', 'Marketing Baseline', 'Can record and edit marketing baseline metrics')
 ON DUPLICATE KEY UPDATE `name` = VALUES(`name`), `description` = VALUES(`description`);
 
 -- Role 1: Super Administrator (All permissions)
@@ -169,7 +184,7 @@ INSERT IGNORE INTO `role_permissions` (`role_id`, `permission_id`)
 SELECT 2, `id` FROM `permissions` WHERE `slug` IN (
     'leads.view', 'leads.create', 'leads.edit', 'leads.assign', 'leads.export',
     'settings.manage', 'notifications.manage', 'analytics.view', 'content.manage',
-    'projects.manage', 'business_info.manage', 'baseline.manage'
+    'projects.manage', 'business_info.manage', 'baseline.view', 'baseline.manage'
 );
 
 -- Role 3: Sales Manager
@@ -194,18 +209,18 @@ SELECT 5, `id` FROM `permissions` WHERE `slug` IN (
 );
 
 -- Role 6: Analyst (Read-Only)
--- Analytics view and marketing baseline review only
+-- Analytics view and marketing baseline review/export only (cannot edit baseline metrics)
 INSERT IGNORE INTO `role_permissions` (`role_id`, `permission_id`)
 SELECT 6, `id` FROM `permissions` WHERE `slug` IN (
-    'analytics.view', 'baseline.manage'
+    'analytics.view', 'baseline.view'
 );
 
 -- 8. Seed Default GSC & GA4 Verification Rows
 INSERT INTO `integration_verifications` 
 (`service_type`, `property_identifier`, `verification_method`, `token_or_record`, `status`, `evidence_summary`) 
 VALUES
-('gsc_domain', 'tabeebgroup.com', 'DNS TXT', NULL, 'Verification instructions prepared', 'Awaiting DNS TXT record deployment on domain authoritative nameserver'),
-('gsc_prefix', 'https://tabeebgroup.com/', 'HTML verification file', 'googlea9c88d1e38989379.html', 'Verified with dated evidence', 'Verified via legacy file googlea9c88d1e38989379.html'),
+('gsc_domain', 'tabeebgroup.com', 'DNS TXT', NULL, 'Verification instructions prepared', 'Awaiting client DNS TXT record deployment on authoritative nameserver'),
+('gsc_prefix', 'https://tabeebgroup.com/', 'HTML verification file', 'googlea9c88d1e38989379.html', 'Verification file present on server (Account verification pending)', 'Legacy file googlea9c88d1e38989379.html preserved on disk; awaiting client Search Console access'),
 ('gtm_container', 'GTM-XXXXXXX', 'GTM Container Snippet', NULL, 'Not configured', 'Awaiting authorized client GTM container ID and container publication'),
 ('ga4_stream', 'G-XXXXXXXXXX', 'GA4 Measurement via GTM', NULL, 'Not configured', 'Awaiting real GA4 Measurement ID and GTM tag configuration')
 ON DUPLICATE KEY UPDATE `property_identifier` = VALUES(`property_identifier`);
@@ -226,10 +241,36 @@ VALUES
 ('target_keyword_commercial_reinstatement', 'rankings', 'Rank: commercial reinstatement contractor singapore', 'rank', 'Manual SERP Snapshot', 'Asia/Singapore', 'Not available', 'No authenticated third-party rank tracker or pre-repair audit active', 'Technical SEO Specialist'),
 ('target_keyword_tiling_works', 'rankings', 'Rank: tiling contractor singapore', 'rank', 'Manual SERP Snapshot', 'Asia/Singapore', 'Not available', 'No authenticated third-party rank tracker or pre-repair audit active', 'Technical SEO Specialist'),
 ('target_keyword_waterproofing', 'rankings', 'Rank: waterproofing specialist singapore', 'rank', 'Manual SERP Snapshot', 'Asia/Singapore', 'Not available', 'No authenticated third-party rank tracker or pre-repair audit active', 'Technical SEO Specialist'),
-('leads_persisted_total', 'conversions', 'Total Persisted Website Enquiries', 'leads', 'Tabeeb MySQL CRM', 'Asia/Singapore', 'Measured', 'Direct count of verified database leads', 'CRM Administrator'),
-('leads_qualified_total', 'conversions', 'Qualified Inquiries in CRM', 'leads', 'Tabeeb MySQL CRM', 'Asia/Singapore', 'Measured', 'Direct count of qualified status leads', 'CRM Administrator'),
-('leads_won_total', 'conversions', 'Closed / Won Inquiries in CRM', 'leads', 'Tabeeb MySQL CRM', 'Asia/Singapore', 'Measured', 'Direct count of won status leads', 'CRM Administrator'),
+('leads_persisted_total', 'conversions', 'Total Persisted Website Enquiries', 'leads', 'Tabeeb MySQL CRM', 'Asia/Singapore', 'Not available', 'Pre-repair historical CRM baseline unavailable prior to database activation', 'CRM Administrator'),
+('leads_qualified_total', 'conversions', 'Qualified Inquiries in CRM', 'leads', 'Tabeeb MySQL CRM', 'Asia/Singapore', 'Not available', 'Pre-repair historical CRM baseline unavailable prior to database activation', 'CRM Administrator'),
+('leads_won_total', 'conversions', 'Closed / Won Inquiries in CRM', 'leads', 'Tabeeb MySQL CRM', 'Asia/Singapore', 'Not available', 'Pre-repair historical CRM baseline unavailable prior to database activation', 'CRM Administrator'),
 ('conversion_rate_session', 'conversions', 'Website Lead Conversion Rate (Enquiries / Eligible Sessions)', '%', 'Derived (CRM / GA4)', 'Asia/Singapore', 'Not available', 'Eligible session denominator unavailable prior to live GA4 tracking activation', 'Technical SEO Specialist')
 ON DUPLICATE KEY UPDATE `title` = VALUES(`title`);
+
+-- 10. Seed Serangoon Avenue 3 Case Study (Draft Pending Approval)
+INSERT INTO `projects` 
+(`id`, `slug`, `title`, `location_label`, `public_location`, `service_id`, `factual_summary`, `scope_details`, `duration_label`, `materials_used`, `source_file`, `featured_image`, `video_path`, `video_poster`, `publication_state`, `approval_status`, `og_title`, `og_description`, `display_order`, `created_at`, `updated_at`)
+VALUES
+('proj_serangoon_01', 'serangoon-avenue-3-flooring-works', 'Serangoon Avenue 3 Flooring Works', 'Blk 234 Serangoon Avenue 3', 'Serangoon, Singapore', 'tiling-works',
+ 'Client-supplied photographs show the existing floor condition, work in progress and the completed tiled finish at Serangoon Avenue 3.',
+ 'Floor tile replacement and screeding as documented in client project board artwork.',
+ NULL, NULL, 'WhatsApp Image 2026-10-09 at 7.11.04 PM.jpeg',
+ '/images/projects/serangoon-featured-thumb.webp', '/images/projects/serangoon-board-video.mp4', '/images/projects/serangoon-board-full.webp',
+ 'draft', 'pending',
+ 'Serangoon Avenue 3 Flooring Works | Tabeeb Contractor',
+ 'Client-supplied photographs show the existing floor condition, work in progress and the completed tiled finish at Serangoon Avenue 3.',
+ 1, '2026-10-10 12:00:00', '2026-10-10 12:00:00')
+ON DUPLICATE KEY UPDATE `slug` = VALUES(`slug`);
+
+-- 11. Seed Serangoon Avenue 3 Media Items
+INSERT INTO `project_media` 
+(`id`, `project_id`, `media_stage`, `media_type`, `file_path`, `caption`, `alt_text`, `display_order`, `created_at`)
+VALUES
+(1, 'proj_serangoon_01', 'before', 'image', '/images/projects/serangoon-before.webp', 'Existing tile condition and floor preparation area', 'Existing floor condition prior to renovation', 1, '2026-10-10 12:00:00'),
+(2, 'proj_serangoon_01', 'in_progress', 'image', '/images/projects/serangoon-in-progress.webp', 'Floor screeding and surface levelling stage', 'Cement screed flooring work in progress', 2, '2026-10-10 12:00:00'),
+(3, 'proj_serangoon_01', 'completed', 'image', '/images/projects/serangoon-completed.webp', 'Completed tiled flooring finish with skirting', 'Completed tiled flooring finish', 3, '2026-10-10 12:00:00'),
+(4, 'proj_serangoon_01', 'gallery', 'image', '/images/projects/serangoon-board-full.webp', 'Complete project documentation board provided by client', 'Full Serangoon Avenue 3 project board', 4, '2026-10-10 12:00:00'),
+(5, 'proj_serangoon_01', 'gallery', 'image', '/images/projects/renovation-stages-collage.webp', 'Client reference composite showing renovation progression (Preserving anonymization blurs)', 'Renovation process stages collage', 5, '2026-10-10 12:00:00')
+ON DUPLICATE KEY UPDATE `file_path` = VALUES(`file_path`);
 
 SET FOREIGN_KEY_CHECKS = 1;

@@ -1,50 +1,86 @@
-name: 🚀 Deploy Website to cPanel
+name: 🚀 Controlled Release Deployment to cPanel
 
 on:
-  push:
-    branches:
-      - main
-      - rebrand-tabeeb-contractor
+  workflow_dispatch:
+    inputs:
+      target_env:
+        description: 'Target Deployment Environment'
+        required: true
+        default: 'staging'
+        type: choice
+        options:
+          - staging
+          - production
+      confirmation:
+        description: 'Type "CONFIRM_RELEASE" to authorize release execution'
+        required: true
+        default: ''
 
 jobs:
-  web-deploy:
-    name: 🌐 Secure Deploy to cPanel (HTTPS UAPI)
+  controlled-release:
+    name: 🌐 Authenticated cPanel Release Workflow
     runs-on: ubuntu-latest
     steps:
-      - name: 🚚 Checkout latest code
+      - name: 🛡️ Validate Manual Authorization
+        run: |
+          if [ "${{ github.event.inputs.confirmation }}" != "CONFIRM_RELEASE" ]; then
+            echo "::error::Release execution aborted: Confirmation string must be CONFIRM_RELEASE."
+            exit 1
+          fi
+          echo "Release authorized for target: ${{ github.event.inputs.target_env }}"
+
+      - name: 🚚 Checkout Release Source Code
         uses: actions/checkout@v4
 
-      - name: 📦 Package Website Files
+      - name: 📦 Build Allowlisted Release Package
         run: |
-          zip -r website-deploy.zip . -x ".git*" ".github*" "*.md" ".cpanel.yml" "*.zip" ".env*" "data/backup_*"
+          echo "Packaging application files with strict exclusion of runtime data, secrets, and test suites..."
+          # Exclude production runtime data, uploads, environment secrets, tests, and raw source artifacts
+          zip -r website-deploy.zip . \
+            -x ".git*" \
+            -x ".github*" \
+            -x "*.md" \
+            -x ".cpanel.yml" \
+            -x "*.zip" \
+            -x ".env*" \
+            -x "*.sql" \
+            -x "data/*" \
+            -x "tests/*" \
+            -x "scripts/test*" \
+            -x "images/blog/*" \
+            -x "images/projects/client_originals/*"
+          
+          echo "Package created successfully:"
+          unzip -l website-deploy.zip | head -n 30
 
-      - name: 🚀 Upload and Securely Extract via Authenticated One-Time Deployment
+      - name: 🚀 Authenticated Upload, Extraction & Verification
         run: |
           CPANEL_USER="${{ secrets.CPANEL_USERNAME || 'tabeebgroup' }}"
           CPANEL_HOST="${{ secrets.CPANEL_HOST || '151.158.158.31' }}"
           API_TOKEN="${{ secrets.CPANEL_API_TOKEN }}"
           
           if [ -z "$API_TOKEN" ]; then
-            echo "::error::CPANEL_API_TOKEN secret is missing! Please add it in GitHub Settings -> Secrets -> Actions."
+            echo "::error::CPANEL_API_TOKEN secret is missing! Please configure in GitHub Secrets."
             exit 1
           fi
 
           # 1. Generate one-time cryptographic deployment secret
           DEPLOY_KEY=$(openssl rand -hex 24)
 
-          # 2. Generate ephemeral self-destructing extractor with ZipSlip protection
+          # 2. Ephemeral self-destructing extractor with ZipSlip and extraction validation
           cat << 'EOF' > deploy_extractor.php
           <?php
           header('Content-Type: application/json');
           $secret = 'DEPLOY_KEY_PLACEHOLDER';
           if (!isset($_GET['token']) || !hash_equals($secret, (string)$_GET['token'])) {
               http_response_code(403);
-              echo json_encode(['status' => 'error', 'message' => 'Forbidden']);
+              echo json_encode(['status' => 'error', 'message' => 'Forbidden: Invalid deployment key']);
               exit(1);
           }
           $zipPath = __DIR__ . '/website-deploy.zip';
           if (!file_exists($zipPath)) {
               @unlink(__FILE__);
+              http_response_code(404);
               echo json_encode(['status' => 'error', 'message' => 'Archive missing']);
               exit(1);
           }
@@ -61,14 +97,18 @@ jobs:
                       exit(1);
                   }
               }
-              $zip->extractTo(__DIR__);
+              $extracted = $zip->extractTo(__DIR__);
               $zip->close();
               @unlink($zipPath);
-              if (file_exists(__DIR__ . '/unzip.php')) {
-                  @unlink(__DIR__ . '/unzip.php');
-              }
               @unlink(__FILE__);
-              echo json_encode(['status' => 'success', 'message' => 'Files extracted and extractor self-destructed']);
+              if ($extracted) {
+                  echo json_encode(['status' => 'success', 'message' => 'Files extracted and extractor self-destructed']);
+                  exit(0);
+              } else {
+                  http_response_code(500);
+                  echo json_encode(['status' => 'error', 'message' => 'Extraction failed']);
+                  exit(1);
+              }
           } else {
               @unlink(__FILE__);
               http_response_code(500);
@@ -80,7 +120,7 @@ jobs:
           sed -i "s/DEPLOY_KEY_PLACEHOLDER/${DEPLOY_KEY}/g" deploy_extractor.php
 
           echo "1️⃣ Uploading package archive and ephemeral extractor..."
-          UPLOAD_RES=$(curl -k -s -X POST \
+          UPLOAD_RES=$(curl -s -S -X POST \
             -H "Authorization: cpanel ${CPANEL_USER}:${API_TOKEN}" \
             -F "dir=public_html" \
             -F "file-1=@website-deploy.zip" \
@@ -88,27 +128,40 @@ jobs:
             "https://${CPANEL_HOST}:2083/execute/Fileman/upload_files")
           echo "Upload Response: $UPLOAD_RES"
 
+          # Verify upload succeeded
+          if ! echo "$UPLOAD_RES" | grep -q '"status":1'; then
+            echo "::error::cPanel Fileman upload_files failed: $UPLOAD_RES"
+            exit 1
+          fi
+
           echo "2️⃣ Triggering authenticated extraction..."
-          EXTRACT_RES=$(curl -k -s -L "https://tabeebgroup.com/deploy_extractor.php?token=${DEPLOY_KEY}")
+          EXTRACT_RES=$(curl -s -S -L "https://tabeebgroup.com/deploy_extractor.php?token=${DEPLOY_KEY}")
           echo "Extractor Response: $EXTRACT_RES"
 
+          # Verify extraction succeeded
+          if ! echo "$EXTRACT_RES" | grep -q '"status":"success"'; then
+            echo "::error::Deployment extractor returned failure: $EXTRACT_RES"
+            exit 1
+          fi
+
           echo "3️⃣ Ensuring cleanup of any residual temporary files..."
-          curl -k -s -X POST \
+          curl -s -S -X POST \
             -H "Authorization: cpanel ${CPANEL_USER}:${API_TOKEN}" \
             -d "dir=public_html" \
             -d "files=website-deploy.zip" \
             "https://${CPANEL_HOST}:2083/execute/Fileman/delete_files" > /dev/null 2>&1 || true
 
-          curl -k -s -X POST \
+          curl -s -S -X POST \
             -H "Authorization: cpanel ${CPANEL_USER}:${API_TOKEN}" \
             -d "dir=public_html" \
             -d "files=deploy_extractor.php" \
             "https://${CPANEL_HOST}:2083/execute/Fileman/delete_files" > /dev/null 2>&1 || true
 
-          curl -k -s -X POST \
-            -H "Authorization: cpanel ${CPANEL_USER}:${API_TOKEN}" \
-            -d "dir=public_html" \
-            -d "files=unzip.php" \
-            "https://${CPANEL_HOST}:2083/execute/Fileman/delete_files" > /dev/null 2>&1 || true
+          echo "4️⃣ Post-deploy HTTP smoke check..."
+          HTTP_STATUS=$(curl -s -o /dev/null -w "%{http_code}" "https://tabeebgroup.com/")
+          echo "Live HTTP Status: $HTTP_STATUS"
+          if [ "$HTTP_STATUS" != "200" ]; then
+            echo "::warning::Homepage returned HTTP status $HTTP_STATUS after deployment. Please inspect live site."
+          fi
 
-          echo "🎉 Website securely deployed and live!"
+          echo "🎉 Controlled release successfully completed and validated."

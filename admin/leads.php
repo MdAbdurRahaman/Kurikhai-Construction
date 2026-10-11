@@ -82,27 +82,33 @@ $page = max(1, (int)($_GET['page'] ?? 1));
 $limit = 20;
 $offset = ($page - 1) * $limit;
 
-$where = ["`deleted_at` IS NULL"];
+// Centralized scoped query builder (strictly l.-prefixed columns to prevent ambiguous SQL join errors)
+$where = ["l.`deleted_at` IS NULL"];
 $params = [];
 
+if ($isAssignedOnly) {
+    $where[] = "l.`assigned_user_id` = ?";
+    $params[] = $assignedUserId;
+}
+
 if (!empty($search)) {
-    $where[] = "(`lead_number` LIKE ? OR `name` LIKE ? OR `phone` LIKE ? OR `email` LIKE ? OR `project_description` LIKE ?)";
+    $where[] = "(l.`lead_number` LIKE ? OR l.`name` LIKE ? OR l.`phone` LIKE ? OR l.`email` LIKE ? OR l.`project_description` LIKE ?)";
     $like = "%{$search}%";
     $params = array_merge($params, [$like, $like, $like, $like, $like]);
 }
 
 if (!empty($filterStatus)) {
-    $where[] = "`status` = ?";
+    $where[] = "l.`status` = ?";
     $params[] = $filterStatus;
 }
 
 if (!empty($filterService)) {
-    $where[] = "`service_requested` = ?";
+    $where[] = "l.`service_requested` = ?";
     $params[] = $filterService;
 }
 
 if (!empty($filterPriority)) {
-    $where[] = "`priority` = ?";
+    $where[] = "l.`priority` = ?";
     $params[] = $filterPriority;
 }
 
@@ -113,7 +119,7 @@ $leads = [];
 $servicesList = [];
 
 if (DB::isConnected()) {
-    $totalCount = (int)db_val("SELECT COUNT(*) FROM `leads` WHERE {$whereClause}", $params);
+    $totalCount = (int)db_val("SELECT COUNT(*) FROM `leads` l WHERE {$whereClause}", $params);
     $leads = db_all(
         "SELECT l.*, u.name AS assigned_name 
          FROM `leads` l 
@@ -123,7 +129,14 @@ if (DB::isConnected()) {
          LIMIT {$limit} OFFSET {$offset}",
         $params
     );
-    $servicesList = db_all("SELECT DISTINCT `service_requested` FROM `leads` WHERE `service_requested` != '' ORDER BY `service_requested` ASC");
+    $servicesQuery = "SELECT DISTINCT l.`service_requested` FROM `leads` l WHERE l.`service_requested` != '' AND l.`deleted_at` IS NULL";
+    $servicesParams = [];
+    if ($isAssignedOnly) {
+        $servicesQuery .= " AND l.`assigned_user_id` = ?";
+        $servicesParams[] = $assignedUserId;
+    }
+    $servicesQuery .= " ORDER BY l.`service_requested` ASC";
+    $servicesList = db_all($servicesQuery, $servicesParams);
 }
 
 $totalPages = max(1, ceil($totalCount / $limit));

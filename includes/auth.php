@@ -335,28 +335,33 @@ function require_permission(string $permSlug): void {
  * 5. FINAL ACTIVE SUPER ADMIN INVARIANT
  * 
  * Ensures an edit, role demotion, deactivation, or deletion cannot leave 0 active super admins.
+ * Supports row-level locks ($forUpdate) to prevent concurrent race conditions.
  */
-function count_active_super_admins(): int {
+function count_active_super_admins(bool $forUpdate = false): int {
     if (DB::isConnected()) {
+        $pdo = DB::getConnection();
+        $lock = ($forUpdate && $pdo && $pdo->getAttribute(PDO::ATTR_DRIVER_NAME) === 'mysql') ? " FOR UPDATE" : "";
         return (int)db_val(
             "SELECT COUNT(*) FROM `users` u 
              JOIN `roles` r ON u.role_id = r.id 
-             WHERE r.slug = 'super_admin' AND u.status = 'active' AND u.deleted_at IS NULL"
+             WHERE r.slug = 'super_admin' AND u.status = 'active' AND u.deleted_at IS NULL" . $lock
         );
     }
     return 1;
 }
 
-function can_modify_super_admin_status(int $targetUserId, ?int $newRoleId = null, ?string $newStatus = null, bool $isDelete = false): bool {
+function can_modify_super_admin_status(int $targetUserId, ?int $newRoleId = null, ?string $newStatus = null, bool $isDelete = false, bool $forUpdate = false): bool {
     if (!DB::isConnected()) {
         return false;
     }
 
+    $pdo = DB::getConnection();
+    $lock = ($forUpdate && $pdo && $pdo->getAttribute(PDO::ATTR_DRIVER_NAME) === 'mysql') ? " FOR UPDATE" : "";
     $target = db_one(
         "SELECT u.id, u.status, u.role_id, r.slug AS role_slug 
          FROM `users` u 
          JOIN `roles` r ON u.role_id = r.id 
-         WHERE u.id = ? LIMIT 1",
+         WHERE u.id = ? LIMIT 1" . $lock,
         [$targetUserId]
     );
 
@@ -370,7 +375,7 @@ function can_modify_super_admin_status(int $targetUserId, ?int $newRoleId = null
     $isDeactivated = ($newStatus !== null && $newStatus !== 'active');
 
     if ($isDelete || $isDemoted || $isDeactivated) {
-        $activeSuperAdmins = count_active_super_admins();
+        $activeSuperAdmins = count_active_super_admins($forUpdate);
         if ($activeSuperAdmins <= 1) {
             return false; // Invariant violated: cannot remove or demote the last active super admin
         }

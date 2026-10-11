@@ -1,8 +1,10 @@
 <?php
+require_once dirname(__DIR__) . '/includes/data.php';
+require_login();
+require_super_admin();
+
 $pageTitle = 'Security Audit Trail';
 require_once __DIR__ . '/header.php';
-
-require_super_admin();
 
 $page = max(1, (int)($_GET['page'] ?? 1));
 $limit = 30;

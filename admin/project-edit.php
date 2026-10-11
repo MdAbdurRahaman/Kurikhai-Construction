@@ -3,8 +3,7 @@
  * Project Case Study Editor - Tabeeb Contractor Portal
  */
 require_once dirname(__DIR__) . '/includes/data.php';
-require_once __DIR__ . '/header.php';
-
+require_login();
 require_permission('projects.manage');
 
 $projId = $_GET['id'] ?? '';
@@ -22,7 +21,7 @@ $msg = '';
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $csrf = $_POST['csrf_token'] ?? '';
-    if (!verify_csrf($csrf)) {
+    if (!verify_csrf_token($csrf)) {
         $error = 'Invalid security token. Please refresh and try again.';
     } else {
         $title = trim($_POST['title'] ?? '');
@@ -83,6 +82,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 }
 
 $services = get_all_services(false);
+
+require_once __DIR__ . '/header.php';
 ?>
 
 <div style="max-width: 1000px; margin: 0 auto;">

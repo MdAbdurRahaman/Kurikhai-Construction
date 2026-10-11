@@ -30,11 +30,14 @@ function get_csrf_token(): string {
     return $_SESSION['csrf_token'];
 }
 
-function verify_csrf_token(?string $token): bool {
+function verify_csrf_token(mixed $token): bool {
+    if (!is_string($token) || empty($token)) {
+        return false;
+    }
     if (session_status() === PHP_SESSION_NONE) {
         session_start();
     }
-    if (empty($token) || empty($_SESSION['csrf_token'])) {
+    if (empty($_SESSION['csrf_token'])) {
         return false;
     }
     return hash_equals($_SESSION['csrf_token'], $token);
@@ -232,29 +235,35 @@ function generate_form_token(): string {
 function validate_honeypot_and_timing(array $postData, int $minSeconds = 2): array {
     // 1. Honeypot check
     $honeypot = $postData['website_url_hp'] ?? $postData['middle_name_hp'] ?? '';
-    if (!empty(trim((string)$honeypot))) {
+    if (!is_scalar($honeypot) || !empty(trim((string)$honeypot))) {
         return ['valid' => false, 'reason' => 'Bot activity detected (honeypot triggered).'];
     }
 
     // 2. Cryptographically signed form load timestamp
     $token = $postData['form_loaded_ts'] ?? '';
-    if (!empty($token)) {
-        $decoded = base64_decode((string)$token, true);
-        if ($decoded && str_contains($decoded, ':')) {
-            [$ts, $hash] = explode(':', $decoded, 2);
-            $ts = (int)$ts;
-            $expectedHash = hash_hmac('sha256', (string)$ts, HMAC_SECRET);
-            if (hash_equals($expectedHash, $hash)) {
-                $elapsed = time() - $ts;
-                if ($elapsed < $minSeconds) {
-                    return ['valid' => false, 'reason' => 'Form submitted too rapidly. Please take your time to review details.'];
-                }
-                // Expire form after 12 hours
-                if ($elapsed > 43200) {
-                    return ['valid' => false, 'reason' => 'Form submission expired. Please refresh the page.'];
-                }
-            }
-        }
+    if (!is_string($token) || empty($token)) {
+        return ['valid' => false, 'reason' => 'Missing security timing token. Please refresh the page and try again.'];
+    }
+
+    $decoded = base64_decode($token, true);
+    if (!$decoded || !str_contains($decoded, ':')) {
+        return ['valid' => false, 'reason' => 'Invalid or malformed security timing token.'];
+    }
+
+    [$ts, $hash] = explode(':', $decoded, 2);
+    $ts = (int)$ts;
+    $expectedHash = hash_hmac('sha256', (string)$ts, HMAC_SECRET);
+    if (!hash_equals($expectedHash, $hash)) {
+        return ['valid' => false, 'reason' => 'Invalid timing signature. Please submit from the authoritative form.'];
+    }
+
+    $elapsed = time() - $ts;
+    if ($elapsed < $minSeconds) {
+        return ['valid' => false, 'reason' => 'Form submitted too rapidly. Please take your time to review details.'];
+    }
+    // Expire form after 12 hours (43200 seconds)
+    if ($elapsed > 43200) {
+        return ['valid' => false, 'reason' => 'Form submission expired. Please refresh the page.'];
     }
 
     return ['valid' => true];

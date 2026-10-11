@@ -39,11 +39,15 @@ class DB {
             PDO::ATTR_ERRMODE            => PDO::ERRMODE_EXCEPTION,
             PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC,
             PDO::ATTR_EMULATE_PREPARES   => false,
-            PDO::MYSQL_ATTR_INIT_COMMAND => "SET NAMES utf8mb4 COLLATE utf8mb4_unicode_ci, time_zone = '+08:00'"
+            PDO::MYSQL_ATTR_INIT_COMMAND => "SET NAMES utf8mb4 COLLATE utf8mb4_unicode_ci"
         ];
 
         try {
             self::$instance = new PDO($dsn, DB_USER, DB_PASS, $options);
+            // Execute timezone separately to guarantee standard MySQL/MariaDB grammar compliance
+            if (self::$instance->getAttribute(PDO::ATTR_DRIVER_NAME) === 'mysql') {
+                self::$instance->exec("SET time_zone = '+08:00'");
+            }
             self::$lastError = null;
             return self::$instance;
         } catch (PDOException $e) {

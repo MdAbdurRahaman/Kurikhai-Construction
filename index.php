@@ -391,7 +391,12 @@ $pageDesc = "Tabeeb Contractor is Singapore's direct renovation contractor. Spec
         </div>
     </section>
 
-    <!-- Featured Case Study Section (Phase F Client Media Integration) -->
+    <!-- Featured Case Study Section (Authoritative Approval Gated) -->
+    <?php
+    $approvedProjects = get_all_projects(true);
+    $featuredProject = !empty($approvedProjects) ? $approvedProjects[0] : null;
+    ?>
+    <?php if ($featuredProject): ?>
     <section class="section" style="background: #ffffff; padding: 70px 0;">
         <div class="container">
             <div class="section-header text-center fade-in-up">
@@ -401,22 +406,23 @@ $pageDesc = "Tabeeb Contractor is Singapore's direct renovation contractor. Spec
             </div>
             <div style="max-width: 950px; margin: 0 auto; background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 16px; overflow: hidden; box-shadow: 0 10px 30px rgba(0,0,0,0.06); display: grid; grid-template-columns: 1fr 1fr; gap: 0;" class="fade-in-up">
                 <div style="position: relative; min-height: 280px;">
-                    <img src="/images/projects/serangoon-featured-thumb.webp" alt="Serangoon Avenue 3 Flooring Works" style="width: 100%; height: 100%; object-fit: cover;" loading="lazy" width="490" height="325">
+                    <img src="<?= htmlspecialchars($featuredProject['featured_image']) ?>" alt="<?= htmlspecialchars($featuredProject['title']) ?>" style="width: 100%; height: 100%; object-fit: cover;" loading="lazy" width="490" height="325">
                 </div>
                 <div style="padding: 36px 32px; display: flex; flex-direction: column; justify-content: center;">
-                    <span style="font-size: 12px; font-weight: 700; color: #0284c7; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 8px;">Tiling Works Case Study</span>
-                    <h3 style="font-size: 1.5rem; font-weight: 800; color: #0f172a; margin-bottom: 12px;">Serangoon Avenue 3 Flooring Works</h3>
+                    <span style="font-size: 12px; font-weight: 700; color: #0284c7; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 8px;"><?= htmlspecialchars($featuredProject['service_name'] ?? 'Contracting') ?> Case Study</span>
+                    <h3 style="font-size: 1.5rem; font-weight: 800; color: #0f172a; margin-bottom: 12px;"><?= htmlspecialchars($featuredProject['title']) ?></h3>
                     <p style="font-size: 0.95rem; color: #475569; line-height: 1.6; margin-bottom: 20px;">
-                        Client-supplied photographs show the existing floor condition, work in progress and the completed tiled finish at Serangoon Avenue 3.
+                        <?= htmlspecialchars($featuredProject['factual_summary']) ?>
                     </p>
                     <div style="display: flex; gap: 12px; align-items: center;">
-                        <a href="/projects/serangoon-avenue-3-flooring-works" class="btn btn-primary" style="padding: 10px 22px; font-size: 14px;">View Case Study ➔</a>
+                        <a href="/projects/<?= htmlspecialchars($featuredProject['slug']) ?>" class="btn btn-primary" style="padding: 10px 22px; font-size: 14px;">View Case Study ➔</a>
                         <a href="/projects" class="btn btn-secondary" style="padding: 10px 20px; font-size: 14px;">All Projects</a>
                     </div>
                 </div>
             </div>
         </div>
     </section>
+    <?php endif; ?>
 
     <!-- Official Company Profile & Poster Showcase -->
     <section class="poster-showcase-section">
@@ -433,7 +439,7 @@ $pageDesc = "Tabeeb Contractor is Singapore's direct renovation contractor. Spec
                 </div>
                 <div class="poster-showcase-card fade-in-up">
                     <a href="/images/tabeeb-poster.webp" target="_blank" title="Click to view full high-definition poster">
-                        <img src="/images/tabeeb-poster.webp" alt="Tabeeb Contractor Official Services Poster" loading="lazy" width="1600" height="2262">
+                        <img src="/images/tabeeb-poster.webp" alt="Tabeeb Contractor Official Services Poster" loading="lazy" width="1600" height="1600">
                     </a>
                     <span style="display: block; font-size: 12px; color: var(--color-gold); margin-top: 10px; font-weight: 600;">Click image to enlarge official poster</span>
                 </div>

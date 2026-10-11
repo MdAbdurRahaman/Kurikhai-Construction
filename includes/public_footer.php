@@ -112,6 +112,9 @@ $company = get_company_info();
             <p style="color: var(--color-text-muted); font-size: 14px; margin-bottom: 25px;">Provide details regarding your project scope and our contracting team will review your specifications.</p>
             <form id="popupQuoteForm" novalidate>
                 <input type="hidden" name="csrf_token" value="<?= csrf_token() ?>">
+                <input type="hidden" name="form_loaded_ts" value="<?= generate_form_token() ?>">
+                <input type="hidden" name="consent_mechanism" value="submission_notice_consent">
+                <input type="hidden" name="source" value="website_modal_quote">
                 <div class="form-group-row">
                     <div class="form-group">
                         <label for="popup-name">Your Name *</label>
@@ -157,8 +160,21 @@ $company = get_company_info();
         </div>
     </div>
 
+    <!-- Unified Accessible Success Modal -->
+    <div class="modal" id="successModal" role="dialog" aria-modal="true" aria-labelledby="successModalTitle">
+        <div class="modal-content" style="max-width: 520px; text-align: center; position: relative;">
+            <button class="modal-close-btn" id="closeSuccessModalX" aria-label="Close dialog">&times;</button>
+            <div class="modal-icon" style="font-size: 48px; color: #16a34a; margin-bottom: 12px;">✓</div>
+            <h3 id="successModalTitle" style="font-size: 22px; margin-bottom: 10px; font-family: var(--font-heading); color: var(--color-text-dark);">Quotation Request Received</h3>
+            <p style="color: var(--color-text-muted); font-size: 14px; margin-bottom: 20px; line-height: 1.6;" id="successModalMsg">
+                Thank you! We have received your inquiry. Reference: <strong id="leadRefNumber" class="modal-lead-ref"></strong>. Our project coordinator will review your scope and contact you shortly.
+            </p>
+            <button class="btn btn-primary" id="closeSuccessModalBtn" style="width: 100%;" type="button">Close</button>
+        </div>
+    </div>
+
     <!-- Floating WhatsApp Direct Button -->
-    <a href="https://wa.me/<?= htmlspecialchars($company['phone_raw']) ?>?text=<?= urlencode('Hello Tabeeb Contractor, I would like to enquire about a renovation project.') ?>" class="floating-whatsapp" target="_blank" rel="noopener noreferrer" aria-label="Chat with Tabeeb Contractor on WhatsApp" id="floating-wa-btn">
+    <a href="https://wa.me/<?= htmlspecialchars($company['whatsapp_raw']) ?>?text=<?= urlencode('Hello Tabeeb Contractor, I would like to enquire about a renovation project.') ?>" class="floating-whatsapp" target="_blank" rel="noopener noreferrer" aria-label="Chat with Tabeeb Contractor on WhatsApp" id="floating-wa-btn">
         <div class="whatsapp-pulse"></div>
         <svg width="32" height="32" viewBox="0 0 24 24" fill="white"><path d="M12.04 2c-5.46 0-9.91 4.45-9.91 9.91 0 1.75.46 3.45 1.32 4.95L2.05 22l5.25-1.38c1.45.79 3.08 1.21 4.74 1.21 5.46 0 9.91-4.45 9.91-9.91 0-2.65-1.03-5.14-2.9-7.01A9.816 9.816 0 0 0 12.04 2m.01 1.67c2.2 0 4.26.86 5.82 2.42a8.225 8.225 0 0 1 2.41 5.83c0 4.54-3.7 8.24-8.24 8.24-1.48 0-2.93-.4-4.2-1.15l-.3-.18-3.12.82.83-3.04-.2-.31a8.196 8.196 0 0 1-1.26-4.38c0-4.54 3.7-8.24 8.24-8.24m4.52 11.66c-.25-.13-1.47-.72-1.7-.81-.23-.08-.39-.13-.56.13-.17.25-.64.81-.79.97-.14.17-.29.19-.54.06-.25-.13-1.06-.39-2.02-1.24-.75-.67-1.26-1.49-1.4-1.74-.15-.25-.02-.39.11-.51.11-.11.25-.29.37-.43.13-.15.17-.25.25-.42.08-.17.04-.31-.02-.44-.06-.13-.56-1.35-.77-1.85-.2-.49-.41-.42-.56-.43h-.48c-.17 0-.44.06-.67.31-.23.25-.88.86-.88 2.1 0 1.24.9 2.44 1.03 2.61.13.17 1.77 2.7 4.29 3.78.6.26 1.07.41 1.44.53.61.19 1.16.17 1.6.1.49-.07 1.47-.6 1.68-1.18.21-.58.21-1.07.15-1.18-.07-.1-.23-.17-.48-.29z"/></svg>
         <span class="whatsapp-tooltip">Chat with us on WhatsApp</span>

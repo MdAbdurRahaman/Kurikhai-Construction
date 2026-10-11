@@ -180,6 +180,8 @@ $preselectedService = trim($_GET['service'] ?? '');
                 <div class="contact-form-panel fade-in-up">
                     <form id="leadForm" novalidate>
                         <input type="hidden" name="csrf_token" value="<?= csrf_token() ?>">
+                        <input type="hidden" name="form_loaded_ts" value="<?= generate_form_token() ?>">
+                        <input type="hidden" name="source" value="website_contact_page">
                         <!-- Anti-Spam Honeypot Field -->
                         <input type="text" name="website_url_hp" style="display:none !important;" tabindex="-1" autocomplete="off" aria-hidden="true">
                         
@@ -237,7 +239,7 @@ $preselectedService = trim($_GET['service'] ?? '');
                         
                         <!-- PDPA and Compliance awareness check -->
                         <div class="form-group" style="display: flex; align-items: flex-start; gap: 10px; margin-top: 25px;">
-                            <input type="checkbox" id="consent" name="consent" style="margin-top: 5px; cursor: pointer;" required>
+                            <input type="checkbox" id="consent" name="consent" value="1" style="margin-top: 5px; cursor: pointer;" required>
                             <label for="consent" style="font-weight: 500; font-size: 13px; color: var(--color-text-muted); cursor: pointer; line-height: 1.4;">
                                 I consent to Tabeeb Contractor collecting and using my contact details to respond to this quotation inquiry in accordance with the Singapore Personal Data Protection Act (PDPA) and the <a href="/privacy" style="color: var(--color-accent); text-decoration: underline;" target="_blank">Privacy Policy</a>. *
                             </label>
@@ -279,18 +281,6 @@ $preselectedService = trim($_GET['service'] ?? '');
             </div>
         </div>
     </section>
-
-    <!-- Success Modal Popup -->
-    <div class="modal" id="successModal">
-        <div class="modal-content">
-            <div class="modal-icon">✓</div>
-            <h3 style="font-size: 24px; margin-bottom: 10px; font-family: var(--font-heading); color: var(--color-text-dark);">Quotation Request Received</h3>
-            <p style="color: var(--color-text-muted); font-size: 14px; margin-bottom: 25px; line-height: 1.5;" id="successModalMsg">
-                Thank you. We have received your inquiry. Reference: <strong id="leadRefNumber"></strong>. Our project coordinator will review your specifications and contact you shortly.
-            </p>
-            <button class="btn btn-primary" id="closeSuccessModalBtn" style="width: 100%;">Close</button>
-        </div>
-    </div>
 
     <?php require_once __DIR__ . '/includes/public_footer.php'; ?>
 </body>

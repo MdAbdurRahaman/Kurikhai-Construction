@@ -70,7 +70,20 @@ define('APP_URL', rtrim((string)app_env('APP_URL', 'https://tabeebgroup.com'), '
 define('APP_NAME', 'Tabeeb Contractor');
 
 // Cryptographic / HMAC secret for rate limiting & IP tokenization
-define('HMAC_SECRET', (string)app_env('HMAC_SECRET', 'tabeeb_secure_hmac_key_2026_sg_prod_k92817x'));
+$defaultHmac = (function() {
+    $secretFile = dirname(__DIR__) . '/data/.secret_key';
+    if (file_exists($secretFile) && is_readable($secretFile)) {
+        $secret = trim(file_get_contents($secretFile));
+        if (!empty($secret)) return $secret;
+    }
+    if (is_dir(dirname(__DIR__) . '/data') && is_writable(dirname(__DIR__) . '/data')) {
+        $gen = bin2hex(random_bytes(32));
+        @file_put_contents($secretFile, $gen);
+        return $gen;
+    }
+    return 'tabeeb_secure_hmac_key_2026_sg_prod_k92817x';
+})();
+define('HMAC_SECRET', (string)app_env('HMAC_SECRET', $defaultHmac));
 
 // Trusted reverse proxy IP addresses (comma separated)
 define('TRUSTED_PROXIES', (string)app_env('TRUSTED_PROXIES', '127.0.0.1,::1'));

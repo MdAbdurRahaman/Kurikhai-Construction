@@ -1,9 +1,18 @@
 <?php
+/**
+ * Privacy Policy - Tabeeb Contractor Singapore
+ * URL: https://tabeebgroup.com/privacy
+ */
+
 require_once __DIR__ . '/includes/data.php';
+require_once __DIR__ . '/includes/business_tracker.php';
+require_once __DIR__ . '/includes/tracking.php';
 
 $company = get_company_info();
 $baseUrl = get_base_url();
-$pageTitle = 'Privacy Policy | Tabeeb Contractor Singapore';
+$canonicalUrl = $baseUrl . '/privacy';
+$pageTitle = 'Privacy Policy | ' . htmlspecialchars($company['brand_name']) . ' Singapore';
+$pageDesc = "Privacy Policy for Tabeeb Contractor Singapore. Information on how we collect, process, and protect customer inquiry data under the Singapore Personal Data Protection Act (PDPA).";
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -11,45 +20,53 @@ $pageTitle = 'Privacy Policy | Tabeeb Contractor Singapore';
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title><?= htmlspecialchars($pageTitle) ?></title>
-    <meta name="description" content="Privacy Policy for Tabeeb Contractor Singapore. Information on how we collect, process, and protect customer inquiry data under the Singapore Personal Data Protection Act (PDPA).">
+    <meta name="description" content="<?= htmlspecialchars($pageDesc) ?>">
     
-    <link rel="canonical" href="<?= $baseUrl ?>/privacy">
+    <!-- Geo Targeting Singapore -->
+    <meta name="geo.region" content="SG">
+    <meta name="geo.placename" content="Singapore">
+    <meta name="geo.position" content="1.3364;103.9066">
+    <meta name="ICBM" content="1.3364, 103.9066">
+
+    <!-- Favicon -->
     <link rel="icon" type="image/png" sizes="64x64" href="/images/favicon.png">
+    <link rel="icon" type="image/x-icon" href="/favicon.ico">
+    <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon.png">
+
+    <!-- Canonical URL -->
+    <link rel="canonical" href="<?= $canonicalUrl ?>">
+
+    <!-- Open Graph -->
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="<?= $canonicalUrl ?>">
+    <meta property="og:title" content="<?= htmlspecialchars($pageTitle) ?>">
+    <meta property="og:description" content="<?= htmlspecialchars($pageDesc) ?>">
+    <meta property="og:image" content="<?= $baseUrl ?>/images/hero-bg.webp">
+    <meta property="og:site_name" content="<?= htmlspecialchars($company['brand_name']) ?>">
+    <meta property="og:locale" content="en_SG">
+
+    <!-- Stylesheet -->
     <link rel="stylesheet" href="/style.css?v=3.5">
+
+    <!-- Google Analytics & Tag Manager (Privacy-preserving loader) -->
+    <?= render_analytics_head() ?>
 </head>
 <body>
-    <!-- Top Header -->
-    <header id="header" class="header scrolled">
-        <div class="container header-container">
-            <a href="/" class="logo">
-                <img src="/images/logo-horizontal.png?v=3.3" alt="Tabeeb Contractor">
-            </a>
-            <nav class="nav-desktop">
-                <ul class="nav-list">
-                    <li><a href="/" class="nav-link">Home</a></li>
-                    <li><a href="/services" class="nav-link">Services</a></li>
-                    <li><a href="/about" class="nav-link">About Us</a></li>
-                    <li><a href="/blog" class="nav-link">Blog</a></li>
-                    <li><a href="/contact" class="nav-link">Contact</a></li>
-                </ul>
-            </nav>
-            <div class="header-action">
-                <a href="/contact" class="btn btn-primary">Get a Quote</a>
-            </div>
-        </div>
-    </header>
+    <?= render_analytics_body() ?>
+    
+    <?php require_once __DIR__ . '/includes/public_header.php'; ?>
 
     <main style="padding: 140px 0 80px;">
         <div class="container" style="max-width: 800px;">
             <div style="background: #ffffff; border-radius: 16px; padding: 40px; border: 1px solid #e2e8f0; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05);">
                 <h1 style="font-size: 32px; color: #07274d; margin-bottom: 12px; font-family: var(--font-heading);">Privacy Policy</h1>
                 <p style="color: #64748b; font-size: 14px; margin-bottom: 30px;">
-                    Last updated: 9 October 2026 &bull; Governing Law: Singapore (PDPA)
+                    Last updated: 11 October 2026 &bull; Governing Law: Singapore (PDPA)
                 </p>
 
                 <div style="font-size: 15px; line-height: 1.8; color: #334155;">
                     <div style="background: #f8fafc; border-left: 4px solid #00b4d8; padding: 16px 20px; border-radius: 0 8px 8px 0; margin-bottom: 25px; font-size: 13px; color: #475569;">
-                        <strong>Notice:</strong> This policy outlines the personal data practices of <strong><?= htmlspecialchars($company['brand_name']) ?></strong> (UEN: <?= htmlspecialchars($company['uen']) ?>) for website inquiries. This document is provided for transparency and should be reviewed with qualified legal counsel.
+                        <strong>Notice:</strong> This policy outlines the personal data practices of <strong><?= htmlspecialchars($company['brand_name']) ?></strong> (UEN: <?= htmlspecialchars($company['uen']) ?>) for website inquiries. This document is provided for transparency under the Singapore Personal Data Protection Act (PDPA).
                     </div>
 
                     <h2 style="font-size: 20px; color: #07274d; margin: 28px 0 12px;">1. Collection of Personal Data</h2>
@@ -73,7 +90,7 @@ $pageTitle = 'Privacy Policy | Tabeeb Contractor Singapore';
                     <p>Inquiry records are stored in a secure, authenticated database with strict role-based access controls. We do not sell, rent, or trade your personal data to external marketing companies. Inquiries are only accessible by authorized project estimators and site supervisors for project execution.</p>
 
                     <h2 style="font-size: 20px; color: #07274d; margin: 28px 0 12px;">4. Retention and Disposal Policy</h2>
-                    <p>We retain customer quote inquiries for a standard period of 365 days to assist with follow-ups, warranty verification, and customer service. Data beyond this period is routinely archived or permanently deleted in accordance with the Singapore Personal Data Protection Act (PDPA).</p>
+                    <p>We retain customer quote inquiries as necessary to fulfill project estimation, warranty coordination, audit requirements, and dispute resolution. In accordance with the Singapore Personal Data Protection Act (PDPA), personal data that is no longer required for legal or business operational purposes is subject to archiving or secure disposal upon customer request or periodic operational review.</p>
 
                     <h2 style="font-size: 20px; color: #07274d; margin: 28px 0 12px;">5. Your Rights and Data Protection Officer Contact</h2>
                     <p>You have the right to request access to or correction of your personal data, or to withdraw your consent for future communications at any time. To make a request, please contact our designated privacy coordinator:</p>
@@ -90,25 +107,6 @@ $pageTitle = 'Privacy Policy | Tabeeb Contractor Singapore';
         </div>
     </main>
 
-    <!-- Footer -->
-    <footer class="footer">
-        <div class="container footer-container">
-            <div class="footer-grid">
-                <div class="footer-col">
-                    <img src="/images/logo-horizontal.png?v=3.3" alt="Tabeeb Contractor" class="footer-logo">
-                    <p style="color: #94a3b8; font-size: 14px; margin-top: 12px;">
-                        <?= htmlspecialchars($company['brand_name']) ?> &bull; UEN: <?= htmlspecialchars($company['uen']) ?>
-                    </p>
-                </div>
-            </div>
-            <div class="footer-bottom">
-                <p>&copy; <?= date('Y') ?> <?= htmlspecialchars($company['brand_name']) ?>. All rights reserved.</p>
-                <div class="footer-legal-links">
-                    <a href="/privacy">Privacy Policy</a>
-                    <a href="/terms">Terms of Service</a>
-                </div>
-            </div>
-        </div>
-    </footer>
+    <?php require_once __DIR__ . '/includes/public_footer.php'; ?>
 </body>
 </html>

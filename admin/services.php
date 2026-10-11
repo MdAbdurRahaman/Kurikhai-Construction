@@ -1,4 +1,8 @@
 <?php
+require_once dirname(__DIR__) . '/includes/data.php';
+require_login();
+require_permission('content.manage');
+
 $pageTitle = 'Service Social Share Links Hub';
 require_once __DIR__ . '/header.php';
 

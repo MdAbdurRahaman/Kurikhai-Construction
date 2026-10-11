@@ -19,6 +19,11 @@ class TrackingService {
      * Determine if current request URL is on an excluded/sensitive path
      */
     public static function isSensitiveRoute(): bool {
+        // Strictly suppress tracking on staff preview responses
+        if (!empty($GLOBALS['isStaffPreview'])) {
+            return true;
+        }
+
         $uri = $_SERVER['REQUEST_URI'] ?? '';
         $path = parse_url($uri, PHP_URL_PATH) ?: '';
         
