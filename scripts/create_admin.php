@@ -5,7 +5,11 @@ $o=getopt('',['username:','email:','name:']);
 try{
  $name=trim($o['name']??'');$username=trim($o['username']??'');$email=trim($o['email']??'');
  if(!preg_match('/^[a-zA-Z0-9_.-]{3,50}$/',$username)||!filter_var($email,FILTER_VALIDATE_EMAIL)||strlen($name)<2)throw new InvalidArgumentException('Provide --username, --email and --name.');
- fwrite(STDERR,"New administrator password (stdin; use a protected pipe or hidden shell prompt): ");$password=rtrim(fgets(STDIN)?:'',"\r\n");
+ fwrite(STDERR,"New administrator password: ");
+ $useStty=function_exists('posix_isatty')&&@posix_isatty(STDIN)&&stripos(PHP_OS,'WIN')===false;
+ if($useStty){@shell_exec('stty -echo');}
+ $password=rtrim(fgets(STDIN)?:'',"\r\n");
+ if($useStty){@shell_exec('stty echo');fwrite(STDERR,"\n");}
  if(strlen($password)<12||!preg_match('/[A-Z]/',$password)||!preg_match('/[a-z]/',$password)||!preg_match('/[0-9]/',$password))throw new InvalidArgumentException('Use 12+ characters with uppercase, lowercase and a digit.');
  DB::transaction(function()use($name,$username,$email,$password){
     $role=DB::query("SELECT id FROM roles WHERE slug='super_admin'")->fetchColumn();if(!$role)throw new RuntimeException('Run migrations first.');

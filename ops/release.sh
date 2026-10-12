@@ -38,12 +38,16 @@ if [[ "$ACTION" == prepare ]]; then
   "$PHP_BIN" "$DEST/scripts/preflight.php" --expect="$TARGET"
   # Backup uses a private temporary client file; passwords never appear in argv/logs.
   CLIENT=$(mktemp "$ENV_ROOT/.db-client.XXXXXX")
+  chmod 600 "$CLIENT"
   trap 'rm -f "$CLIENT"' EXIT
   "$PHP_BIN" "$SOURCE/ops/db_client.php" > "$CLIENT"
   DUMP_BIN=${DUMP_BIN:-mysqldump}
   command -v "$DUMP_BIN" >/dev/null
-  "$DUMP_BIN" --defaults-extra-file="$CLIENT" --single-transaction --routines --triggers --events --databases "$("$PHP_BIN" "$SOURCE/ops/db_client.php" --name)" > "$ENV_ROOT/backups/$RELEASE_ID.sql"
-  [[ -s "$ENV_ROOT/backups/$RELEASE_ID.sql" ]] || exit 1
+  DB_NAME_VAL=$("$PHP_BIN" "$SOURCE/ops/db_client.php" --name)
+  "$DUMP_BIN" --defaults-extra-file="$CLIENT" --single-transaction --routines --triggers --events --databases "$DB_NAME_VAL" > "$ENV_ROOT/backups/$RELEASE_ID.sql"
+  chmod 600 "$ENV_ROOT/backups/$RELEASE_ID.sql"
+  [[ -s "$ENV_ROOT/backups/$RELEASE_ID.sql" ]] || { echo 'Database dump failed or empty.' >&2; exit 1; }
+  grep -q "Dump completed" "$ENV_ROOT/backups/$RELEASE_ID.sql" || { echo 'Database dump incomplete.' >&2; exit 1; }
   "$PHP_BIN" "$DEST/scripts/migrate.php" "${SEED_FLAG:---no-seed}"
   "$PHP_BIN" "$SOURCE/ops/configure_release.php" "$DEST" "$ENV_ROOT" "$TARGET"
   printf '%s\n' "$RELEASE_ID" > "$ENV_ROOT/prepared"
@@ -61,7 +65,9 @@ elif [[ "$ACTION" == activate ]]; then
     if [[ -f "$ENV_ROOT/previous" ]]; then
       ln -s "$(cat "$ENV_ROOT/previous")" "$ENV_ROOT/current.next"
       mv -Tf "$ENV_ROOT/current.next" "$ENV_ROOT/current"
-    else rm "$ENV_ROOT/current"; fi
+    elif [[ -L "$ENV_ROOT/current" ]]; then
+      rm -f "$ENV_ROOT/current"
+    fi
     echo 'HTTP check failed; activation reverted. Database backup remains available for reviewed recovery.' >&2
     exit 1
   fi
