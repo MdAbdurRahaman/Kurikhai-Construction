@@ -1,7 +1,18 @@
 <?php
 require_once dirname(__DIR__) . '/includes/data.php';
 require_login();
-require_permission('leads.view');
+
+$currentUser = current_user();
+$canViewAll = has_permission('leads.view');
+$canViewAssigned = has_permission('leads.view_assigned');
+
+if (!$canViewAll && !$canViewAssigned) {
+    http_response_code(403);
+    require_once __DIR__ . '/header.php';
+    echo '<div style="padding: 40px; text-align: center;"><h2>403 Forbidden</h2><p>You do not have permission to view leads.</p><a href="/admin/index.php" class="btn-adm btn-adm-primary">Return to Dashboard</a></div>';
+    require_once __DIR__ . '/footer.php';
+    exit;
+}
 
 $leadId = (int)($_GET['id'] ?? 0);
 $leadNum = trim($_GET['num'] ?? '');
@@ -21,6 +32,15 @@ if (!$lead) {
     exit;
 }
 
+// Scoping: If user only has assigned permission, ensure lead is assigned to current user
+if (!$canViewAll && $canViewAssigned && (int)$lead['assigned_user_id'] !== (int)$currentUser['id']) {
+    http_response_code(403);
+    require_once __DIR__ . '/header.php';
+    echo '<div style="padding: 40px; text-align: center;"><h2>403 Forbidden</h2><p>You are only authorized to view leads assigned directly to you.</p><a href="/admin/leads.php" class="btn-adm btn-adm-primary">Return to Leads</a></div>';
+    require_once __DIR__ . '/footer.php';
+    exit;
+}
+
 $pageTitle = "Lead #{$lead['lead_number']} - {$lead['name']}";
 $msg = '';
 $error = '';
@@ -33,60 +53,100 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     if (!verify_csrf_token($csrf)) {
         $error = 'Invalid security token. Please refresh.';
     } elseif ($action === 'update_lead') {
-        require_permission('leads.edit');
+        $canEditAll = has_permission('leads.edit');
+        $canEditAssigned = has_permission('leads.edit_assigned') && ((int)$lead['assigned_user_id'] === (int)$currentUser['id']);
 
-        $newStatus = $_POST['status'] ?? $lead['status'];
-        $newPriority = $_POST['priority'] ?? $lead['priority'];
-        $newAssignee = !empty($_POST['assigned_user_id']) ? (int)$_POST['assigned_user_id'] : null;
-        $estValue = !empty($_POST['estimated_deal_value']) ? (float)$_POST['estimated_deal_value'] : null;
-        $finalValue = !empty($_POST['final_deal_value']) ? (float)$_POST['final_deal_value'] : null;
+        if (!$canEditAll && !$canEditAssigned) {
+            http_response_code(403);
+            die('Access Denied: You do not have permission to edit this lead.');
+        }
+
+        $validStatuses = [
+            'new', 'unreviewed', 'contacted', 'qualified',
+            'site_visit_scheduled', 'site_visit_completed',
+            'quotation_preparing', 'quotation_sent',
+            'negotiation', 'won', 'lost', 'spam', 'archived'
+        ];
+        $validPriorities = ['low', 'medium', 'high', 'urgent'];
+
+        $newStatus = in_array($_POST['status'] ?? '', $validStatuses, true) ? $_POST['status'] : $lead['status'];
+        $newPriority = in_array($_POST['priority'] ?? '', $validPriorities, true) ? $_POST['priority'] : $lead['priority'];
+
+        // Enforce leads.assign independently of leads.edit
+        $newAssignee = $lead['assigned_user_id'];
+        $assigneeChanged = false;
+        if (isset($_POST['assigned_user_id'])) {
+            $reqAssignee = !empty($_POST['assigned_user_id']) ? (int)$_POST['assigned_user_id'] : null;
+            if ($reqAssignee !== (int)$lead['assigned_user_id']) {
+                if (!has_permission('leads.assign')) {
+                    $error = 'You do not have permission (leads.assign) to change lead assignment.';
+                    $reqAssignee = $lead['assigned_user_id'];
+                } else {
+                    // Validate assignee is an active user
+                    if ($reqAssignee !== null) {
+                        $isValidUser = (bool)db_val("SELECT 1 FROM `users` WHERE `id` = ? AND `status` = 'active' AND `deleted_at` IS NULL LIMIT 1", [$reqAssignee]);
+                        if (!$isValidUser) {
+                            $error = 'Selected assignee is not an active staff member.';
+                            $reqAssignee = $lead['assigned_user_id'];
+                        }
+                    }
+                    if (empty($error)) {
+                        $newAssignee = $reqAssignee;
+                        $assigneeChanged = true;
+                    }
+                }
+            }
+        }
+
+        $estValue = isset($_POST['estimated_deal_value']) && $_POST['estimated_deal_value'] !== '' ? (float)$_POST['estimated_deal_value'] : null;
+        $finalValue = isset($_POST['final_deal_value']) && $_POST['final_deal_value'] !== '' ? (float)$_POST['final_deal_value'] : null;
         $followUp = !empty($_POST['next_followup_at']) ? $_POST['next_followup_at'] : null;
 
         $statusChanged = ($newStatus !== $lead['status']);
-        $assigneeChanged = ($newAssignee !== (int)$lead['assigned_user_id']);
 
-        db_exec(
-            "UPDATE `leads` SET 
-             `status` = ?, `priority` = ?, `assigned_user_id` = ?, 
-             `estimated_deal_value` = ?, `final_deal_value` = ?, `next_followup_at` = ?, 
-             `updated_at` = NOW() 
-             WHERE `id` = ?",
-            [$newStatus, $newPriority, $newAssignee, $estValue, $finalValue, $followUp, $leadId]
-        );
-
-        if ($statusChanged) {
+        if (empty($error)) {
             db_exec(
-                "INSERT INTO `lead_activities` (`lead_id`, `user_id`, `activity_type`, `description`, `created_at`) 
-                 VALUES (?, ?, 'status_changed', ?, NOW())",
-                [$leadId, current_user()['id'], "Status changed from {$lead['status']} to {$newStatus}"]
+                "UPDATE `leads` SET
+                 `status` = ?, `priority` = ?, `assigned_user_id` = ?,
+                 `estimated_deal_value` = ?, `final_deal_value` = ?, `next_followup_at` = ?,
+                 `updated_at` = NOW()
+                 WHERE `id` = ?",
+                [$newStatus, $newPriority, $newAssignee, $estValue, $finalValue, $followUp, $leadId]
             );
-        }
 
-        if ($assigneeChanged) {
-            $assigneeName = $newAssignee ? db_val("SELECT name FROM users WHERE id = ?", [$newAssignee]) : 'Unassigned';
-            db_exec(
-                "INSERT INTO `lead_activities` (`lead_id`, `user_id`, `activity_type`, `description`, `created_at`) 
-                 VALUES (?, ?, 'assignee_changed', ?, NOW())",
-                [$leadId, current_user()['id'], "Lead assigned to {$assigneeName}"]
-            );
-        }
+            if ($statusChanged) {
+                db_exec(
+                    "INSERT INTO `lead_activities` (`lead_id`, `user_id`, `activity_type`, `description`, `created_at`)
+                     VALUES (?, ?, 'status_changed', ?, NOW())",
+                    [$leadId, $currentUser['id'], "Status changed from {$lead['status']} to {$newStatus}"]
+                );
+            }
 
-        audit_log('lead.updated', 'lead', (string)$leadId, $lead, ['status' => $newStatus, 'priority' => $newPriority]);
-        $msg = 'Inquiry details updated successfully!';
-        // Refresh record
-        $lead = db_one("SELECT * FROM `leads` WHERE `id` = ? LIMIT 1", [$leadId]);
+            if ($assigneeChanged) {
+                $assigneeName = $newAssignee ? db_val("SELECT name FROM users WHERE id = ?", [$newAssignee]) : 'Unassigned';
+                db_exec(
+                    "INSERT INTO `lead_activities` (`lead_id`, `user_id`, `activity_type`, `description`, `created_at`)
+                     VALUES (?, ?, 'assignee_changed', ?, NOW())",
+                    [$leadId, $currentUser['id'], "Lead assigned to {$assigneeName}"]
+                );
+            }
+
+            audit_log('lead.updated', 'lead', (string)$leadId, $lead, ['status' => $newStatus, 'priority' => $newPriority]);
+            $msg = 'Inquiry details updated successfully!';
+            $lead = db_one("SELECT * FROM `leads` WHERE `id` = ? LIMIT 1", [$leadId]);
+        }
 
     } elseif ($action === 'add_note') {
         $noteText = trim($_POST['note_text'] ?? '');
         if (!empty($noteText)) {
             db_exec(
-                "INSERT INTO `lead_notes` (`lead_id`, `user_id`, `note`, `created_at`) 
+                "INSERT INTO `lead_notes` (`lead_id`, `user_id`, `note`, `created_at`)
                  VALUES (?, ?, ?, NOW())",
                 [$leadId, current_user()['id'], $noteText]
             );
 
             db_exec(
-                "INSERT INTO `lead_activities` (`lead_id`, `user_id`, `activity_type`, `description`, `created_at`) 
+                "INSERT INTO `lead_activities` (`lead_id`, `user_id`, `activity_type`, `description`, `created_at`)
                  VALUES (?, ?, 'note_added', 'New internal follow-up note added', NOW())",
                 [$leadId, current_user()['id']]
             );
@@ -102,19 +162,19 @@ require_once __DIR__ . '/header.php';
 $assignees = db_all("SELECT `id`, `name` FROM `users` WHERE `status` = 'active' AND `deleted_at` IS NULL ORDER BY `name` ASC");
 // Fetch notes
 $notes = db_all(
-    "SELECT n.*, u.name AS author_name 
-     FROM `lead_notes` n 
-     JOIN `users` u ON n.user_id = u.id 
-     WHERE n.lead_id = ? 
+    "SELECT n.*, u.name AS author_name
+     FROM `lead_notes` n
+     JOIN `users` u ON n.user_id = u.id
+     WHERE n.lead_id = ?
      ORDER BY n.created_at DESC",
     [$leadId]
 );
 // Fetch activities
 $activities = db_all(
-    "SELECT a.*, u.name AS actor_name 
-     FROM `lead_activities` a 
-     LEFT JOIN `users` u ON a.user_id = u.id 
-     WHERE a.lead_id = ? 
+    "SELECT a.*, u.name AS actor_name
+     FROM `lead_activities` a
+     LEFT JOIN `users` u ON a.user_id = u.id
+     WHERE a.lead_id = ?
      ORDER BY a.created_at DESC",
     [$leadId]
 );
@@ -155,7 +215,7 @@ $activities = db_all(
 </div>
 
 <div style="display: grid; grid-template-columns: 2fr 1fr; gap: 25px; align-items: start;">
-    
+
     <!-- Left Column: Scope Details & Notes -->
     <div>
         <!-- Inquired Scope Details -->
@@ -267,7 +327,7 @@ $activities = db_all(
                     <div class="form-group">
                         <label class="form-label" for="status">Lead Status</label>
                         <select name="status" id="status" class="form-control-adm" style="font-weight: 600;">
-                            <?php 
+                            <?php
                             $statusOptions = [
                                 'new' => '🔴 New (Uncontacted)',
                                 'contacted' => '🔵 Contacted',

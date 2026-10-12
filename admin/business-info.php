@@ -1,7 +1,6 @@
 <?php
-$pageTitle = 'Client Information Tracker';
-require_once __DIR__ . '/header.php';
-
+require_once dirname(__DIR__) . '/includes/data.php';
+require_login();
 require_permission('business_info.manage');
 
 $msg = '';
@@ -35,8 +34,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             }
 
             db_exec(
-                "INSERT INTO `business_information_history` 
-                 (`item_id`, `previous_value`, `new_value`, `changed_by`, `change_summary`, `created_at`) 
+                "INSERT INTO `business_information_history`
+                 (`item_id`, `previous_value`, `new_value`, `changed_by`, `change_summary`, `created_at`)
                  VALUES (?, ?, ?, ?, ?, NOW())",
                 [$itemId, $existing['current_value'], $currentVal, current_user()['id'], $changeSummary]
             );
@@ -46,14 +45,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $approvedBy = ($pubState === 'published') ? current_user()['id'] : $existing['approved_by'];
 
             db_exec(
-                "UPDATE `business_information` SET 
-                 `current_value` = ?, `draft_value` = ?, `status` = ?, `publication_state` = ?, 
-                 `evidence_ref` = ?, `next_action` = ?, `internal_notes` = ?, 
-                 `published_at` = ?, `approved_by` = ?, `updated_at` = NOW() 
+                "UPDATE `business_information` SET
+                 `current_value` = ?, `draft_value` = ?, `status` = ?, `publication_state` = ?,
+                 `evidence_ref` = ?, `next_action` = ?, `internal_notes` = ?,
+                 `published_at` = ?, `approved_by` = ?, `updated_at` = NOW()
                  WHERE `id` = ?",
                 [
-                    $currentVal, $draftVal, $status, $pubState, 
-                    $evidenceRef, $nextAction, $internalNotes, 
+                    $currentVal, $draftVal, $status, $pubState,
+                    $evidenceRef, $nextAction, $internalNotes,
                     $publishedAt, $approvedBy, $itemId
                 ]
             );
@@ -104,6 +103,9 @@ $categories = [
     'privacy'            => '🔒 Privacy & Data Retention',
     'marketing'          => '🌐 Marketing & References'
 ];
+
+$pageTitle = 'Client Information Tracker';
+require_once __DIR__ . '/header.php';
 ?>
 
 <?php if (!empty($msg)): ?>
@@ -223,7 +225,7 @@ $categories = [
                         </td>
                     </tr>
                 <?php else: ?>
-                    <?php foreach ($items as $item): 
+                    <?php foreach ($items as $item):
                         $statusBadge = match($item['status']) {
                             'client_confirmed' => ['#16a34a', 'Client confirmed'],
                             'document_verified' => ['#0284c7', 'Document verified'],

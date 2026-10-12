@@ -1,8 +1,10 @@
 <?php
+require_once dirname(__DIR__) . '/includes/data.php';
+require_login();
+require_super_admin();
+
 $pageTitle = 'Security Audit Trail';
 require_once __DIR__ . '/header.php';
-
-require_super_admin();
 
 $page = max(1, (int)($_GET['page'] ?? 1));
 $limit = 30;
@@ -25,11 +27,11 @@ $logs = [];
 if (DB::isConnected()) {
     $totalCount = (int)db_val("SELECT COUNT(*) FROM `audit_logs` WHERE {$whereSql}", $params);
     $logs = db_all(
-        "SELECT a.*, u.name AS user_name, u.username 
-         FROM `audit_logs` a 
-         LEFT JOIN `users` u ON a.user_id = u.id 
-         WHERE {$whereSql} 
-         ORDER BY a.created_at DESC 
+        "SELECT a.*, u.name AS user_name, u.username
+         FROM `audit_logs` a
+         LEFT JOIN `users` u ON a.user_id = u.id
+         WHERE {$whereSql}
+         ORDER BY a.created_at DESC
          LIMIT {$limit} OFFSET {$offset}",
         $params
     );
@@ -80,7 +82,7 @@ $totalPages = max(1, ceil($totalCount / $limit));
                         </td>
                     </tr>
                 <?php else: ?>
-                    <?php foreach ($logs as $log): 
+                    <?php foreach ($logs as $log):
                         $badgeColor = match(explode('.', $log['action'])[0] ?? '') {
                             'auth' => '#3b82f6',
                             'lead' => '#10b981',
@@ -135,8 +137,8 @@ $totalPages = max(1, ceil($totalCount / $limit));
         </div>
         <div style="display: flex; gap: 6px;">
             <?php for ($i = 1; $i <= $totalPages; $i++): ?>
-                <a href="audit-logs.php?page=<?= $i ?><?= !empty($filterAction) ? '&action=' . urlencode($filterAction) : '' ?>" 
-                   class="btn-adm <?= $page === $i ? 'btn-adm-primary' : 'btn-adm-outline' ?>" 
+                <a href="audit-logs.php?page=<?= $i ?><?= !empty($filterAction) ? '&action=' . urlencode($filterAction) : '' ?>"
+                   class="btn-adm <?= $page === $i ? 'btn-adm-primary' : 'btn-adm-outline' ?>"
                    style="padding: 4px 10px; font-size: 12px;">
                     <?= $i ?>
                 </a>

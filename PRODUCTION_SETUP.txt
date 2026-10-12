@@ -1,0 +1,119 @@
+TABEEB — PRODUCTION SETUP AND RELEASE GUIDE
+13 October 2026
+
+WHAT THIS PACKAGE CONTAINS
+
+This archive is the standalone deployable release bundle. Its root contains application/, private ops/ tools, tests/ and MANIFEST.json. It does not contain source/ or an enclosing release/ directory. TEST_RESULTS.txt records the executed checks and their limits. No production secrets, imported administrator passwords, raw client originals or live runtime data are bundled.
+
+Do not extract this entire package over public_html. Application files and private deployment tools have different destinations. Do not use the old web extractor or old cPanel workflow. The replacement GitHub workflow builds and checks a candidate; it does not publish or possess hosting credentials.
+
+Code defects reviewed on 11–12 October have been repaired. Actual production access, Google account verification, SMTP inbox receipt and your cPanel configuration still need the owner-side steps below. Those external facts cannot be certified from an uploaded archive. No website or Google account was modified during preparation.
+
+HOST REQUIREMENTS
+
+Use a hosting-supported PHP version compatible with PHP 8.3, with PDO MySQL, mbstring, DOM/XML, GD, OpenSSL, fileinfo and curl. Apache 2.4 needs rewrite, headers, auth and alias modules; .htaccess overrides must be enabled. Use a supported MySQL/MariaDB server with strict SQL mode, InnoDB and utf8mb4. SSH or cPanel Terminal and PHP CLI are required for migrations; Python 3 is required only for rebuilding packages/tests. The release procedure uses bash, flock, openssl, realpath and mysqldump (or mariadb-dump).
+
+Test this on a separate staging database before production. Use a least-privilege staging database user that has no grants on the production database. Configure PHP-FPM to run as the account owner or provision correct shared-file ownership; do not use chmod 777. Ensure the hosting Apache user can read the staging htpasswd file while keeping it outside the document root. Clear/reload the appropriate PHP opcode cache during cutover if your host disables timestamp validation.
+
+1. PREPARE PRIVATE ENVIRONMENTS
+
+Example account paths below are placeholders. Replace YOUR_CPANEL_USER and confirm the actual production database identity.
+
+ACCOUNT_ROOT=/home/YOUR_CPANEL_USER
+ENV_ROOT="$ACCOUNT_ROOT/tabeeb-production"
+PHP_BIN=/usr/local/bin/php
+mkdir -p "$ENV_ROOT/shared"
+
+From the extracted bundle root, copy .env.example to "$ENV_ROOT/shared/.env" and fill it with the actual production database and SMTP credentials. Set the private file permissions to 600. Never commit it or put it in an uploaded ZIP. HMAC_SECRET must be a fresh strong secret; generate 32 random bytes with openssl rand -hex 32 and put that 64-character result into the private environment file. Placeholders are refused. Production APP_URL must be https://tabeebgroup.com.
+
+Create a separate "$ACCOUNT_ROOT/tabeeb-staging" environment using .env.staging.example, a separate secret, a different database name and separate user. PRODUCTION_DB_ID must identify the actual production host:port/database. Staging refuses the production origin and production database name, never reads a parent .env, always simulates SMTP, and disables production analytics.
+
+For staging, set STAGING_AUTH_USER and a bcrypt STAGING_AUTH_HASH for the review password. Generate the hash with PHP password_hash(..., PASSWORD_BCRYPT) using a hidden shell prompt or protected stdin. Do not place a password in shell history. The release script creates shared/staging.htpasswd and enforces Apache Basic authentication plus a PHP fallback; adjust its group/read permissions for the hosting Apache process if necessary. Verify unauthenticated access receives 401 and authenticated pages receive noindex. Do not proceed if these checks fail.
+
+2. PRESERVE THE EXISTING WEBSITE AND DATA
+
+Before the first migration/cutover, export the live MySQL database and retain a copy of the existing website outside public_html. Keep the backup private. Copy existing runtime data/, images/blog/ and any genuine images/projects/ assets into the corresponding shared directories of the new environment. Do not overwrite them with seed files. Existing JSON account files are not imported into authentication.
+
+The new release process preserves shared/data, shared/blog and shared/projects across releases. Built-in sanitized project assets are copied only when missing. Draft project media is served through the publication gate; images from unapproved projects are not public simply because their URLs are known.
+
+Choose the first document-root transition with your host. Preferred mapping: the staging domain and production domain each point at their own environment's current/ symlink. If the primary cPanel domain requires public_html, retain the original directory as a private backup and document a first-deployment restoration procedure before replacing it with a symlink to the production current/. Never remove public_html during restoration unless it is verified to be the exact deployment symlink. Test the host mapping on staging first; replacing an existing directory with a symlink may require a brief maintenance window on this host. Confirm FollowSymLinks/SymLinksIfOwnerMatch and ownership support before changing this mapping. Existing customer traffic must continue to reach the old site until the new release is ready. Do not delete public_html or its uploads to achieve this.
+
+3. PREPARE AN INACTIVE RELEASE
+
+From the extracted bundle root:
+
+PHP_BIN="$PHP_BIN" bash ops/release.sh prepare "$ENV_ROOT" production
+
+For a fresh installation, explicitly use SEED_FLAG=--seed before this command. It imports only missing approved source records and the private draft client project. It never imports bundled JSON users. On an upgrade, omit --seed unless you need missing initial records. The command validates configuration, takes a private database dump, applies versioned migrations and prepares files without switching the current/ symlink. A migration failure aborts; it is not reported as a successful release.
+
+Read "$ENV_ROOT/prepared" to get the release ID. The prepared application is at "$ENV_ROOT/releases/RELEASE_ID". All scripts below should be run against that path, with APP_ENV_FILE="$ENV_ROOT/shared/.env" exported. Verify PHP CLI is the same compatible version as the web handler.
+
+4. COMPLETE INITIAL ADMIN AND ROUTING SETUP
+
+Existing database users remain intact. For a fresh installation, run:
+
+php "$ENV_ROOT/releases/RELEASE_ID/scripts/create_admin.php" --username YOUR_USERNAME --email YOUR_ADMIN_EMAIL --name "Your Name"
+
+The password is read from stdin and must meet the displayed requirements. On a supported Linux terminal the script verifies that echo is disabled and restores terminal settings afterward. If hidden input cannot be established, interactive entry stops; use a protected stdin pipe. Never pass the password as a command-line option or leave it in history. Initial passwords require rotation at first sign-in.
+
+Configure the approved lead-notification recipient:
+
+php "$ENV_ROOT/releases/RELEASE_ID/scripts/configure_recipient.php" --email APPROVED_RECIPIENT_EMAIL --name "Lead coordinator"
+
+No email is sent by that command. Every recipient receives a separate private notification. The dashboard has a controlled recovery action for failed notifications; it never revokes an actively processing worker's claim.
+
+Verify actual production SMTP explicitly to your configured administrator account:
+
+php "$ENV_ROOT/releases/RELEASE_ID/scripts/verify_smtp.php" --to YOUR_ADMIN_EMAIL
+
+This command sends one real test message and records the provider-acceptance evidence for the current configuration. Check receipt in the mailbox as well. Provider acceptance is not proof of inbox delivery. Staging simulation cannot satisfy this production check. Production activation refuses missing/unverified SMTP configuration or missing recipients.
+
+If the current production site is already active, its owner can configure recipients through the existing dashboard before preparing the new candidate. Do not automatically route notifications to a public mailbox without the client's authorization.
+
+5. HANDLE LEGACY MIGRATION CONFLICTS WITHOUT LOSING RECORDS
+
+Migration 004 adds complete enquiry fingerprints, immutable snapshots, audit archives and the unique key needed for reliable rate limiting. Earlier migration version records stay in place. Exact legacy false verification/measurement seeds are reconciled, but genuine dated evidence is preserved. Exact unchanged old content is corrected with archived prior values; edited CMS records are flagged for review rather than overwritten wholesale.
+
+If duplicate same-project/file media is detected, migration stops before adding an unsafe unique key. After a verified database backup, run scripts/resolve_media_duplicates.php --archive-and-merge. It retains the lowest-ID reference and archives every redundant row's complete metadata in project_media_duplicates_archive. Review that archive and then rerun preparation/migration. Do not drop the database or erase migration history.
+
+If media lacks a parent project, the release remains blocked. For the known supplied Serangoon seed, migrate.php --seed can restore the missing draft parent. Other orphan rows require reconciliation against your records/backup; arbitrary media is never silently removed. The importer resolves existing project IDs and uses a transaction per project.
+
+6. VERIFY STAGING BEFORE ACTIVATION
+
+Test both contact and popup forms with realistic but clearly labelled test enquiries. Confirm one saved lead/activity, the returned reference, routing and the success modal. Retry an unchanged request and change email/budget/property details; retries replay while genuinely new enquiries remain separate. Test malformed input, CSRF, rate limiting, a database outage and SMTP recovery. Use the staging mail simulation; no test enquiries should reach real recipients.
+
+Confirm clean URLs, redirects, sitemap, privacy/terms, mobile layout and the media publication gate under the actual Apache/PHP hosting configuration. Log in as an Analyst and Sales Representative to confirm their limits. A Content Editor cannot approve project publication; approval requires an authorized administrator, dated client evidence and a recorded actor/time. Editing gallery metadata returns the project to a private draft.
+
+The automated local checks are recorded in TEST_RESULTS.txt. The development repository can run its separate MariaDB migration workflow. That workflow is not included in this standalone release and was not remotely executed here. From this bundle root, python3 tests/run_local.py runs lint, contract, baseline template and HTTP checks using disposable SQLite fixtures. Do not relabel local SQLite HTTP tests or native SQL bootstrap tests as live MySQL/Apache acceptance.
+
+7. ACTIVATE AND RECOVER
+
+After successful staging acceptance and initial setup, from the extracted bundle root:
+
+PHP_BIN="$PHP_BIN" bash ops/release.sh activate "$ENV_ROOT" production RELEASE_ID
+
+Activation checks required columns, the unique enquiry constraint, an active Super Admin, recipients and verified current SMTP configuration. It atomically switches the current/ symlink, then checks public routes and the exact release header. Failed HTTP checks revert the code link. A homepage returning some older Tabeeb text is not sufficient evidence.
+
+For staging activation, supply SMOKE_USER and SMOKE_PASSWORD through private environment variables, matching the staging access account. Do not put them in command history/logs. Authenticated staging pages must still show noindex. Verify the cPanel document-root mapping actually points at this environment's current/.
+
+Code rollback:
+
+PHP_BIN="$PHP_BIN" bash ops/release.sh rollback "$ENV_ROOT" production
+
+Code rollback preserves additive database changes. A database restore is a separate recovery operation using the pre-release dump, with a plan for preserving enquiries received since that backup. Do not blindly restore an old database over new leads.
+
+Schedule the notification worker every minute using the active release path:
+
+* * * * * /usr/local/bin/php /home/YOUR_CPANEL_USER/tabeeb-production/current/scripts/notification_worker.php >> /home/YOUR_CPANEL_USER/tabeeb-production/shared/worker.log 2>&1
+
+Rotate/protect the log and verify the actual PHP CLI path. Worker batches are capped at five, provider timings are bounded, a database advisory lock excludes overlapping dispatch, and due dates/retry budgets are enforced. A crash after SMTP acceptance can still cause redelivery; the system does not promise exactly-once email.
+
+8. COMPLETE THE CLIENT'S GOOGLE AND BASELINE MILESTONES
+
+Day 1: record authentic draft values with dated evidence, then capture an immutable snapshot in Admin > Marketing baseline. Confirm historical CRM coverage explicitly before deriving historical enquiry counts. A later month uses a new snapshot. Unavailable pre-tracking traffic/rankings cannot be manufactured.
+
+Day 2: use the client-authorized Search Console account to verify the DOMAIN property with Google's real property-specific DNS TXT token. Confirm the actual current DNS provider/nameservers. The legacy URL-prefix HTML file is preserved, but file presence is not domain verification.
+
+Day 3: configure real GA4/GTM IDs, publish the authorized container and verify one intended page_view per navigation with Tag Assistant and GA4 Realtime/DebugView. Keep personal form fields out of analytics parameters and configure the container appropriately. Staging/admin/API/preview traffic is suppressed by source. No real account IDs or Google success evidence were fabricated.
+
+Keep unverified legal-name changes, registrations, warranties, reviews and project facts private. Review flagged CMS content through Admin > Content factual review. The supplied 30-day plan remains an internal tracker, with later milestones recorded when actually completed.

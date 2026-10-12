@@ -1,3 +1,4 @@
+Options -Indexes
 RewriteEngine On
 
 # ----------------------------------------------------------------------
@@ -13,7 +14,7 @@ RewriteEngine On
 # ----------------------------------------------------------------------
 # 2. BLOCK SENSITIVE FILES & CONFIGURATION DIRECTORIES
 # ----------------------------------------------------------------------
-<FilesMatch "(\.env|\.git|\.cpanel\.yml|\.json|\.sqlite|\.sql|\.log|\.tmp|\.bak|\.md)$">
+<FilesMatch "(^\.env(?:\..*)?$|^\.git.*$|\.(json|sqlite|sql|log|tmp|bak|md|zip|tar|gz)$|^\.cpanel\.yml$)">
     <IfModule mod_authz_core.c>
         Require all denied
     </IfModule>
@@ -23,7 +24,7 @@ RewriteEngine On
 </FilesMatch>
 
 # Block direct access to config/ and scripts/ directories
-RedirectMatch 403 ^/(config|scripts|data)/.*$
+RedirectMatch 403 ^/(config|scripts|data|tests|ops|vendor)/.*$
 
 # ----------------------------------------------------------------------
 # 3. CANONICAL HOSTNAME & HTTPS ENFORCEMENT (Single Preferred Origin)
@@ -35,18 +36,26 @@ RewriteRule ^(.*)$ https://tabeebgroup.com/$1 [R=301,L]
 # Redirect HTTP to HTTPS
 RewriteCond %{HTTPS} off
 RewriteCond %{HTTP:X-Forwarded-Proto} !https
-RewriteRule ^(.*)$ https://tabeebgroup.com/$1 [R=301,L]
+RewriteRule ^(.*)$ https://%{HTTP_HOST}/$1 [R=301,L]
 
 # ----------------------------------------------------------------------
-# 4. DYNAMIC SITEMAP & API ROUTING
+# 4. DIRECTORY INDEX & DYNAMIC SITEMAP / API ROUTING
 # ----------------------------------------------------------------------
+DirectoryIndex index.php index.html
+
+# Project assets obey the same publication gate as their case study.
+RewriteRule ^(images/projects/.*)$ media.php?path=/$1 [L,QSA]
+
 # Dynamic XML Sitemap
 RewriteRule ^sitemap\.xml$ sitemap.php [L]
 
 # Secure Lead Ingestion API Endpoint
 RewriteRule ^api/leads/?$ api/leads.php [L,QSA]
 
-# Privacy Policy & Terms of Service Clean URLs
+# Core Clean URLs Routing to Authoritative PHP Templates
+RewriteRule ^about/?$ about.php [L,QSA]
+RewriteRule ^services/?$ services.php [L,QSA]
+RewriteRule ^contact/?$ contact.php [L,QSA]
 RewriteRule ^privacy/?$ privacy.php [L]
 RewriteRule ^terms/?$ terms.php [L]
 
@@ -60,29 +69,31 @@ RewriteRule ^service/([a-zA-Z0-9_-]+)/?$ service.php?slug=$1 [L,QSA]
 RewriteRule ^services/([a-zA-Z0-9_-]+)/?$ service.php?slug=$1 [L,QSA]
 
 # ----------------------------------------------------------------------
-# 6. BLOG CLEAN URLS
+# 6. BLOG & PROJECTS CLEAN URLS
 # ----------------------------------------------------------------------
+RewriteRule ^projects/([a-zA-Z0-9_-]+)/?$ project.php?slug=$1 [L,QSA]
+RewriteRule ^projects/?$ projects.php [L,QSA]
 RewriteRule ^blog/([a-zA-Z0-9_-]+)/?$ blog-post.php?slug=$1 [L,QSA]
 RewriteRule ^blog/?$ blog.php [L,QSA]
 
 # ----------------------------------------------------------------------
-# 7. CLEAN URL NORMALIZATION
+# 7. CLEAN URL NORMALIZATION & LEGACY REDIRECTS
 # ----------------------------------------------------------------------
-# Redirect /index.html to /
-RewriteCond %{THE_REQUEST} ^[A-Z]{3,9}\ /index\.html\ HTTP/
-RewriteRule ^index\.html$ / [R=301,L]
+# Redirect /index.html and /index.php to /
+RewriteCond %{THE_REQUEST} ^[A-Z]{3,9}\ /index\.(html|php)\ HTTP/
+RewriteRule ^index\.(html|php)$ / [R=301,L]
 
-# Redirect /page.html to /page (excluding Google verification files)
+# Redirect /page.html to /page (Strictly preserving Google verification files)
 RewriteCond %{REQUEST_URI} !^/google.*\.html$ [NC]
 RewriteCond %{THE_REQUEST} ^[A-Z]{3,9}\ /([^.]+)\.html\ HTTP/
 RewriteRule ^([^.]+)\.html$ /$1 [R=301,L]
 
-# Internal rewrite from /page to /page.html
-RewriteCond %{REQUEST_FILENAME} !-d
-RewriteCond %{REQUEST_FILENAME}\.html -f
-RewriteRule ^([^/]+)$ $1.html [L]
-
-# Internal rewrite from /page to /page.php
+# Internal rewrite from /page to /page.php (Authoritative PHP Pages)
 RewriteCond %{REQUEST_FILENAME} !-d
 RewriteCond %{REQUEST_FILENAME}\.php -f
 RewriteRule ^([^/]+)$ $1.php [L]
+
+# Internal rewrite fallback from /page to /page.html
+RewriteCond %{REQUEST_FILENAME} !-d
+RewriteCond %{REQUEST_FILENAME}\.html -f
+RewriteRule ^([^/]+)$ $1.html [L]

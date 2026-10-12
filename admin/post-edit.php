@@ -85,15 +85,15 @@ require_once __DIR__ . '/header.php';
     <input type="hidden" name="id" value="<?= htmlspecialchars($postId) ?>">
 
     <div style="display: grid; grid-template-columns: 2.2fr 1fr; gap: 30px; align-items: start;" class="editor-layout-grid">
-        
+
         <!-- Left Main Form Column -->
         <div>
-            
+
             <!-- Article Title -->
             <div class="form-group" style="background: #fff; padding: 24px; border-radius: var(--admin-radius); border: 1px solid var(--admin-border); box-shadow: var(--admin-shadow); margin-bottom: 24px;">
                 <label class="form-label" for="postTitle" style="font-size: 15px;">Article Title <span style="color: #ef4444;">*</span></label>
                 <input type="text" id="postTitle" name="title" class="form-control-adm" style="font-size: 18px; font-weight: 600; padding: 12px 16px;" placeholder="e.g. HDB Wall Hacking & Demolition Permit Guide Singapore (2026)" value="<?= htmlspecialchars($post['title'] ?? '') ?>" required>
-                
+
                 <!-- Slug & Permalink Preview -->
                 <div style="margin-top: 12px; font-size: 13px; color: #64748b; display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">
                     <span><strong>Public URL:</strong> <?= $baseUrl ?>/blog/<span id="slugPreviewText" style="color: #0284c7; font-weight: 600;"><?= htmlspecialchars($post['slug'] ?? 'url-slug') ?></span></span>
@@ -151,11 +151,11 @@ require_once __DIR__ . '/header.php';
 
         <!-- Right Settings & Live Preview Sidebar -->
         <div>
-            
+
             <!-- Publish Actions Card -->
             <div style="background: #fff; padding: 24px; border-radius: var(--admin-radius); border: 1px solid var(--admin-border); box-shadow: var(--admin-shadow); margin-bottom: 24px;">
                 <h3 style="font-size: 16px; font-family: 'Outfit', sans-serif; margin-bottom: 16px; color: var(--admin-navy);">Publishing Options</h3>
-                
+
                 <div class="form-group">
                     <label class="form-label" for="postStatus">Publication Status:</label>
                     <select id="postStatus" name="status" class="form-control-adm" style="font-weight: 600;">
@@ -210,7 +210,7 @@ require_once __DIR__ . '/header.php';
             <!-- Featured Cover Image Card -->
             <div style="background: #fff; padding: 24px; border-radius: var(--admin-radius); border: 1px solid var(--admin-border); box-shadow: var(--admin-shadow); margin-bottom: 24px;">
                 <h3 style="font-size: 16px; font-family: 'Outfit', sans-serif; margin-bottom: 14px; color: var(--admin-navy);">Featured Cover Image</h3>
-                
+
                 <!-- Image Preview Box -->
                 <div style="width: 100%; height: 160px; border-radius: 8px; overflow: hidden; background: #07274d; margin-bottom: 14px; border: 1px solid var(--admin-border);">
                     <img id="coverPreviewImg" src="/<?= ltrim($post['image'] ?? 'images/page-header-bg.jpg', '/') ?>" alt="Cover" style="width: 100%; height: 100%; object-fit: cover;">
@@ -412,7 +412,7 @@ require_once __DIR__ . '/header.php';
         const end = textarea.selectionEnd;
         const text = textarea.value;
         const selected = text.substring(start, end) || 'Text here';
-        
+
         textarea.value = text.substring(0, start) + openTag + selected + closeTag + text.substring(end);
         textarea.focus();
         textarea.setSelectionRange(start + openTag.length, start + openTag.length + selected.length);
@@ -424,7 +424,7 @@ require_once __DIR__ . '/header.php';
         const end = textarea.selectionEnd;
         const text = textarea.value;
         const listHtml = `\n<${type}>\n  <li>Item 1</li>\n  <li>Item 2</li>\n  <li>Item 3</li>\n</${type}>\n`;
-        
+
         textarea.value = text.substring(0, start) + listHtml + text.substring(end);
         textarea.focus();
     }
@@ -436,7 +436,7 @@ require_once __DIR__ . '/header.php';
         const text = textarea.value;
         const title = (type === 'tip') ? '💡 Expert Pro Tip' : '⚠️ Statutory Warning';
         const calloutHtml = `\n<div class="blog-callout ${type}">\n  <h4>${title}</h4>\n  <p>Helpful advice or compliance note here...</p>\n</div>\n`;
-        
+
         textarea.value = text.substring(0, start) + calloutHtml + text.substring(end);
         textarea.focus();
     }

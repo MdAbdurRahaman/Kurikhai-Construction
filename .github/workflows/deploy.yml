@@ -1,114 +1,78 @@
-name: 🚀 Deploy Website to cPanel
+name: Test and deploy Tabeeb
 
 on:
   push:
-    branches:
-      - main
-      - rebrand-tabeeb-contractor
+    branches: [main]
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: tabeeb-main-deployment
+  cancel-in-progress: false
 
 jobs:
-  web-deploy:
-    name: 🌐 Secure Deploy to cPanel (HTTPS UAPI)
-    runs-on: ubuntu-latest
+  release:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    environment: ${{ github.event_name == 'pull_request' && 'validation' || 'production' }}
+    services:
+      mariadb:
+        image: mariadb:10.11
+        env:
+          MARIADB_ROOT_PASSWORD: disposable-ci-password
+        ports:
+          - 3306:3306
+        options: >-
+          --health-cmd="healthcheck.sh --connect --innodb_initialized"
+          --health-interval=10s --health-timeout=5s --health-retries=10
+    env:
+      APP_ENV: testing
+      APP_URL: http://127.0.0.1:8086
+      DB_HOST: 127.0.0.1
+      DB_PORT: 3306
+      DB_NAME: tabeeb_test_ci
+      DB_USER: root
+      DB_PASS: disposable-ci-password
+      HMAC_SECRET: disposable-ci-hmac-material-minimum-32-characters
     steps:
-      - name: 🚚 Checkout latest code
-        uses: actions/checkout@v4
-
-      - name: 📦 Package Website Files
+      - uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.2'
+          extensions: pdo_mysql, pdo_sqlite, mbstring, dom, gd, curl, fileinfo
+          coverage: none
+      - name: Local application and HTTP checks
+        run: python3 tests/run_local.py
+      - name: Real MariaDB fresh and repeat migrations
         run: |
-          zip -r website-deploy.zip . -x ".git*" ".github*" "*.md" ".cpanel.yml" "*.zip" ".env*" "data/backup_*"
-
-      - name: 🚀 Upload and Securely Extract via Authenticated One-Time Deployment
+          php tests/mysql_prepare.php
+          php scripts/migrate.php --seed
+          php scripts/migrate.php
+      - name: Build and verify the deployment bundle
         run: |
-          CPANEL_USER="${{ secrets.CPANEL_USERNAME || 'tabeebgroup' }}"
-          CPANEL_HOST="${{ secrets.CPANEL_HOST || '151.158.158.31' }}"
-          API_TOKEN="${{ secrets.CPANEL_API_TOKEN }}"
-          
-          if [ -z "$API_TOKEN" ]; then
-            echo "::error::CPANEL_API_TOKEN secret is missing! Please add it in GitHub Settings -> Secrets -> Actions."
-            exit 1
-          fi
-
-          # 1. Generate one-time cryptographic deployment secret
-          DEPLOY_KEY=$(openssl rand -hex 24)
-
-          # 2. Generate ephemeral self-destructing extractor with ZipSlip protection
-          cat << 'EOF' > deploy_extractor.php
-          <?php
-          header('Content-Type: application/json');
-          $secret = 'DEPLOY_KEY_PLACEHOLDER';
-          if (!isset($_GET['token']) || !hash_equals($secret, (string)$_GET['token'])) {
-              http_response_code(403);
-              echo json_encode(['status' => 'error', 'message' => 'Forbidden']);
-              exit(1);
-          }
-          $zipPath = __DIR__ . '/website-deploy.zip';
-          if (!file_exists($zipPath)) {
-              @unlink(__FILE__);
-              echo json_encode(['status' => 'error', 'message' => 'Archive missing']);
-              exit(1);
-          }
-          $zip = new ZipArchive();
-          if ($zip->open($zipPath) === true) {
-              for ($i = 0; $i < $zip->numFiles; $i++) {
-                  $entry = $zip->getNameIndex($i);
-                  if (strpos($entry, '../') !== false || strpos($entry, '..\\') !== false) {
-                      $zip->close();
-                      @unlink($zipPath);
-                      @unlink(__FILE__);
-                      http_response_code(400);
-                      echo json_encode(['status' => 'error', 'message' => 'ZipSlip traversal detected']);
-                      exit(1);
-                  }
-              }
-              $zip->extractTo(__DIR__);
-              $zip->close();
-              @unlink($zipPath);
-              if (file_exists(__DIR__ . '/unzip.php')) {
-                  @unlink(__DIR__ . '/unzip.php');
-              }
-              @unlink(__FILE__);
-              echo json_encode(['status' => 'success', 'message' => 'Files extracted and extractor self-destructed']);
-          } else {
-              @unlink(__FILE__);
-              http_response_code(500);
-              echo json_encode(['status' => 'error', 'message' => 'Failed to open zip archive']);
-              exit(1);
-          }
-          EOF
-
-          sed -i "s/DEPLOY_KEY_PLACEHOLDER/${DEPLOY_KEY}/g" deploy_extractor.php
-
-          echo "1️⃣ Uploading package archive and ephemeral extractor..."
-          UPLOAD_RES=$(curl -k -s -X POST \
-            -H "Authorization: cpanel ${CPANEL_USER}:${API_TOKEN}" \
-            -F "dir=public_html" \
-            -F "file-1=@website-deploy.zip" \
-            -F "file-2=@deploy_extractor.php" \
-            "https://${CPANEL_HOST}:2083/execute/Fileman/upload_files")
-          echo "Upload Response: $UPLOAD_RES"
-
-          echo "2️⃣ Triggering authenticated extraction..."
-          EXTRACT_RES=$(curl -k -s -L "https://tabeebgroup.com/deploy_extractor.php?token=${DEPLOY_KEY}")
-          echo "Extractor Response: $EXTRACT_RES"
-
-          echo "3️⃣ Ensuring cleanup of any residual temporary files..."
-          curl -k -s -X POST \
-            -H "Authorization: cpanel ${CPANEL_USER}:${API_TOKEN}" \
-            -d "dir=public_html" \
-            -d "files=website-deploy.zip" \
-            "https://${CPANEL_HOST}:2083/execute/Fileman/delete_files" > /dev/null 2>&1 || true
-
-          curl -k -s -X POST \
-            -H "Authorization: cpanel ${CPANEL_USER}:${API_TOKEN}" \
-            -d "dir=public_html" \
-            -d "files=deploy_extractor.php" \
-            "https://${CPANEL_HOST}:2083/execute/Fileman/delete_files" > /dev/null 2>&1 || true
-
-          curl -k -s -X POST \
-            -H "Authorization: cpanel ${CPANEL_USER}:${API_TOKEN}" \
-            -d "dir=public_html" \
-            -d "files=unzip.php" \
-            "https://${CPANEL_HOST}:2083/execute/Fileman/delete_files" > /dev/null 2>&1 || true
-
-          echo "🎉 Website securely deployed and live!"
+          python3 ops/package.py --output Tabeeb_release.zip
+          mkdir verified-release
+          unzip -q Tabeeb_release.zip -d verified-release
+          php verified-release/ops/verify_package.php
+      - name: Deploy staging, verify it, then deploy production
+        if: github.ref == 'refs/heads/main' && vars.AUTO_DEPLOY_ENABLED == 'true'
+        env:
+          CPANEL_HOST: ${{ vars.CPANEL_HOST }}
+          CPANEL_SSH_PORT: ${{ vars.CPANEL_SSH_PORT }}
+          CPANEL_USER: ${{ vars.CPANEL_USER }}
+          CPANEL_ACCOUNT_ROOT: ${{ vars.CPANEL_ACCOUNT_ROOT }}
+          CPANEL_PHP_BIN: ${{ vars.CPANEL_PHP_BIN }}
+          CPANEL_SSH_PRIVATE_KEY: ${{ secrets.CPANEL_SSH_PRIVATE_KEY }}
+          CPANEL_KNOWN_HOSTS: ${{ secrets.CPANEL_KNOWN_HOSTS }}
+          STAGING_SMOKE_USER: ${{ secrets.STAGING_SMOKE_USER }}
+          STAGING_SMOKE_PASSWORD: ${{ secrets.STAGING_SMOKE_PASSWORD }}
+        run: python3 ops/github_deploy.py --bundle Tabeeb_release.zip
+      - name: Setup status
+        if: vars.AUTO_DEPLOY_ENABLED != 'true'
+        run: echo 'Checks completed; deployment is disabled until initial hosting setup is verified.'

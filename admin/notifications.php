@@ -1,8 +1,8 @@
 <?php
-$pageTitle = 'Notification Routing & Logs';
-require_once __DIR__ . '/header.php';
+require_once dirname(__DIR__) . '/includes/data.php';
+require_once dirname(__DIR__) . '/includes/mailer.php';
 
-require_super_admin();
+require_permission('notifications.manage');
 
 $msg = '';
 $error = '';
@@ -18,12 +18,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         if ($action === 'add_recipient') {
             $name = trim($_POST['name'] ?? '');
             $email = strtolower(trim($_POST['email'] ?? ''));
-            $rcptType = in_array($_POST['recipient_type'] ?? '', ['to', 'cc', 'bcc']) ? $_POST['recipient_type'] : 'to';
+            $rcptType = 'to';
             $serviceFilter = trim($_POST['service_filter'] ?? '') ?: null;
 
             if (filter_var($email, FILTER_VALIDATE_EMAIL)) {
                 db_exec(
-                    "INSERT INTO `notification_recipients` (`name`, `email`, `is_active`, `recipient_type`, `service_filter`, `created_at`) 
+                    "INSERT INTO `notification_recipients` (`name`, `email`, `is_active`, `recipient_type`, `service_filter`, `created_at`)
                      VALUES (?, ?, 1, ?, ?, NOW())",
                     [$name ?: $email, $email, $rcptType, $serviceFilter]
                 );
@@ -38,19 +38,33 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $curr = (int)db_val("SELECT is_active FROM notification_recipients WHERE id = ?", [$id]);
             $new = $curr ? 0 : 1;
             db_exec("UPDATE notification_recipients SET is_active = ? WHERE id = ?", [$new, $id]);
+            audit_log('notification.recipient_toggled', 'notification_recipients', (string)$id, ['is_active' => $curr], ['is_active' => $new]);
             $msg = 'Recipient status updated.';
 
         } elseif ($action === 'delete_recipient') {
             $id = (int)($_POST['recipient_id'] ?? 0);
             db_exec("DELETE FROM notification_recipients WHERE id = ?", [$id]);
+            audit_log('notification.recipient_deleted', 'notification_recipients', (string)$id, null, null);
             $msg = 'Recipient removed.';
 
+        } elseif ($action === 'process_outbox') {
+            $queueRes = Mailer::processOutboxQueue(5);
+            $msg = "Outbox queue processed: {$queueRes['processed']} processed, {$queueRes['sent']} sent, {$queueRes['simulated']} simulated, {$queueRes['failed']} failed, {$queueRes['blocked']} awaiting configuration.";
+
+        } elseif ($action === 'requeue_failed') {
+            $count = Mailer::requeuePendingOrFailed(8760);
+            audit_log('notification.requeue_failed', 'notification_outbox', null, null, ['count'=>$count]);
+            $msg = $count . ' failed notifications scheduled for retry.';
         } elseif ($action === 'send_test_email') {
             $testEmail = strtolower(trim($_POST['test_email'] ?? ''));
             if (filter_var($testEmail, FILTER_VALIDATE_EMAIL)) {
                 $res = Mailer::sendTestEmail($testEmail);
                 if ($res['success']) {
-                    $msg = "Test email dispatched successfully to '{$testEmail}'!";
+                    if (!empty($res['simulated'])) {
+                        $msg = "Simulated delivery recorded (staging/unconfigured mode): Email was not dispatched over live network because SMTP credentials are not yet configured in .env.";
+                    } else {
+                        $msg = "Verified test email dispatched successfully over authenticated SMTP to '{$testEmail}'!";
+                    }
                 } else {
                     $error = "Test email failed: " . ($res['error'] ?? 'Unknown SMTP error');
                 }
@@ -61,11 +75,17 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
 }
 
-// Fetch recipients & logs
+$pageTitle = 'Notification Routing & Logs';
+require_once __DIR__ . '/header.php';
+
+// Fetch recipients, outbox items & logs
 $recipients = db_all("SELECT * FROM `notification_recipients` ORDER BY `id` ASC");
-$logs = db_all("SELECT * FROM `notification_logs` ORDER BY `created_at` DESC LIMIT 25");
+$outboxItems = db_all("SELECT * FROM `notification_outbox` ORDER BY `created_at` DESC LIMIT 15");
+$logs = db_all("SELECT * FROM `notification_logs` ORDER BY `sent_at` DESC LIMIT 25");
 ?>
 
+<p>Each recipient receives a separate private notification. Failed messages may be retried; active worker claims are preserved.</p>
+<form method="post" style="margin-bottom:16px"><?= csrf_input_field() ?><input type="hidden" name="form_action" value="requeue_failed"><button type="submit" class="btn-adm btn-adm-outline">Retry failed notifications</button></form>
 <?php if (!empty($msg)): ?>
     <div style="background: #f0fdf4; border: 1px solid #bbf7d0; color: #15803d; padding: 12px 18px; border-radius: 8px; margin-bottom: 20px;">
         <?= htmlspecialchars($msg) ?>
@@ -79,7 +99,7 @@ $logs = db_all("SELECT * FROM `notification_logs` ORDER BY `created_at` DESC LIM
 <?php endif; ?>
 
 <div style="display: grid; grid-template-columns: 2fr 1fr; gap: 25px; align-items: start; margin-bottom: 30px;">
-    
+
     <!-- Recipients Table -->
     <div class="table-card">
         <div class="table-header">
@@ -118,7 +138,7 @@ $logs = db_all("SELECT * FROM `notification_logs` ORDER BY `created_at` DESC LIM
                                 </td>
                                 <td>
                                     <span style="background: #e0f2fe; color: #0284c7; padding: 2px 8px; border-radius: 4px; font-size: 11px; font-weight: 700; text-transform: uppercase;">
-                                        <?= htmlspecialchars($rcpt['recipient_type']) ?>
+                                        Private message
                                     </span>
                                 </td>
                                 <td>
@@ -179,9 +199,9 @@ $logs = db_all("SELECT * FROM `notification_logs` ORDER BY `created_at` DESC LIM
                     <div class="form-group">
                         <label class="form-label" for="rcptType">Delivery Mode</label>
                         <select name="recipient_type" id="rcptType" class="form-control-adm">
-                            <option value="to">To (Direct Primary)</option>
-                            <option value="cc">CC (Carbon Copy)</option>
-                            <option value="bcc">BCC (Blind Copy)</option>
+                            <option value="to">Private email</option>
+
+
                         </select>
                     </div>
 

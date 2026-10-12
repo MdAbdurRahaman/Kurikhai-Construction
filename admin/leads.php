@@ -1,18 +1,35 @@
 <?php
-$pageTitle = 'Leads & Inquiry Management';
-require_once __DIR__ . '/header.php';
+require_once dirname(__DIR__) . '/includes/data.php';
 
-require_permission('leads.view');
+// Check view permissions before emitting any HTML output
+if (!has_permission('leads.view') && !has_permission('leads.view_assigned')) {
+    http_response_code(403);
+    require_once __DIR__ . '/header.php';
+    echo '<div style="padding: 40px; text-align: center;"><h2>403 Forbidden</h2><p>You do not have permission to view leads.</p><a href="/admin/index.php" class="btn-adm btn-adm-primary">Return to Dashboard</a></div>';
+    require_once __DIR__ . '/footer.php';
+    exit;
+}
 
-// Handle CSV Export
+// Scoping: If user only has assigned leads permission, restrict query scope
+$currentUser = current_user();
+$isAssignedOnly = !has_permission('leads.view') && has_permission('leads.view_assigned');
+$assignedUserId = (int)($currentUser['id'] ?? 0);
+
+// Handle CSV Export before any HTML is sent to the client
 if (isset($_GET['export']) && $_GET['export'] === 'csv') {
     require_permission('leads.export');
 
-    $exportSql = "SELECT `lead_number`, `name`, `phone`, `email`, `preferred_contact_method`, 
-                         `service_requested`, `property_type`, `estimated_budget`, `project_description`, 
-                         `status`, `priority`, `source`, `created_at` 
-                  FROM `leads` WHERE `deleted_at` IS NULL ORDER BY `created_at` DESC";
-    $exportRows = db_all($exportSql);
+    $exportSql = "SELECT `lead_number`, `name`, `phone`, `email`, `preferred_contact_method`,
+                         `service_requested`, `property_type`, `estimated_budget`, `project_description`,
+                         `status`, `priority`, `source`, `created_at`
+                  FROM `leads` WHERE `deleted_at` IS NULL";
+    $exportParams = [];
+    if ($isAssignedOnly) {
+        $exportSql .= " AND `assigned_user_id` = ?";
+        $exportParams[] = $assignedUserId;
+    }
+    $exportSql .= " ORDER BY `created_at` DESC";
+    $exportRows = db_all($exportSql, $exportParams);
 
     header('Content-Type: text/csv; charset=utf-8');
     header('Content-Disposition: attachment; filename=tabeeb_leads_' . date('Ymd_His') . '.csv');
@@ -52,6 +69,9 @@ if (isset($_GET['export']) && $_GET['export'] === 'csv') {
     exit;
 }
 
+$pageTitle = 'Leads & Inquiry Management';
+require_once __DIR__ . '/header.php';
+
 // Filtering & Search
 $search = trim($_GET['q'] ?? '');
 $filterStatus = trim($_GET['status'] ?? '');
@@ -62,27 +82,33 @@ $page = max(1, (int)($_GET['page'] ?? 1));
 $limit = 20;
 $offset = ($page - 1) * $limit;
 
-$where = ["`deleted_at` IS NULL"];
+// Centralized scoped query builder (strictly l.-prefixed columns to prevent ambiguous SQL join errors)
+$where = ["l.`deleted_at` IS NULL"];
 $params = [];
 
+if ($isAssignedOnly) {
+    $where[] = "l.`assigned_user_id` = ?";
+    $params[] = $assignedUserId;
+}
+
 if (!empty($search)) {
-    $where[] = "(`lead_number` LIKE ? OR `name` LIKE ? OR `phone` LIKE ? OR `email` LIKE ? OR `project_description` LIKE ?)";
+    $where[] = "(l.`lead_number` LIKE ? OR l.`name` LIKE ? OR l.`phone` LIKE ? OR l.`email` LIKE ? OR l.`project_description` LIKE ?)";
     $like = "%{$search}%";
     $params = array_merge($params, [$like, $like, $like, $like, $like]);
 }
 
 if (!empty($filterStatus)) {
-    $where[] = "`status` = ?";
+    $where[] = "l.`status` = ?";
     $params[] = $filterStatus;
 }
 
 if (!empty($filterService)) {
-    $where[] = "`service_requested` = ?";
+    $where[] = "l.`service_requested` = ?";
     $params[] = $filterService;
 }
 
 if (!empty($filterPriority)) {
-    $where[] = "`priority` = ?";
+    $where[] = "l.`priority` = ?";
     $params[] = $filterPriority;
 }
 
@@ -93,17 +119,24 @@ $leads = [];
 $servicesList = [];
 
 if (DB::isConnected()) {
-    $totalCount = (int)db_val("SELECT COUNT(*) FROM `leads` WHERE {$whereClause}", $params);
+    $totalCount = (int)db_val("SELECT COUNT(*) FROM `leads` l WHERE {$whereClause}", $params);
     $leads = db_all(
-        "SELECT l.*, u.name AS assigned_name 
-         FROM `leads` l 
-         LEFT JOIN `users` u ON l.assigned_user_id = u.id 
-         WHERE {$whereClause} 
-         ORDER BY l.created_at DESC 
+        "SELECT l.*, u.name AS assigned_name
+         FROM `leads` l
+         LEFT JOIN `users` u ON l.assigned_user_id = u.id
+         WHERE {$whereClause}
+         ORDER BY l.created_at DESC
          LIMIT {$limit} OFFSET {$offset}",
         $params
     );
-    $servicesList = db_all("SELECT DISTINCT `service_requested` FROM `leads` WHERE `service_requested` != '' ORDER BY `service_requested` ASC");
+    $servicesQuery = "SELECT DISTINCT l.`service_requested` FROM `leads` l WHERE l.`service_requested` != '' AND l.`deleted_at` IS NULL";
+    $servicesParams = [];
+    if ($isAssignedOnly) {
+        $servicesQuery .= " AND l.`assigned_user_id` = ?";
+        $servicesParams[] = $assignedUserId;
+    }
+    $servicesQuery .= " ORDER BY l.`service_requested` ASC";
+    $servicesList = db_all($servicesQuery, $servicesParams);
 }
 
 $totalPages = max(1, ceil($totalCount / $limit));
@@ -120,7 +153,7 @@ $totalPages = max(1, ceil($totalCount / $limit));
             <div style="flex: 1; min-width: 150px;">
                 <select name="status" class="form-control-adm">
                     <option value="">All Statuses</option>
-                    <?php 
+                    <?php
                     $statuses = ['new', 'contacted', 'qualified', 'site_visit_scheduled', 'site_visit_completed', 'quotation_preparing', 'quotation_sent', 'negotiation', 'won', 'lost', 'spam', 'archived'];
                     foreach ($statuses as $st): ?>
                         <option value="<?= $st ?>" <?= $filterStatus === $st ? 'selected' : '' ?>><?= ucfirst(str_replace('_', ' ', $st)) ?></option>
@@ -185,7 +218,7 @@ $totalPages = max(1, ceil($totalCount / $limit));
                         </td>
                     </tr>
                 <?php else: ?>
-                    <?php foreach ($leads as $lead): 
+                    <?php foreach ($leads as $lead):
                         $badgeColor = match($lead['status']) {
                             'new' => '#ef4444',
                             'contacted' => '#0284c7',
@@ -266,8 +299,8 @@ $totalPages = max(1, ceil($totalCount / $limit));
         </div>
         <div style="display: flex; gap: 6px;">
             <?php for ($i = 1; $i <= $totalPages; $i++): ?>
-                <a href="leads.php?page=<?= $i ?><?= !empty($search) ? '&q=' . urlencode($search) : '' ?><?= !empty($filterStatus) ? '&status=' . urlencode($filterStatus) : '' ?>" 
-                   class="btn-adm <?= $page === $i ? 'btn-adm-primary' : 'btn-adm-outline' ?>" 
+                <a href="leads.php?page=<?= $i ?><?= !empty($search) ? '&q=' . urlencode($search) : '' ?><?= !empty($filterStatus) ? '&status=' . urlencode($filterStatus) : '' ?>"
+                   class="btn-adm <?= $page === $i ? 'btn-adm-primary' : 'btn-adm-outline' ?>"
                    style="padding: 4px 10px; font-size: 12px;">
                     <?= $i ?>
                 </a>

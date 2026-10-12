@@ -102,6 +102,7 @@ CREATE TABLE IF NOT EXISTS `leads` (
     `final_deal_value` DECIMAL(12,2) NULL,
     `internal_notes_summary` TEXT NULL,
     `ip_hash` VARCHAR(64) NULL,
+    `idempotency_key` VARCHAR(64) NULL UNIQUE,
     `user_agent` VARCHAR(255) NULL,
     `created_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
     `updated_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
@@ -111,6 +112,7 @@ CREATE TABLE IF NOT EXISTS `leads` (
     INDEX `idx_leads_assigned` (`assigned_user_id`),
     INDEX `idx_leads_created` (`created_at`),
     INDEX `idx_leads_phone` (`phone`),
+    INDEX `idx_leads_idempotency` (`idempotency_key`),
     CONSTRAINT `fk_leads_assigned` FOREIGN KEY (`assigned_user_id`) REFERENCES `users` (`id`) ON DELETE SET NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
@@ -176,7 +178,7 @@ CREATE TABLE IF NOT EXISTS `notification_logs` (
     `lead_id` INT UNSIGNED NULL,
     `recipient_email` VARCHAR(150) NOT NULL,
     `subject` VARCHAR(200) NOT NULL,
-    `delivery_status` ENUM('queued', 'sent', 'failed', 'retrying') NOT NULL DEFAULT 'queued',
+    `delivery_status` ENUM('queued', 'sent', 'failed', 'retrying', 'simulated') NOT NULL DEFAULT 'queued',
     `attempt_count` INT UNSIGNED NOT NULL DEFAULT 1,
     `provider_response` TEXT NULL,
     `error_message` TEXT NULL,
