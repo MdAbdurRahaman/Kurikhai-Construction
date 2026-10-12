@@ -27,6 +27,8 @@ for p in (bundle/'tests').glob('*.php'):run([args.php,'-l',str(p)])
 for p in (bundle/'ops').glob('*.php'):run([args.php,'-l',str(p)])
 if shutil.which('bash'):run(['bash','-n',str(bundle/'ops/release.sh')])
 if shutil.which('node'):run(['node','--check',str(app/'app.js')])
+if (bundle/'tests/test_provision_databases.py').is_file():
+    run([sys.executable,str(bundle/'tests/test_provision_databases.py')])
 result=run([args.php,str(bundle/'tests/contracts.php')])
 if json.loads(result.stdout.strip().splitlines()[-1]).get('passed')!=23:raise RuntimeError('Missing contract completion evidence')
 with tempfile.TemporaryDirectory(prefix='tabeeb-test-local-') as temp:
