@@ -35,6 +35,9 @@ class Mailer {
         $mail->Username   = SMTP_USER;
         $mail->Password   = SMTP_PASS;
         $mail->Port       = SMTP_PORT;
+        $mail->Timeout    = 10;
+        $mail->getSMTPInstance()->Timeout = 10;
+        $mail->getSMTPInstance()->Timelimit = 10; // Bounded transport timeout (15s) to prevent hung worker claims
 
         if (SMTP_SECURE === 'ssl' || SMTP_PORT === 465) {
             $mail->SMTPSecure = PHPMailer::ENCRYPTION_SMTPS;
@@ -75,6 +78,7 @@ class Mailer {
                 return [
                     'success'           => true,
                     'simulated'         => true,
+                    'config_blocked'    => false,
                     'provider_response' => 'Simulated delivery (credentials unconfigured in development/test mode)',
                     'error'             => null
                 ];
@@ -83,6 +87,7 @@ class Mailer {
             return [
                 'success'           => false,
                 'simulated'         => false,
+                'config_blocked'    => true,
                 'provider_response' => null,
                 'error'             => 'SMTP credentials unconfigured in production environment (configuration blocked)'
             ];
@@ -92,6 +97,7 @@ class Mailer {
             return [
                 'success'           => true,
                 'simulated'         => true,
+                'config_blocked'    => false,
                 'provider_response' => 'Simulated delivery (MAIL_SIMULATE active)',
                 'error'             => null
             ];
@@ -101,7 +107,8 @@ class Mailer {
             $mail = self::createMailer();
 
             // Each outbox row represents a dedicated message dispatched directly to $toEmail.
-            // Never implicitly add the public SMTP sender to headers, honoring strict recipient privacy.
+            // Never implicitly add other internal subscribers to CC/BCC headers of third-party emails,
+            // honoring strict recipient privacy across operational departments.
             $mail->addAddress($toEmail, $toName);
 
             $mail->isHTML(true);
@@ -114,6 +121,7 @@ class Mailer {
             return [
                 'success'           => true,
                 'simulated'         => false,
+                'config_blocked'    => false,
                 'provider_response' => '250 Message accepted for delivery by ' . SMTP_HOST,
                 'error'             => null
             ];
@@ -122,6 +130,7 @@ class Mailer {
             return [
                 'success'           => false,
                 'simulated'         => false,
+                'config_blocked'    => false,
                 'provider_response' => null,
                 'error'             => $e->getMessage()
             ];
@@ -130,6 +139,7 @@ class Mailer {
             return [
                 'success'           => false,
                 'simulated'         => false,
+                'config_blocked'    => false,
                 'provider_response' => null,
                 'error'             => $t->getMessage()
             ];
@@ -163,129 +173,69 @@ class Mailer {
     }
 
     /**
-     * Process durable notification outbox queue with atomic claim, exponential backoff,
-     * and stale-lease recovery.
-     * 
-     * Delivery Guarantees:
-     * - At-least-once delivery: Outbox rows are claimed atomically under transaction lock.
-     * - Stale recovery: Crashed workers or killed processes leave rows in 'processing';
-     *   these are recovered to 'queued' after 5 minutes if attempts < max_attempts.
-     * - Ambiguous network boundary: If SMTP accepts a message (250 OK) but the worker
-     *   crashes before persisting the database update, the message will be re-sent upon
-     *   stale lease expiration.
+     * Requeue pending, blocked, or failed notifications (e.g. after configuring SMTP credentials)
      */
-    public static function processOutboxQueue(int $batchSize = 25): array {
-        if (!DB::isConnected()) {
-            return ['processed' => 0, 'sent' => 0, 'simulated' => 0, 'failed' => 0, 'error' => 'Database unavailable'];
-        }
+    public static function requeuePendingOrFailed(int $maxAgeHours = 72): int {
+        if (!DB::isConnected()) return 0;
+        $cutoff = date('Y-m-d H:i:s', time() - max(1, min(8760, $maxAgeHours)) * 3600);
+        // Only explicitly failed messages. Never revoke a live worker's ownership.
+        return db_exec("UPDATE notification_outbox SET status='queued', attempts=0, next_retry_at=NOW(), worker_token=NULL WHERE status='failed' AND created_at >= ?", [$cutoff]);
+    }
 
-        $results = ['processed' => 0, 'sent' => 0, 'simulated' => 0, 'failed' => 0];
-
+    public static function processOutboxQueue(int $batchSize = 5): array {
+        $results = ['processed'=>0,'sent'=>0,'simulated'=>0,'failed'=>0,'blocked'=>0];
+        if (!DB::isConnected()) return $results + ['error'=>'Database unavailable'];
+        $batchSize = max(1, min(5, $batchSize));
+        $pdo = DB::getConnection();
+        $lock = 'tabeeb-outbox-' . substr(hash('sha256', DB_NAME),0,32);
+        $locked = false;
         try {
-            // 1. Stale-lease recovery: reclaim messages stuck in 'processing' for over 5 minutes
-            $staleCutoff = date('Y-m-d H:i:s', time() - 300);
-            db_exec(
-                "UPDATE `notification_outbox` 
-                 SET `status` = 'queued', `last_error` = 'Worker lease expired; re-queued' 
-                 WHERE `status` = 'processing' AND `updated_at` < ?",
-                [$staleCutoff]
-            );
-
-            // 2. Atomic conditional claim inside transaction
-            $claimedMessages = [];
-            DB::transaction(function($pdo) use ($batchSize, &$claimedMessages) {
-                $now = date('Y-m-d H:i:s');
-                $lockSql = DB::isSqlite() ? "" : " FOR UPDATE";
-                $candidates = db_all(
-                    "SELECT `id` FROM `notification_outbox` 
-                     WHERE (`status` = 'queued' OR (`status` = 'failed' AND `attempts` < `max_attempts` AND `next_retry_at` <= ?)) 
-                     ORDER BY `created_at` ASC LIMIT ?" . $lockSql,
-                    [$now, $batchSize]
-                );
-
-                if (!empty($candidates)) {
-                    $ids = array_column($candidates, 'id');
-                    $placeholders = implode(',', array_fill(0, count($ids), '?'));
-                    db_exec(
-                        "UPDATE `notification_outbox` 
-                         SET `status` = 'processing', `attempts` = `attempts` + 1, `updated_at` = NOW() 
-                         WHERE `id` IN ({$placeholders})",
-                        $ids
-                    );
-                    $claimedMessages = db_all(
-                        "SELECT * FROM `notification_outbox` WHERE `id` IN ({$placeholders})",
-                        $ids
-                    );
-                }
-            });
-
-            // 3. Dispatch claimed messages
-            foreach ($claimedMessages as $msg) {
-                $results['processed']++;
-
-                $res = self::sendEmail(
-                    $msg['recipient_email'],
-                    $msg['recipient_name'],
-                    $msg['subject'],
-                    $msg['body_html'],
-                    $msg['body_plain'],
-                    $msg['recipient_type']
-                );
-
-                if ($res['success']) {
-                    $newStatus = !empty($res['simulated']) ? 'simulated' : 'sent';
-                    db_exec(
-                        "UPDATE `notification_outbox` SET 
-                         `status` = ?, `provider_response` = ?, `last_error` = NULL, `sent_at` = NOW() 
-                         WHERE `id` = ?",
-                        [$newStatus, $res['provider_response'], $msg['id']]
-                    );
-
-                    // Log in notification_logs table
-                    db_exec(
-                        "INSERT INTO `notification_logs` 
-                         (`lead_id`, `recipient_email`, `subject`, `delivery_status`, `attempt_count`, `provider_response`, `sent_at`) 
-                         VALUES (?, ?, ?, ?, ?, ?, NOW())",
-                        [$msg['lead_id'], $msg['recipient_email'], $msg['subject'], $newStatus, $msg['attempts'], $res['provider_response']]
-                    );
-
-                    if (!empty($res['simulated'])) {
-                        $results['simulated']++;
-                    } else {
-                        $results['sent']++;
-                    }
-                } else {
-                    $newAttempts = (int)$msg['attempts'];
-                    $isMaxExceeded = ($newAttempts >= (int)$msg['max_attempts']);
-                    $newStatus = 'failed';
-
-                    // Exponential retry backoff: 2 min, 4 min, 8 min, 16 min
-                    $backoffSeconds = 120 * pow(2, min($newAttempts, 5));
-                    $nextRetry = date('Y-m-d H:i:s', time() + $backoffSeconds);
-
-                    db_exec(
-                        "UPDATE `notification_outbox` SET 
-                         `status` = ?, `last_error` = ?, `next_retry_at` = ? 
-                         WHERE `id` = ?",
-                        [$newStatus, $res['error'], $nextRetry, $msg['id']]
-                    );
-
-                    // Log failed attempt in notification_logs
-                    db_exec(
-                        "INSERT INTO `notification_logs` 
-                         (`lead_id`, `recipient_email`, `subject`, `delivery_status`, `attempt_count`, `error_message`, `sent_at`) 
-                         VALUES (?, ?, ?, 'failed', ?, ?, NOW())",
-                        [$msg['lead_id'], $msg['recipient_email'], $msg['subject'], $newAttempts, $res['error']]
-                    );
-
-                    $results['failed']++;
-                }
+            // A server-side advisory lock spans dispatch. Another process cannot reclaim an active batch.
+            $locked = (int)DB::query('SELECT GET_LOCK(?, 0)', [$lock])->fetchColumn() === 1;
+            if (!$locked) return $results + ['busy'=>true];
+            db_exec("UPDATE notification_outbox SET status='queued',worker_token=NULL,last_error='Interrupted worker recovered' WHERE status='processing' AND updated_at < ?", [date('Y-m-d H:i:s', time()-300)]);
+            if (APP_ENV === 'production' && !self::isConfigured()) {
+                $results['blocked'] = db_exec("UPDATE notification_outbox SET next_retry_at=?,last_error='SMTP configuration required' WHERE status IN ('queued','failed') AND attempts < max_attempts AND next_retry_at <= NOW()", [date('Y-m-d H:i:s',time()+300)]);
+                return $results;
             }
-        } catch (Throwable $t) {
-            error_log('[Outbox Processing Error] ' . $t->getMessage());
-            $results['error'] = $t->getMessage();
+            for ($i=0; $i<$batchSize; $i++) {
+                $token = bin2hex(random_bytes(16));
+                $msg = DB::transaction(function($pdo) use ($token) {
+                    $row = DB::query("SELECT * FROM notification_outbox WHERE status IN ('queued','failed') AND attempts < max_attempts AND next_retry_at <= NOW() ORDER BY created_at,id LIMIT 1 FOR UPDATE")->fetch();
+                    if (!$row) return null;
+                    $changed = db_exec("UPDATE notification_outbox SET status='processing',worker_token=?,updated_at=NOW() WHERE id=? AND status IN ('queued','failed')",[$token,$row['id']]);
+                    if ($changed !== 1) throw new RuntimeException('Outbox claim failed');
+                    return $row;
+                });
+                if (!$msg) break;
+                // Renew and prove ownership immediately before touching the provider.
+                $own = DB::query("SELECT id FROM notification_outbox WHERE id=? AND status='processing' AND worker_token=?",[$msg['id'],$token])->fetchColumn();
+                if (!$own) continue;
+                db_exec("UPDATE notification_outbox SET updated_at=NOW() WHERE id=? AND worker_token=?",[$msg['id'],$token]);
+                $res = self::sendEmail($msg['recipient_email'],$msg['recipient_name'],$msg['subject'],$msg['body_html'],$msg['body_plain'],'to');
+                $results['processed']++;
+                if (!empty($res['config_blocked'])) {
+                    db_exec("UPDATE notification_outbox SET status='queued',worker_token=NULL,next_retry_at=?,last_error=? WHERE id=? AND status='processing' AND worker_token=?",[date('Y-m-d H:i:s',time()+300),$res['error'],$msg['id'],$token]);
+                    $results['blocked']++; continue;
+                }
+                $attempt = (int)$msg['attempts']+1;
+                $status = !empty($res['success']) ? (!empty($res['simulated'])?'simulated':'sent') : 'failed';
+                DB::transaction(function($pdo) use ($msg,$token,$res,$status,$attempt) {
+                    $changed = db_exec("UPDATE notification_outbox SET status=?,attempts=?,worker_token=NULL,provider_response=?,last_error=?,next_retry_at=?,sent_at=? WHERE id=? AND status='processing' AND worker_token=?",[$status,$attempt,$res['provider_response']??null,$res['error']??null,date('Y-m-d H:i:s',time()+120*(2**min($attempt-1,5))),$status==='failed'?null:date('Y-m-d H:i:s'),$msg['id'],$token]);
+                    if ($changed !== 1) throw new RuntimeException('Outbox ownership was lost; delivery outcome requires review');
+                    db_exec("INSERT INTO notification_logs (lead_id,recipient_email,subject,delivery_status,attempt_count,provider_response,error_message,sent_at) VALUES (?,?,?,?,?,?,?,NOW())",[$msg['lead_id'],$msg['recipient_email'],$msg['subject'],$status,$attempt,$res['provider_response']??null,$res['error']??null]);
+                });
+                $results[$status]++;
+            }
+        } catch (Throwable $e) {
+            error_log('[Outbox failure] ' . $e->getMessage()); $results['error']='Outbox processing failed; inspect private logs.';
+        } finally {
+            if ($locked) { try { DB::query('SELECT RELEASE_LOCK(?)',[$lock]); } catch (Throwable $ignored) {} }
         }
-
         return $results;
     }
+}
+
+function smtp_configuration_fingerprint(): string {
+    return hash_hmac('sha256', implode('|',[SMTP_HOST,SMTP_PORT,SMTP_SECURE,SMTP_USER,SMTP_PASS,SMTP_FROM_EMAIL]), HMAC_SECRET);
 }

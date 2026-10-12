@@ -180,6 +180,19 @@ document.addEventListener('DOMContentLoaded', () => {
         return re.test(String(email).toLowerCase());
     };
 
+    // Helper to generate opaque random request ID for idempotency
+    const generateSubmissionId = () => {
+        if (typeof crypto !== 'undefined' && typeof crypto.randomUUID === 'function') {
+            return 'req_' + crypto.randomUUID().replace(/-/g, '');
+        }
+        if (typeof crypto !== 'undefined' && typeof crypto.getRandomValues === 'function') {
+            const buf = new Uint8Array(16);
+            crypto.getRandomValues(buf);
+            return 'req_' + Array.from(buf, b => b.toString(16).padStart(2, '0')).join('');
+        }
+        return 'req_' + Date.now().toString(16) + Math.random().toString(16).substring(2, 14);
+    };
+
     const setupFormValidation = (form, onSuccessCallback) => {
         if (!form) return;
 
@@ -247,11 +260,11 @@ document.addEventListener('DOMContentLoaded', () => {
                 data['landing_page'] = window.location.href;
                 data['referrer'] = document.referrer || '';
 
-                // Client request idempotency key (stable across immediate retries within 10 minutes)
-                const phoneDigits = (data.phone || '').replace(/\D/g, '');
-                const srvVal = data.service || '';
-                const windowSlot = Math.floor(Date.now() / 600000);
-                data['idempotency_key'] = 'client_' + phoneDigits + '_' + srvVal + '_' + windowSlot;
+                // Client request idempotency key (opaque random token, retained across retries of this submission)
+                if (!form._currentSubmissionId) {
+                    form._currentSubmissionId = generateSubmissionId();
+                }
+                data['idempotency_key'] = form._currentSubmissionId;
 
                 // Remove existing form-level error message if any
                 const existingAlert = form.querySelector('.form-alert-msg');
@@ -276,7 +289,8 @@ document.addEventListener('DOMContentLoaded', () => {
                     alertDiv.appendChild(document.createElement('br'));
 
                     const contactSpan = document.createElement('span');
-                    contactSpan.innerHTML = 'You can also reach our duty supervisor directly via <strong><a href="tel:+6586484883" style="color: #b91c1c; text-decoration: underline;">+65 8648 4883</a></strong> or <strong><a href="https://wa.me/6586484883" target="_blank" style="color: #15803d; text-decoration: underline;">WhatsApp</a></strong>.';
+                    const cCfg = window.TABEEB_CONTACT || { phone: '+65 8648 4883', phoneRaw: '6586484883', whatsappRaw: '6586484883' };
+                    contactSpan.innerHTML = 'You can also reach our duty supervisor directly via <strong><a href="tel:+' + cCfg.phoneRaw + '" style="color: #b91c1c; text-decoration: underline;">' + cCfg.phone + '</a></strong> or <strong><a href="https://wa.me/' + cCfg.whatsappRaw + '" target="_blank" style="color: #15803d; text-decoration: underline;">WhatsApp</a></strong>.';
                     alertDiv.appendChild(contactSpan);
 
                     submitBtn.parentNode.insertBefore(alertDiv, submitBtn);
@@ -299,6 +313,9 @@ document.addEventListener('DOMContentLoaded', () => {
                     }
 
                     if (response.ok && result.success) {
+                        // Submission complete: rotate/clear submission ID so future inquiries are distinct
+                        form._currentSubmissionId = null;
+
                         // DataLayer conversion event (Only emit if NOT duplicate - Zero PII)
                         if (!result.is_duplicate) {
                             window.dataLayer = window.dataLayer || [];
@@ -327,13 +344,19 @@ document.addEventListener('DOMContentLoaded', () => {
                             onSuccessCallback();
                         }
                     } else {
+                        // If server reported a 409 conflict, rotate submission ID
+                        if (response.status === 409 || (result && result.code === 'IDEMPOTENCY_CONFLICT')) {
+                            form._currentSubmissionId = null;
+                        }
+
                         // Honest error reporting
                         showServerError(result.message || 'Submission failed. Please check required fields.');
                     }
                 })
                 .catch((err) => {
                     console.error('Submission network error:', err);
-                    showServerError('Network error or connection lost. Please verify your connection.');
+                    // Network error: retain form._currentSubmissionId so an immediate user retry is idempotent
+                    showServerError('Network error or connection lost. Please verify your connection and click submit again to retry.');
                 });
             }
         });

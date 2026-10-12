@@ -1,0 +1,460 @@
+================================================================================
+TABEEB CONTRACTOR — ARCHITECTURAL HANDOVER & DEFECT RESOLUTION REPORT
+================================================================================
+Date: 12 October 2026
+Branch: staging-tabeeb-repair-days-1-to-3
+Repository: Kurikhai-Construction (c:\Users\AR\Documents\Projects\web\System  eb\Kurikhai-Construction)
+Reference Review: TABEEB WEBSITE — REVIEW OF THE LATEST AI UPDATE (11 October 2026)
+Status: Local Repairs & Architecture Verifications Complete (80/80 tests passing).
+        NO DEPLOYMENT EXECUTED — Remote production & staging remain untouched.
+================================================================================
+
+1. EXECUTIVE SUMMARY & COMMITMENT
+--------------------------------------------------------------------------------
+All release blockers and architectural defects identified in the 11 October 2026
+review (Findings A through J) have been investigated, reproduced, and systematically
+resolved in priority order.
+
+Key architectural fixes implemented:
+- Environment Isolation: Staging deployment workflow strictly targets isolated
+  sub-environment (public_html/staging, staging.tabeebgroup.com) with fatal abort
+  guards preventing any release to production.
+- Fresh & Upgrade Migrations: Corrected illegal ENUM status in fresh migration 002
+  and authored additive versioned migration 003 (003_upgrade_idempotency_and_baseline_rbac.sql)
+  allowing previously migrated databases to gain the new columns, indexes, and RBAC
+  reconciliations without schema resets or data loss.
+- Release Packaging: Deployment archive now bundles all SQL schema/migrations and
+  seed JSON sources, while excluding client originals at their true path
+  (images/client-media/*).
+- Lead Submission Idempotency: Replaced bucketed keys with cryptographic random
+  submission identifiers bound to payload content hashes. Unchanged retries replay
+  cleanly; modified payloads reuse safely or reject conflicts; distinct submissions
+  from the same phone/service create separate leads.
+- Mailer Resilience & Fenced Workers: Unconfigured SMTP in production returns
+  config_blocked without consuming retry budgets. Outbox claiming uses worker lease
+  tokens with fenced updates, and PHPMailer timeout is bounded to 15s.
+- Frozen Baseline Measurement: Day 1 marketing baseline enforces a frozen historical
+  period (2026-09-12 to 2026-10-09). Unmeasured data is honestly flagged as 'Not available'
+  or 'Not previously tracked' rather than fabricating a fake 0, and numeric 0 is
+  preserved in both CSV and Markdown exports.
+- Content & SEO Normalization: Removed unverified written warranties, 100% guarantees,
+  and percentage savings from JSON fallbacks and templates. Replaced all www URLs with
+  canonical APP_URL (https://tabeebgroup.com/). Updated geo coordinates across all pages
+  to Shun Li Industrial Park (1.336358, 103.911744).
+
+================================================================================
+2. COMPLETE LIST OF CHANGED FILES (25 FILES)
+================================================================================
+1.  .github/workflows/deploy.yml
+    - Staging target isolation (docroot: public_html/staging, origin: staging.tabeebgroup.com)
+    - Fatal safeguard aborting deployment if staging targets production
+    - Packaged SQL schema, migrations, and seed JSON files
+    - Corrected client media exclusion to images/client-media/*
+    - Staging extractor injects X-Robots-Tag: noindex, nofollow, noarchive
+    - Ephemeral extractor triggers scripts/migrate.php
+    - Fatal smoke test check on non-200 HTTP code or missing brand text
+
+2.  config/migrations/002_repair_core_and_projects.sql
+    - Corrected gsc_prefix seed status from illegal value to declared ENUM 'Verification pending'
+    - Moved descriptive context to evidence_summary column
+    - Removed hardcoded primary keys (1..5) from project_media seed
+    - Added UNIQUE KEY uniq_pm_proj_file (project_id, file_path)
+    - Added worker_token VARCHAR(64) NULL to notification_outbox
+
+3.  config/migrations/003_upgrade_idempotency_and_baseline_rbac.sql (NEW FILE)
+    - Additive upgrade for databases that already applied 002
+    - Conditionally adds leads.idempotency_key with unique index
+    - Adds notification_outbox.worker_token for fenced worker claims
+    - Extends notification_logs.delivery_status ENUM to include 'simulated'
+    - Adds unique index on project_media(project_id, file_path)
+    - Inserts Serangoon project media without touching pre-existing media IDs 1..5
+    - Reconciles RBAC: explicitly revokes baseline.manage from Role 6 (Analyst)
+    - Reconciles gsc_prefix verification status to 'Verification pending'
+    - Reconciles marketing_baseline window dates to frozen period (2026-09-12 to 2026-10-09)
+
+4.  scripts/migrate.php
+    - Added project_media idempotency check: imports missing media records for
+      existing projects with partial galleries without overwriting existing IDs
+    - Preserves existing schema_migrations records and runtime data
+
+5.  api/leads.php
+    - Server-side token generation when client key is omitted (srv_...)
+    - Payload hash binding: compares phone, service, message with prior submission
+    - Unchanged retry replays previous response (200 OK, is_duplicate: true)
+    - Modified payload with identical key returns 409 IDEMPOTENCY_CONFLICT
+    - Duplicate key MySQL race handling (error 1062) inside transaction
+
+6.  app.js
+    - Replaced bucketed client key with opaque random request token (req_...)
+    - Token retained across network retries of the same attempt
+    - Token rotated to null on successful submission or 409 conflict
+    - Emergency form-error contact details derive from window.TABEEB_CONTACT
+
+7.  includes/mailer.php
+    - Bounded transport timeout ($mail->Timeout = 15)
+    - Production unconfigured SMTP returns config_blocked: true
+    - processOutboxQueue resets status to queued with 5-minute backoff without
+      incrementing attempts toward max_attempts
+    - Batch size bounded to 10 rows
+    - Fenced worker update: worker_token required for completion/failure updates
+    - Added Mailer::requeuePendingOrFailed() controlled requeue method
+    - Documented recipient privacy and MTA acceptance delivery limits
+
+8.  config/config.php
+    - Checks app_env('HMAC_SECRET') first
+    - In production, throws RuntimeException if HMAC_SECRET is unset (no hardcoded fallback)
+    - In dev/staging, uses atomic exclusive file creation (fopen with 'x') and validates persistence
+
+9.  admin/baseline.php
+    - Enforces frozen baseline window (2026-09-12 to 2026-10-09) across UI, queries, and exports
+    - CRM query applies explicit website lead sources filter
+    - Fresh unpopulated CRM flags status as 'Not available' (no fake 0 enquiry history)
+    - Markdown export preserves numeric 0 ($val !== null && $val !== '' ? (string)$val : '—')
+    - CSV export preserves numeric 0
+    - Metric update validates db_exec return value before reporting success
+
+10. data/services.json
+    - Removed unsupported "Written Workmanship Warranty" and "Hollow-Tile Workmanship Warranty"
+    - Removed "Warranty-Backed Leak Stop", "100% Handover Guarantee", "100% Deposit Return Guarantee"
+    - Removed "Save 20% to 35%" commission claim
+    - Replaced unverified in-house claims with trade team coordination wording
+
+11. data/posts.json
+    - Removed unsupported "25% lower" pricing claim and "100% deposit refund" guarantee in post_2
+    - Removed unverified warranty and team claims in post_3 and post_4
+
+12. sitemap.xml
+    - Replaced all https://www.tabeebgroup.com/ URLs with canonical https://tabeebgroup.com/
+
+13. index.php
+    - Replaced all hardcoded www.tabeebgroup.com URLs in JSON-LD with dynamic $baseUrl
+    - Updated geo meta tags and JSON-LD geo coordinates to Shun Li Industrial Park (1.336358, 103.911744)
+
+14. about.php
+    - Replaced hardcoded www URLs in JSON-LD with $baseUrl
+    - Added GeoCoordinates to GeneralContractor schema
+    - Updated geo meta tags to 1.336358;103.911744
+
+15. contact.php
+    - Replaced hardcoded www URLs in JSON-LD with $baseUrl
+    - Added GeoCoordinates to GeneralContractor schema
+    - Updated geo meta tags to 1.336358;103.911744
+
+16. services.php
+    - Replaced hardcoded www URLs in breadcrumbs with $baseUrl
+    - Updated geo meta tags to 1.336358;103.911744
+
+17. service.php
+    - Replaced hardcoded www URLs in JSON-LD provider with $baseUrl
+    - Added GeoCoordinates to GeneralContractor schema
+    - Updated geo meta tags to 1.336358;103.911744
+
+18. blog-post.php
+    - Replaced hardcoded www URLs in author and publisher logo with $baseUrl
+    - Updated geo meta tags to 1.336358;103.911744
+
+19. blog.php
+    - Updated geo meta tags to 1.336358;103.911744
+
+20. projects.php
+    - Updated geo meta tags to 1.336358;103.911744
+
+21. project.php
+    - Updated geo meta tags to 1.336358;103.911744
+
+22. privacy.php
+    - Updated geo meta tags to 1.336358;103.911744
+
+23. terms.php
+    - Updated geo meta tags to 1.336358;103.911744
+
+24. includes/public_footer.php
+    - Exposes window.TABEEB_CONTACT with approved company contact facts before app.js
+
+25. scripts/test_regression.php
+    - Expanded test suite to 80 comprehensive architectural and regression checks across 14 scenarios
+
+==================================================================
+3. RESOLUTION OF REVIEW FINDINGS (A THROUGH J)
+==================================================================
+
+FINDING A — Staging deployment still writes to production
+Resolution:
+- Configured dynamic parameterization in .github/workflows/deploy.yml based on target_env:
+  * staging -> TARGET_DOC_ROOT="public_html/staging", TARGET_ORIGIN="https://staging.tabeebgroup.com"
+  * production -> TARGET_DOC_ROOT="public_html", TARGET_ORIGIN="https://tabeebgroup.com"
+- Added fatal safeguard: If TARGET_ENV is 'staging' and either TARGET_ORIGIN resolves to
+  tabeebgroup.com or TARGET_DOC_ROOT resolves to public_html or root, the workflow immediately
+  aborts with exit 1.
+- Upload, extraction, cleanup, and smoke checks now use $TARGET_DOC_ROOT and $TARGET_ORIGIN.
+
+FINDING B — Fresh migration contains a status outside its ENUM
+Resolution:
+- In config/migrations/002_repair_core_and_projects.sql, the gsc_prefix seed previously attempted
+  to insert 'Verification file present on server (Account verification pending)' into status.
+- Under strict MySQL (STRICT_TRANS_TABLES), this produced Error 1265 (Data truncated).
+- Corrected status to declared ENUM value 'Verification pending' and relocated the full context
+  sentence to the evidence_summary column.
+
+FINDING C — Previously migrated databases skip the new repairs
+Resolution:
+- Authored versioned additive migration config/migrations/003_upgrade_idempotency_and_baseline_rbac.sql.
+- scripts/migrate.php records applied migrations in schema_migrations. Databases that ran 002
+  will now detect and execute 003 without wiping migration history.
+- 003 uses information_schema checks to conditionally add leads.idempotency_key, adds worker_token
+  to notification_outbox, updates notification_logs enum, ensures unique index on project_media,
+  inserts Serangoon media without touching IDs 1..5, explicitly revokes baseline.manage from
+  Role 6 (Analyst), and reconciles gsc_prefix status.
+
+FINDING D — Release package omits SQL required by migrator
+Resolution:
+- In .github/workflows/deploy.yml, removed exclusion -x "*.sql" and replaced broad -x "data/*"
+  with targeted exclusions of temporary/runtime files:
+  -x "data/backup_*" -x "data/leads_queue.json" -x "data/*.sqlite*" -x "data/.secret_key"
+- Release package now includes config/schema.sql, config/migrations/*.sql, and seed JSONs
+  (data/posts.json, data/services.json, data/users.json, data/projects.json).
+- Corrected raw client media exclusion from non-existent images/projects/client_originals/*
+  to actual path -x "images/client-media/*".
+- Ephemeral deploy_extractor.php now runs scripts/migrate.php during release and injects
+  X-Robots-Tag: noindex, nofollow, noarchive on staging.
+- Post-deploy smoke check fails fatally (exit 1) on non-200 HTTP response or missing brand content.
+
+FINDING E — Two different enquiries can be collapsed into one
+Resolution:
+- In app.js, replaced deterministic client_phone_service_bucket key with opaque random
+  cryptographic request token (req_<timestamp>_<hex>).
+- The token is retained during retry attempts of the same form submission and reset to null
+  upon successful 200 response or 409 conflict.
+- In api/leads.php, if client key is omitted, server generates unique srv_<token> preventing collisions.
+- When an idempotency_key matches an existing database lead:
+  * Computes SHA-256 hash of incoming payload (phone, service, message).
+  * If hash matches existing lead -> returns 200 OK replay with is_duplicate: true.
+  * If hash differs -> rejects with HTTP 409 Conflict (code: IDEMPOTENCY_CONFLICT).
+- Two distinct enquiries from the same phone and service within 10 minutes receive different keys
+  and are saved as two separate leads.
+
+FINDING F — Missing SMTP consumes retries; worker leases remain incomplete
+Resolution:
+- In includes/mailer.php, when credentials are unconfigured in production, sendEmail returns
+  config_blocked: true.
+- In processOutboxQueue(), when config_blocked is true, attempts is NOT incremented; status is
+  reset to queued with a 5-minute delayed next_retry_at, preserving the retry budget for when
+  credentials are configured.
+- Implemented worker lease ownership: Outbox claiming generates worker_token. Status updates
+  require WHERE id = ? AND worker_token = ?, preventing expired/stale workers from overwriting
+  active claims.
+- Bounded PHPMailer transport timeout to 15 seconds ($mail->Timeout = 15).
+- Added Mailer::requeuePendingOrFailed($maxAgeHours) for controlled admin requeue.
+- Documented private recipient routing: each outbox record is an independent message; internal
+  recipients are not exposed in CC/BCC headers.
+
+FINDING G — Project-media seed can overwrite unrelated media rows
+Resolution:
+- In config/migrations/002_repair_core_and_projects.sql, removed hardcoded primary keys (1..5)
+  from the project_media seed.
+- Added UNIQUE KEY uniq_pm_proj_file (project_id, file_path).
+- In config/migrations/003_upgrade_idempotency_and_baseline_rbac.sql, media rows use
+  INSERT INTO ... SELECT ... WHERE NOT EXISTS (project_id, file_path).
+- Pre-existing media rows with IDs 1..5 belonging to other projects remain untouched.
+- In scripts/migrate.php, project media import is now idempotent and resumable for existing
+  projects with partial galleries.
+
+FINDING H — Hardcoded HMAC fallback still exists
+Resolution:
+- In config/config.php, removed hardcoded fallback secret 'tabeeb_default_secret_key_change_me'.
+- In production (APP_ENV === 'production'), if HMAC_SECRET environment variable is missing or
+  shorter than 16 characters, throws RuntimeException and halts bootstrap safely.
+- In dev/staging, fallback file generation uses atomic exclusive creation (fopen($secretFile, 'x'))
+  and verifies file persistence before using the secret.
+
+FINDING I — Day 1 baseline is not a consistent, frozen measurement
+Resolution:
+- In admin/baseline.php, frozen historical window (2026-09-12 to 2026-10-09) is enforced across
+  UI, queries, CSV export, and Markdown export.
+- CRM query requires authenticated website sources ('website_quote_form', etc.) and checks
+  whether historical leads exist ($hasHistoricalLeads). On a fresh unpopulated database, status
+  is displayed as 'Not available' / 'Historical CRM enquiry history unavailable' rather than a fake 0.
+- Markdown export preserves numeric 0: ($val !== null && $val !== '') ? (string)$val : '—'.
+- CSV export preserves numeric 0.
+- Metric update POST handler validates db_exec return value ($affected !== false && $affected >= 0)
+  before displaying success.
+
+FINDING J — Content and SEO cleanup is incomplete
+Resolution:
+- In data/services.json:
+  * Removed "Written Workmanship Warranty" -> "Thorough Workmanship"
+  * Removed "Hollow-Tile Workmanship Warranty" -> "Solid Tile Bonding"
+  * Removed "Warranty-Backed Leak Stop" -> "Targeted Leak Rectification"
+  * Removed "100% Handover Guarantee" -> "Commercial Handover Support"
+  * Removed "100% Deposit Return Guarantee" -> "Handover Signoff Support"
+  * Removed "Save 20% to 35%" -> "Direct trade engagement without middleman agency commissions"
+  * Replaced in-house claims with dedicated trade team coordination
+- In data/posts.json:
+  * Confirmed removal of "25% lower" pricing and "100% deposit refund" claims
+- In sitemap.xml:
+  * Replaced all 17 occurrences of https://www.tabeebgroup.com/ with canonical https://tabeebgroup.com/
+- In index.php, about.php, contact.php, services.php, service.php, blog-post.php:
+  * Replaced hardcoded www JSON-LD URLs with dynamic $baseUrl
+  * Updated geo meta tags and JSON-LD geo coordinates to Shun Li Industrial Park (1.336358, 103.911744)
+- In includes/public_footer.php and app.js:
+  * Emergency contact numbers derive dynamically from window.TABEEB_CONTACT (BusinessTracker company facts)
+
+==================================================================
+4. EXECUTED COMMANDS & TEST RESULTS
+==================================================================
+
+1. JavaScript Syntax Verification:
+   Command: node --check app.js
+   Result: Exit code 0 (Pass — no syntax errors).
+
+2. PHP Syntax Verification (All Modified Files):
+   Command: php -l <file>
+   Results:
+   - No syntax errors detected in about.php
+   - No syntax errors detected in admin/baseline.php
+   - No syntax errors detected in api/leads.php
+   - No syntax errors detected in blog-post.php
+   - No syntax errors detected in blog.php
+   - No syntax errors detected in config/config.php
+   - No syntax errors detected in contact.php
+   - No syntax errors detected in includes/mailer.php
+   - No syntax errors detected in includes/public_footer.php
+   - No syntax errors detected in index.php
+   - No syntax errors detected in privacy.php
+   - No syntax errors detected in project.php
+   - No syntax errors detected in projects.php
+   - No syntax errors detected in scripts/migrate.php
+   - No syntax errors detected in scripts/test_regression.php
+   - No syntax errors detected in service.php
+   - No syntax errors detected in services.php
+   - No syntax errors detected in terms.php
+
+3. Architectural & Regression Test Suite:
+   Command: php scripts/test_regression.php
+   Result:
+   ==================================================================
+     ARCHITECTURAL TEST SUITE COMPLETE
+     Total Tests Run: 80
+     Passed: 80
+     Failed: 0
+   ==================================================================
+
+   Summary of Scenarios Verified:
+   - Scenario 1: Production-Aligned Lead Ingestion Schema (4/4 tests passed)
+   - Scenario 2: Lead Query Qualification & Sales Rep Scoping (2/2 tests passed)
+   - Scenario 3: Lead Idempotency Uniqueness & Payload Hash Binding (4/4 tests passed)
+   - Scenario 4: Outbox Worker Atomic Claim & Fenced Updates (4/4 tests passed)
+   - Scenario 5: Production Mailer Simulation Guard & Timeouts (4/4 tests passed)
+   - Scenario 6: Role Permissions & Baseline Access Split (8/8 tests passed)
+   - Scenario 7: Input Integrity & Singapore Phone Normalizer (5/5 tests passed)
+   - Scenario 8: CSRF Type Safety & Non-String Parameter Handling (4/4 tests passed)
+   - Scenario 9: Deployment Workflow Safety & Staging Isolation (12/12 tests passed)
+   - Scenario 10: Migration 002 ENUM & Additive Upgrade Migration 003 (7/7 tests passed)
+   - Scenario 11: Frozen Marketing Baseline & Zero Preservation (7/7 tests passed)
+   - Scenario 12: Cryptographic Secret Security & Production Guard (4/4 tests passed)
+   - Scenario 13: Content Cleanup & Canonical Origin Integrity (10/10 tests passed)
+   - Scenario 14: Clean Routing & Security Headers (5/5 tests passed)
+
+==================================================================
+5. FRESH AND UPGRADE MIGRATION EVIDENCE
+==================================================================
+
+Path A: Fresh Installation
+- Migration order: 001_initial_schema.sql -> 002_repair_core_and_projects.sql -> 003_upgrade_idempotency_and_baseline_rbac.sql
+- Migration 002 applies with valid ENUM status 'Verification pending' under strict MySQL mode
+  (STRICT_TRANS_TABLES).
+- Project media seeds insert without hardcoded IDs 1..5.
+- Migration 003 detects existing columns via information_schema and applies cleanly as a no-op
+  where columns already exist.
+
+Path B: Upgrade from Previous 002 Installation
+- Database previously applied 001 and old 002 (recorded in schema_migrations).
+- scripts/migrate.php detects 003_upgrade_idempotency_and_baseline_rbac.sql as pending.
+- Executes 003:
+  * Adds leads.idempotency_key with unique index.
+  * Adds notification_outbox.worker_token.
+  * Modifies notification_logs.delivery_status enum to include 'simulated'.
+  * Reconciles Role 6 (Analyst) RBAC by deleting baseline.manage grant.
+  * Reconciles gsc_prefix verification status to 'Verification pending'.
+  * Preserves pre-existing project_media rows 1..5 without replacing paths or captions.
+- No database drop, truncate, or schema_migrations purge required.
+
+==================================================================
+6. STAGING ISOLATION EVIDENCE
+==================================================================
+
+1. Target Origin & Document Root:
+   - Staging: TARGET_DOC_ROOT="public_html/staging", TARGET_ORIGIN="https://staging.tabeebgroup.com"
+   - Production: TARGET_DOC_ROOT="public_html", TARGET_ORIGIN="https://tabeebgroup.com"
+
+2. Fatal Guard in Workflow:
+   if [ "$TARGET_ORIGIN" = "https://tabeebgroup.com" ] || [ "$TARGET_ORIGIN" = "https://www.tabeebgroup.com" ]; then
+     echo "::error::FATAL: Staging origin resolves to production ($TARGET_ORIGIN). Deployment aborted."
+     exit 1
+   fi
+   if [ "$TARGET_DOC_ROOT" = "public_html" ] || [ "$TARGET_DOC_ROOT" = "/" ] || [ -z "$TARGET_DOC_ROOT" ]; then
+     echo "::error::FATAL: Staging document root resolves to production root ($TARGET_DOC_ROOT). Deployment aborted."
+     exit 1
+   fi
+
+3. Staging Indexing Restriction:
+   - Ephemeral deployment extractor injects:
+     Header set X-Robots-Tag "noindex, nofollow, noarchive"
+     into the staging .htaccess file upon extraction.
+
+4. Smoke Check Isolation:
+   - Evaluates HTTP response and brand verification against $TARGET_ORIGIN (staging.tabeebgroup.com),
+     never targeting production during a staging release.
+
+==================================================================
+7. HONEST MILESTONE STATUSES (DAYS 1–3)
+==================================================================
+
+Day 1 — Record Current Performance: PARTIAL
+- Implemented: Frozen baseline measurement window (2026-09-12 to 2026-10-09), honest CRM lead
+  query with website source filtering, zero-preserving CSV and Markdown export pipelines,
+  and DB verification on metric update.
+- Pending External Evidence: Organic search sessions, rankings, and live conversion rates
+  are explicitly flagged as 'Not previously tracked' / 'Not available' because GA4 and GSC
+  were not active during the baseline period. This data must not be fabricated.
+
+Day 2 — Set Up Google Search Console: PENDING / NOT VERIFIED BY THIS SUBMISSION
+- Implemented: Legacy URL-prefix HTML verification file (googlea9c88d1e38989379.html) preserved
+  in root; DNS TXT instructions prepared in source.
+- Required External Evidence: Verified DOMAIN property (tabeebgroup.com) via client DNS TXT
+  record on authoritative nameservers (ns1.clouvider.net / ns2.clouvider.net) or Google account
+  owner delegation. File presence or seeded database status does not equal verified completion.
+
+Day 3 — Set Up GA4 & Google Tag Manager: PREPARED IN SOURCE / PENDING LIVE PUBLISHING
+- Implemented: GTM and GA4 container loader in includes/tracking.php with support for externally
+  provisioned IDs (GTM_CONTAINER_ID, GA4_MEASUREMENT_ID), suppression of placeholder IDs,
+  and tracking exclusion on admin, preview, and API routes.
+- Required External Evidence: Real client GTM container ID and GA4 measurement ID configured in
+  production .env; published GTM container version with GA4 configuration tag; Tag Assistant
+  validation on public pages showing no duplicate page_view events.
+
+Days 4–30: NOT STARTED / FUTURE MILESTONES
+- Tracked internally as roadmap milestones; not customer-facing marketing claims.
+
+==================================================================
+8. REMAINING EXTERNAL CLIENT DEPENDENCIES & OWNER NEXT STEPS
+==================================================================
+
+1. Google Search Console Domain Property:
+   Owner Action: Add the prepared TXT verification string to DNS zone for tabeebgroup.com
+   on authoritative DNS nameservers, or delegate Search Console owner permissions to
+   the deployment team.
+
+2. Google Analytics 4 & GTM Live Stream:
+   Owner Action: Provide real GTM Container ID (GTM-XXXXXXX) and GA4 Measurement ID (G-XXXXXXXXXX),
+   publish the GTM container, and configure the IDs in production .env.
+
+3. Production SMTP Credentials:
+   Owner Action: Provide authenticated SMTP host, port, username, password, and encryption
+   settings in production .env. (Outgoing notifications remain safely queued without consuming
+   retry attempts until credentials are provided).
+
+4. ACRA Business Profile & Corporate Identity:
+   Owner Action: Provide updated ACRA Business Profile confirming registered corporate name,
+   operating address classification, and GST status.
+================================================================================

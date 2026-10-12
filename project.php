@@ -57,8 +57,8 @@ $pageTitle = htmlspecialchars($ogTitle);
     <!-- Geo Targeting Singapore -->
     <meta name="geo.region" content="SG">
     <meta name="geo.placename" content="Singapore">
-    <meta name="geo.position" content="1.3364;103.9066">
-    <meta name="ICBM" content="1.3364, 103.9066">
+    <meta name="geo.position" content="1.336358;103.911744">
+    <meta name="ICBM" content="1.336358, 103.911744">
 
     <!-- Canonical URL -->
     <link rel="canonical" href="<?= $canonicalUrl ?>">

@@ -180,5 +180,12 @@ $company = get_company_info();
         <span class="whatsapp-tooltip">Chat with us on WhatsApp</span>
     </a>
 
+    <script>
+        window.TABEEB_CONTACT = {
+            phone: <?= json_encode($company['phone']) ?>,
+            phoneRaw: <?= json_encode($company['phone_raw']) ?>,
+            whatsappRaw: <?= json_encode($company['whatsapp_raw']) ?>
+        };
+    </script>
     <!-- Application Script -->
     <script src="/app.js?v=3.5"></script>

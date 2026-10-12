@@ -26,8 +26,8 @@ $pageDesc = "Tabeeb Contractor is Singapore's direct renovation contractor. Spec
     <!-- Geo Targeting Singapore -->
     <meta name="geo.region" content="SG">
     <meta name="geo.placename" content="Singapore">
-    <meta name="geo.position" content="1.3364;103.9066">
-    <meta name="ICBM" content="1.3364, 103.9066">
+    <meta name="geo.position" content="1.336358;103.911744">
+    <meta name="ICBM" content="1.336358, 103.911744">
 
     <!-- Favicon -->
     <link rel="icon" type="image/png" sizes="64x64" href="/images/favicon.png">
@@ -60,12 +60,12 @@ $pageDesc = "Tabeeb Contractor is Singapore's direct renovation contractor. Spec
       "@graph": [
         {
           "@type": ["HomeAndConstructionBusiness", "GeneralContractor"],
-          "@id": "https://www.tabeebgroup.com/#organization",
+          "@id": "<?= $baseUrl ?>/#organization",
           "name": <?= json_encode($company['brand_name']) ?>,
           "alternateName": "Tabeeb Contractor Singapore",
-          "url": "https://www.tabeebgroup.com/",
-          "logo": "https://www.tabeebgroup.com/images/logo-mark.png",
-          "image": "https://www.tabeebgroup.com/images/hero-bg.webp",
+          "url": "<?= $baseUrl ?>/",
+          "logo": "<?= $baseUrl ?>/images/logo-mark.png",
+          "image": "<?= $baseUrl ?>/images/hero-bg.webp",
           "telephone": <?= json_encode($company['phone']) ?>,
           "email": <?= json_encode($company['email']) ?>,
           "priceRange": "$$",
@@ -79,8 +79,8 @@ $pageDesc = "Tabeeb Contractor is Singapore's direct renovation contractor. Spec
           },
           "geo": {
             "@type": "GeoCoordinates",
-            "latitude": 1.3364,
-            "longitude": 103.9066
+            "latitude": 1.336358,
+            "longitude": 103.911744
           },
           "areaServed": {
             "@type": "AdministrativeArea",
@@ -98,7 +98,7 @@ $pageDesc = "Tabeeb Contractor is Singapore's direct renovation contractor. Spec
                 "itemOffered": {
                   "@type": "Service",
                   "name": "Renovation Contractor in Singapore",
-                  "url": "https://www.tabeebgroup.com/renovation-contractor-singapore",
+                  "url": "<?= $baseUrl ?>/renovation-contractor-singapore",
                   "description": "Complete residential and commercial turnkey renovations."
                 }
               },
@@ -107,7 +107,7 @@ $pageDesc = "Tabeeb Contractor is Singapore's direct renovation contractor. Spec
                 "itemOffered": {
                   "@type": "Service",
                   "name": "HDB Renovation Contractor Singapore",
-                  "url": "https://www.tabeebgroup.com/hdb-renovation",
+                  "url": "<?= $baseUrl ?>/hdb-renovation",
                   "description": "Specialized BTO & resale HDB flat renovations."
                 }
               },
@@ -116,7 +116,7 @@ $pageDesc = "Tabeeb Contractor is Singapore's direct renovation contractor. Spec
                 "itemOffered": {
                   "@type": "Service",
                   "name": "Tiling Works & Contractor",
-                  "url": "https://www.tabeebgroup.com/tiling-works",
+                  "url": "<?= $baseUrl ?>/tiling-works",
                   "description": "Supply & installation of wall and floor tiles."
                 }
               },
@@ -125,7 +125,7 @@ $pageDesc = "Tabeeb Contractor is Singapore's direct renovation contractor. Spec
                 "itemOffered": {
                   "@type": "Service",
                   "name": "Vinyl Flooring Works",
-                  "url": "https://www.tabeebgroup.com/vinyl-flooring",
+                  "url": "<?= $baseUrl ?>/vinyl-flooring",
                   "description": "Supply & installation of luxury waterproof SPC vinyl flooring."
                 }
               },
@@ -134,7 +134,7 @@ $pageDesc = "Tabeeb Contractor is Singapore's direct renovation contractor. Spec
                 "itemOffered": {
                   "@type": "Service",
                   "name": "Waterproofing Works",
-                  "url": "https://www.tabeebgroup.com/waterproofing",
+                  "url": "<?= $baseUrl ?>/waterproofing",
                   "description": "Wet area membranes and leak rectification."
                 }
               },
@@ -143,7 +143,7 @@ $pageDesc = "Tabeeb Contractor is Singapore's direct renovation contractor. Spec
                 "itemOffered": {
                   "@type": "Service",
                   "name": "Hacking & Demolition Works",
-                  "url": "https://www.tabeebgroup.com/hacking-demolition",
+                  "url": "<?= $baseUrl ?>/hacking-demolition",
                   "description": "Hacking of walls, floors, tiles, fixture dismantling & disposal."
                 }
               },
@@ -152,7 +152,7 @@ $pageDesc = "Tabeeb Contractor is Singapore's direct renovation contractor. Spec
                 "itemOffered": {
                   "@type": "Service",
                   "name": "Reinstatement Works",
-                  "url": "https://www.tabeebgroup.com/reinstatement",
+                  "url": "<?= $baseUrl ?>/reinstatement",
                   "description": "Commercial office tenancy reinstatement and landlord handover."
                 }
               }
@@ -166,7 +166,7 @@ $pageDesc = "Tabeeb Contractor is Singapore's direct renovation contractor. Spec
               "@type": "ListItem",
               "position": 1,
               "name": "Home",
-              "item": "https://www.tabeebgroup.com/"
+              "item": "<?= $baseUrl ?>/"
             }
           ]
         }

@@ -55,8 +55,8 @@ $relatedPosts = array_slice($relatedPosts, 0, 3);
     <!-- Geo Targeting Singapore -->
     <meta name="geo.region" content="SG">
     <meta name="geo.placename" content="Singapore">
-    <meta name="geo.position" content="1.3364;103.9066">
-    <meta name="ICBM" content="1.3364, 103.9066">
+    <meta name="geo.position" content="1.336358;103.911744">
+    <meta name="ICBM" content="1.336358, 103.911744">
 
     <!-- Canonical URL -->
     <link rel="canonical" href="<?= $canonicalUrl ?>">
@@ -106,14 +106,14 @@ $relatedPosts = array_slice($relatedPosts, 0, 3);
       "author": {
         "@type": "Organization",
         "name": <?= json_encode($post['author'] ?? 'Tabeeb Contractor') ?>,
-        "url": "https://www.tabeebgroup.com/"
+        "url": "<?= $baseUrl ?>/"
       },
       "publisher": {
         "@type": "Organization",
         "name": "Tabeeb Contractor",
         "logo": {
           "@type": "ImageObject",
-          "url": "https://www.tabeebgroup.com/images/logo-horizontal.png"
+          "url": "<?= $baseUrl ?>/images/logo-horizontal.png"
         }
       },
       "mainEntityOfPage": {

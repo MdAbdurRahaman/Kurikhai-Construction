@@ -533,6 +533,7 @@ $baseUrl = get_base_url();
 
             <?php if (has_permission('content.manage') || has_permission('projects.manage')): ?>
             <div class="nav-category">Content Management</div>
+            <?php if(has_permission("content.manage")):?><a href="content-review.php" class="sidebar-link">Content factual review</a><?php endif;?>
             <?php if (has_permission('projects.manage')): ?>
             <a href="projects.php" class="sidebar-link <?= ($currentPage === 'projects' || $currentPage === 'project-edit') ? 'active' : '' ?>">
                 <span class="sidebar-icon">🏗️</span>

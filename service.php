@@ -55,8 +55,8 @@ $twitterShareUrl = 'https://twitter.com/intent/tweet?text=' . urlencode($service
     <!-- Geo Targeting Singapore -->
     <meta name="geo.region" content="SG">
     <meta name="geo.placename" content="Singapore">
-    <meta name="geo.position" content="1.3364;103.9066">
-    <meta name="ICBM" content="1.3364, 103.9066">
+    <meta name="geo.position" content="1.336358;103.911744">
+    <meta name="ICBM" content="1.336358, 103.911744">
 
     <!-- Canonical URL -->
     <link rel="canonical" href="<?= $canonicalUrl ?>">
@@ -99,15 +99,20 @@ $twitterShareUrl = 'https://twitter.com/intent/tweet?text=' . urlencode($service
       "description": <?= json_encode($service['overview']) ?>,
       "provider": {
         "@type": "GeneralContractor",
-        "name": "Tabeeb Contractor",
-        "telephone": "+65 8648 4883",
-        "url": "https://www.tabeebgroup.com/",
+        "name": <?= json_encode($company['brand_name']) ?>,
+        "telephone": <?= json_encode($company['phone']) ?>,
+        "url": "<?= $baseUrl ?>/",
         "address": {
           "@type": "PostalAddress",
           "streetAddress": "61 Kaki Bukit Ave 1, #03-34 Shun Li Industrial Park",
           "addressLocality": "Singapore",
           "postalCode": "417943",
           "addressCountry": "SG"
+        },
+        "geo": {
+          "@type": "GeoCoordinates",
+          "latitude": 1.336358,
+          "longitude": 103.911744
         }
       },
       "areaServed": "Singapore",

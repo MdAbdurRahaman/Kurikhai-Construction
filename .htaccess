@@ -1,3 +1,4 @@
+Options -Indexes
 RewriteEngine On
 
 # ----------------------------------------------------------------------
@@ -13,7 +14,7 @@ RewriteEngine On
 # ----------------------------------------------------------------------
 # 2. BLOCK SENSITIVE FILES & CONFIGURATION DIRECTORIES
 # ----------------------------------------------------------------------
-<FilesMatch "(\.env|\.git|\.cpanel\.yml|\.json|\.sqlite|\.sql|\.log|\.tmp|\.bak|\.md)$">
+<FilesMatch "(^\.env(?:\..*)?$|^\.git.*$|\.(json|sqlite|sql|log|tmp|bak|md|zip|tar|gz)$|^\.cpanel\.yml$)">
     <IfModule mod_authz_core.c>
         Require all denied
     </IfModule>
@@ -23,7 +24,7 @@ RewriteEngine On
 </FilesMatch>
 
 # Block direct access to config/ and scripts/ directories
-RedirectMatch 403 ^/(config|scripts|data)/.*$
+RedirectMatch 403 ^/(config|scripts|data|tests|ops|vendor)/.*$
 
 # ----------------------------------------------------------------------
 # 3. CANONICAL HOSTNAME & HTTPS ENFORCEMENT (Single Preferred Origin)
@@ -35,12 +36,15 @@ RewriteRule ^(.*)$ https://tabeebgroup.com/$1 [R=301,L]
 # Redirect HTTP to HTTPS
 RewriteCond %{HTTPS} off
 RewriteCond %{HTTP:X-Forwarded-Proto} !https
-RewriteRule ^(.*)$ https://tabeebgroup.com/$1 [R=301,L]
+RewriteRule ^(.*)$ https://%{HTTP_HOST}/$1 [R=301,L]
 
 # ----------------------------------------------------------------------
 # 4. DIRECTORY INDEX & DYNAMIC SITEMAP / API ROUTING
 # ----------------------------------------------------------------------
 DirectoryIndex index.php index.html
+
+# Project assets obey the same publication gate as their case study.
+RewriteRule ^(images/projects/.*)$ media.php?path=/$1 [L,QSA]
 
 # Dynamic XML Sitemap
 RewriteRule ^sitemap\.xml$ sitemap.php [L]

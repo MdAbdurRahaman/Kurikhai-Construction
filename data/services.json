@@ -23,9 +23,9 @@
     ],
     "key_benefits": [
       {"title": "Direct Contractor Pricing", "desc": "Direct rates without middleman agency commissions or hidden markups."},
-      {"title": "Reliable In-House Team", "desc": "Experienced, safe, and dedicated in-house craftsmen across all construction trades."},
+      {"title": "Reliable Trade Team", "desc": "Experienced, safe, and dedicated craftsmen across all construction trades."},
       {"title": "On Time Delivery", "desc": "Strict milestone planning and structured scheduling on every project."},
-      {"title": "Quality Workmanship", "desc": "Premium building materials, rigorous quality control, and warranty-backed finishing."}
+      {"title": "Quality Workmanship", "desc": "Premium building materials, rigorous quality control, and dependable finishing."}
     ],
     "process": [
       {"step": "01", "title": "Free Site Assessment", "desc": "We visit your property for detailed laser measurements, condition evaluation, and design scoping."},
@@ -34,7 +34,7 @@
       {"step": "04", "title": "Defect Check & Handover", "desc": "Joint site inspection to rectify punch-list items followed by clean and punctual handover."}
     ],
     "faq": [
-      {"q": "What makes Tabeeb Contractor different from an interior designer (ID)?", "a": "As a direct renovation contractor, we manage our own in-house trade specialists (hackers, tilers, electricians, carpenters, plumbers). You communicate directly with the builders doing the work, cutting out heavy design agency commissions."},
+      {"q": "What makes Tabeeb Contractor different from an interior designer (ID)?", "a": "As a direct renovation contractor, we coordinate dedicated trade specialists (hackers, tilers, electricians, carpenters, plumbers). You communicate directly with the builders doing the work, cutting out heavy design agency commissions."},
       {"q": "Do you provide free site assessments and quotations?", "a": "Yes! We offer 100% complimentary on-site measurement, site condition evaluation, and itemized quotations with zero obligation across Singapore."}
     ]
   },
@@ -64,7 +64,7 @@
       {"title": "Direct Contractor Rates", "desc": "Transparent pricing without interior design markup fees, saving thousands on your renovation budget."},
       {"title": "HDB Guideline Adherence", "desc": "Strict compliance with HDB renovation timing curfews, corridor protection, and noise protocols."},
       {"title": "Complete One-Stop Service", "desc": "From initial hacking to final chemical wash and handover, all trades are managed under one roof."},
-      {"title": "Written Workmanship Warranty", "desc": "Peace of mind backed by our written warranty on tile bonding, waterproofing, and electrical works."}
+      {"title": "Thorough Workmanship", "desc": "Careful trade execution and structured quality checks on tile bonding, waterproofing, and electrical works."}
     ],
     "process": [
       {"step": "01", "title": "Consultation & Blueprint Review", "desc": "We analyze your HDB floor plan to optimize layout flow, storage, and lighting."},
@@ -102,8 +102,8 @@
     "key_benefits": [
       {"title": "Laser Flatness Precision", "desc": "Optical laser level verification ensures flat subfloors and zero lippage between tiles."},
       {"title": "Direct Contractor Sourcing", "desc": "Direct supplier relationships give you access to premium tiles at attractive direct rates."},
-      {"title": "Experienced Master Tilers", "desc": "In-house masons with over 15 years of precision tiling and joint-finishing expertise."},
-      {"title": "Hollow-Tile Workmanship Warranty", "desc": "Strict adhesive slurry application guarantees solid bonding with zero hollow sounding tiles."}
+      {"title": "Experienced Tilers", "desc": "Skilled masons with dedicated precision tiling and joint-finishing expertise."},
+      {"title": "Solid Tile Bonding", "desc": "Proper adhesive coverage and full trowel back-buttering for dependable tile adhesion and sound structure."}
     ],
     "process": [
       {"step": "01", "title": "Subfloor Assessment", "desc": "Check existing substrate flatness, moisture content, and calculate slope for wet areas."},
@@ -139,7 +139,7 @@
       "Overlay on existing tiles (zero hacking required) or fresh subfloor installation"
     ],
     "key_benefits": [
-      {"title": "100% Waterproof & Termite-Proof", "desc": "SPC rigid core withstands moisture, spills, and Singapore's tropical humidity with zero warping."},
+      {"title": "100% Waterproof & Termite-Proof", "desc": "SPC rigid core withstands moisture, spills, and Singapore's tropical humidity subject to manufacturer specifications and installation conditions."},
       {"title": "Direct Contractor Savings", "desc": "Direct factory supply with transparent per sq ft pricing and zero retail middleman markup."},
       {"title": "Quick Dustless Installation", "desc": "Click-lock floating installation is completed in 1 to 2 days without noisy or dusty demolition."},
       {"title": "Scratch-Resistant & Child/Pet Friendly", "desc": "UV-coated ceramic wear layer protects against claw marks, furniture scrapes, and heavy foot traffic."}
@@ -152,7 +152,7 @@
     ],
     "faq": [
       {"q": "Can vinyl flooring be installed directly over existing tiles?", "a": "Yes! As long as the existing tiles are firm, stable, and relatively level, SPC click-lock vinyl can be installed directly over them, saving significant hacking and haulage costs."},
-      {"q": "How does SPC vinyl differ from traditional laminate flooring?", "a": "Traditional laminate contains wood fibers that swell when exposed to water. SPC vinyl features a stone-composite limestone core that is 100% waterproof and will never warp from dampness."}
+      {"q": "How does SPC vinyl differ from traditional laminate flooring?", "a": "Traditional laminate contains wood fibers that swell when exposed to water. SPC vinyl features a stone-composite limestone core that is designed to resist water exposure; suitability depends on the specified product and installation."}
     ]
   },
   {
@@ -164,7 +164,7 @@
     "og_description": "Direct waterproofing contractor in Singapore. Bathroom, kitchen, balcony & roof waterproofing, non-hacking PU injection grouting, leak rectification.",
     "category": "structural",
     "category_name": "Waterproofing & Remedial",
-    "badge": "Warranty-Backed Leak Stop",
+    "badge": "Targeted Leak Rectification",
     "icon": "💧",
     "image": "images/waterproofing.png",
     "hero_tagline": "Bathroom, kitchen & balcony waterproofing, wet area membranes, non-destructive PU injection leak repair, and quality assurance.",
@@ -181,7 +181,7 @@
       {"title": "Zero Hacking Required", "desc": "PU injection seals leaks from the ceiling below in hours without hacking expensive upstairs tiles."},
       {"title": "Instant Water Reaction", "desc": "Hydrophobic PU expands up to 30 times its liquid volume upon contact with water, sealing every micro-crack."},
       {"title": "Thermal Camera Inspection", "desc": "FLIR thermal imaging precisely pinpoints hidden water paths without guessing."},
-      {"title": "Written Workmanship Warranty", "desc": "Solid peace of mind backed by our written warranty against recurrent seepage."}
+      {"title": "Structured Quality Checks", "desc": "Methodical surface testing and flood ponding checks to verify water barrier effectiveness."}
     ],
     "process": [
       {"step": "01", "title": "Thermal Moisture Scan", "desc": "Trace the exact entry point and water capillary paths using high-sensitivity thermal cameras."},
@@ -301,7 +301,7 @@
       {"title": "100% Genuine Paints", "desc": "We use strictly un-diluted authentic Nippon Paint, Dulux, and Jotun premium lines."},
       {"title": "Complete Furniture Masking", "desc": "Floors, furniture, and fixtures are fully draped with protective drop sheets and masking tape."},
       {"title": "Anti-Mould & Washable", "desc": "Formulated specifically for Singapore's tropical climate to resist humidity and peeling."},
-      {"title": "Multi-Coat Guarantee", "desc": "1 coat sealer/primer + 2 full finish coats applied for rich depth of color and durability."}
+      {"title": "Multi-Coat Application", "desc": "1 coat sealer/primer + 2 full finish coats applied for rich depth of color and durability."}
     ],
     "process": [
       {"step": "01", "title": "Site Protection", "desc": "Carefully wrap furniture, mask sockets, switches, door frames, and cover all flooring."},
@@ -320,24 +320,24 @@
     "name": "Hacking & Demolition Works Singapore",
     "short_title": "Hacking & Demolition Works",
     "og_title": "Hacking & Demolition Contractor Singapore | Wall Hacking - Tabeeb Contractor",
-    "og_description": "Licensed direct wall hacking and demolition contractor in Singapore. Hacking of walls, floors, tiles, dismantling of fixtures, debris disposal & site cleaning.",
+    "og_description": "Wall hacking and demolition services in Singapore. Hacking of walls, floors, tiles, dismantling of fixtures, debris disposal & site cleaning.",
     "category": "structural",
     "category_name": "Demolition & Preparation",
     "badge": "Safe & Direct Hacking",
     "icon": "🔨",
     "image": "images/service-hacking.jpg",
     "hero_tagline": "Safe, efficient hacking of walls, floors and tiles, dismantling of fixtures, full site protection, and clean debris disposal.",
-    "overview": "Tabeeb Contractor provides controlled, high-precision wall hacking and demolition services for HDB flats, condominiums, landed properties, and commercial buildings across Singapore. Our in-house team handles lift padding, floor hoarding, systematic dismantling, and authorized haulage.",
+    "overview": "Tabeeb Contractor provides controlled, high-precision wall hacking and demolition services for HDB flats, condominiums, landed properties, and commercial buildings across Singapore. Our dedicated project team handles lift padding, floor hoarding, systematic dismantling, and authorized haulage.",
     "scope_of_work": [
       "Hacking of walls, floors, tiles",
       "Dismantling of fixtures (wardrobes, kitchen cabinets, false ceilings, sanitary ware)",
-      "Disposal & site cleaning with licensed waste haulage",
+      "Disposal and site cleaning coordinated for the project",
       "Protection to surrounding areas (heavy-duty lift padding, corridor hoarding, dust containment)",
       "Non-structural wall removal and opening enlargement",
       "Pre-renovation site survey and acoustic protection measures"
     ],
     "key_benefits": [
-      {"title": "Direct Contractor Pricing", "desc": "Zero middleman fees. Save 20% to 35% compared to interior design firm commissions."},
+      {"title": "Direct Contractor Pricing", "desc": "Direct trade engagement without middleman agency commissions or hidden markups."},
       {"title": "Fast Turnaround", "desc": "Efficient crews complete standard HDB flat hacking within 2 to 4 working days."},
       {"title": "Full Site Protection", "desc": "Lift padding, corridor floor protection, and dust control curtains included as standard."},
       {"title": "Clean Swept Handover", "desc": "All debris bagged, carted away to dumping grounds, and floors swept clean for the next trade."}
@@ -401,10 +401,10 @@
     "og_description": "Direct commercial reinstatement contractor in Singapore. Reinstatement after renovation, repair of walls, ceiling & floors, make good works & landlord handover.",
     "category": "structural",
     "category_name": "Reinstatement & Demolition",
-    "badge": "100% Handover Guarantee",
+    "badge": "Commercial Handover Support",
     "icon": "🏢",
     "image": "images/service-interior.jpg",
-    "hero_tagline": "Reinstatement after renovation, repair of walls, ceiling and floors, make good works, and 100% landlord handover compliance.",
+    "hero_tagline": "Reinstatement after renovation, repair of walls, ceiling and floors, make good works, and structured landlord handover compliance.",
     "overview": "When exiting a commercial office, retail shop, or industrial lease, landlords require the space to be restored to its original bare-shell state. Tabeeb Contractor is your trusted direct reinstatement contractor, managing partition dismantling, carpet stripping, ceiling restoration, M&E rectification, and joint landlord inspections.",
     "scope_of_work": [
       "Reinstatement after renovation",
@@ -417,9 +417,9 @@
       "Electrical and fire safety M&E termination back to distribution boards"
     ],
     "key_benefits": [
-      {"title": "100% Deposit Return Guarantee", "desc": "We work closely with building management until full handover signoff is achieved."},
+      {"title": "Handover Signoff Support", "desc": "We work closely with building management to clear inspection punch-lists for smooth tenancy handover."},
       {"title": "After-Hours & Weekend Work", "desc": "Crews operate on night shifts and weekends to respect commercial building noise curfews."},
-      {"title": "Direct Trade Crews", "desc": "In-house electricians, carpenters, and hack crews ensure no delays or finger-pointing."},
+      {"title": "Coordinated Trade Crews", "desc": "Dedicated electricians, carpenters, and hack crews ensure no delays or finger-pointing."},
       {"title": "Fixed Lump-Sum Quotes", "desc": "Clear itemized proposals based directly on your landlord's Tenancy Handover Checklist."}
     ],
     "process": [

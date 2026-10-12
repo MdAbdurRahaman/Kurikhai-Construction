@@ -20,6 +20,7 @@ if (php_sapi_name() !== 'cli') {
 require_once dirname(__DIR__) . '/config/config.php';
 require_once dirname(__DIR__) . '/includes/db.php';
 require_once dirname(__DIR__) . '/includes/business_tracker.php';
+require_once dirname(__DIR__) . '/includes/migration_repairs.php';
 
 $isDryRun = in_array('--dry-run', $argv ?? [], true);
 
@@ -44,6 +45,9 @@ if (!DB::isConnected()) {
 log_cli("✅ Connected to MySQL database (" . DB_NAME . ") successfully.");
 
 $pdo = DB::getConnection();
+if ((int)DB::query('SELECT GET_LOCK(?,10)', ['tabeeb-migrations-'.substr(hash('sha256',DB_NAME),0,32)])->fetchColumn() !== 1) throw new RuntimeException('Another migration is active');
+register_shutdown_function(function()use($pdo){try{$pdo->prepare('SELECT RELEASE_LOCK(?)')->execute(['tabeeb-migrations-'.substr(hash('sha256',DB_NAME),0,32)]);$pdo->exec('SET FOREIGN_KEY_CHECKS=1');}catch(Throwable $ignored){}});
+media_constraint_preflight($pdo);
 
 // 3. Ensure schema_migrations table exists
 if (!$isDryRun) {
@@ -81,9 +85,12 @@ if (is_dir($migrationsDir)) {
         if (!$alreadyRun) {
             log_cli("🚀 Applying versioned migration: {$migName}...");
             $sql = file_get_contents($migFile);
+            media_constraint_preflight($pdo);
+            if (!$isDryRun && str_starts_with($migName,'004_')) repair_rate_limit_uniqueness();
             if (!$isDryRun) {
                 // Execute multi-query SQL migration
                 $pdo->exec($sql);
+                $pdo->exec('SET FOREIGN_KEY_CHECKS=1');
                 $stmt = $pdo->prepare("INSERT INTO `schema_migrations` (`version`) VALUES (?)");
                 $stmt->execute([$migName]);
             }
@@ -94,23 +101,12 @@ if (is_dir($migrationsDir)) {
     }
 }
 
-// 6. Safe Backup of Legacy JSON Files
-log_cli("💾 Creating private timestamped safety backup of legacy JSON stores...");
-$backupTime = date('Ymd_His');
-foreach (['users.json', 'posts.json', 'services.json', 'leads_queue.json'] as $f) {
-    $src = DATA_DIR . '/' . $f;
-    if (file_exists($src)) {
-        $dest = DATA_DIR . '/backup_' . $backupTime . '_' . $f;
-        if (!$isDryRun) {
-            @copy($src, $dest);
-        }
-        log_cli("   Backed up {$f} -> " . basename($dest));
-    }
-}
+if (!$isDryRun) { production_evidence_repairs(); repair_legacy_content(); }
+if (!in_array('--seed', $argv, true)) { verify_project_media_integrity(); log_cli('Migrations complete; bootstrap import not requested.'); exit(0); }
 
 // 7. Non-Destructive Import of Services (Never overwrite existing MySQL edits)
 log_cli("🏢 Checking services import...");
-$servicesJsonFile = DATA_DIR . '/services.json';
+$servicesJsonFile = BOOTSTRAP_DIR . '/services.json';
 if (file_exists($servicesJsonFile)) {
     $services = json_decode(file_get_contents($servicesJsonFile), true) ?: [];
     $importedSrv = 0;
@@ -143,7 +139,7 @@ if (file_exists($servicesJsonFile)) {
 
 // 8. Non-Destructive Import of Blog Posts (Never overwrite existing MySQL edits)
 log_cli("📝 Checking blog posts import...");
-$postsJsonFile = DATA_DIR . '/posts.json';
+$postsJsonFile = BOOTSTRAP_DIR . '/posts.json';
 if (file_exists($postsJsonFile)) {
     $posts = json_decode(file_get_contents($postsJsonFile), true) ?: [];
     $importedPosts = 0;
@@ -174,44 +170,19 @@ if (file_exists($postsJsonFile)) {
     log_cli("✅ Imported {$importedPosts} new blog posts without overwriting existing records.");
 }
 
-// 9. Non-Destructive Import of Administrative Users with Forced Password Change
-log_cli("👥 Checking administrative users...");
-$usersJsonFile = DATA_DIR . '/users.json';
-if (file_exists($usersJsonFile)) {
-    $users = json_decode(file_get_contents($usersJsonFile), true) ?: [];
-    $importedUsers = 0;
-    foreach ($users as $u) {
-        $roleSlug = $u['role'] ?? 'editor';
-        $roleId = (int)db_val("SELECT `id` FROM `roles` WHERE `slug` = ? LIMIT 1", [$roleSlug]) ?: 2;
-        $exists = (bool)db_val("SELECT 1 FROM `users` WHERE `username` = ? LIMIT 1", [$u['username']]);
-
-        if (!$exists) {
-            if (!$isDryRun) {
-                $stmt = $pdo->prepare(
-                    "INSERT INTO `users` 
-                     (`name`, `username`, `email`, `password_hash`, `role_id`, `status`, `force_password_change`, `created_at`) 
-                     VALUES (?, ?, ?, ?, ?, ?, 1, ?)"
-                );
-                $stmt->execute([
-                    $u['name'], $u['username'], $u['email'],
-                    $u['password'], $roleId, $u['status'] ?? 'active',
-                    $u['created_at'] ?? date('Y-m-d H:i:s')
-                ]);
-            }
-            $importedUsers++;
-        }
-    }
-    log_cli("✅ Imported {$importedUsers} user accounts (force_password_change = 1 enforced).");
-}
+// Accounts are provisioned through create_admin.php; no JSON account import.
 
 // 10. Non-Destructive Import of Projects & Client Media (Phase F System)
 log_cli("🏗️ Checking project case studies...");
-$projectsJsonFile = DATA_DIR . '/projects.json';
+$projectsJsonFile = BOOTSTRAP_DIR . '/projects.json';
 if (file_exists($projectsJsonFile)) {
     $projects = json_decode(file_get_contents($projectsJsonFile), true) ?: [];
     $importedProjects = 0;
     foreach ($projects as $proj) {
-        $exists = (bool)db_val("SELECT 1 FROM `projects` WHERE `id` = ? OR `slug` = ? LIMIT 1", [$proj['id'], $proj['slug']]);
+        if (!$isDryRun) $pdo->beginTransaction();
+        $existingId = db_val("SELECT id FROM projects WHERE id=? OR slug=? LIMIT 1",[$proj['id'],$proj['slug']]);
+        $exists = (bool)$existingId;
+        if($existingId) $proj['id'] = $existingId;
         if (!$exists) {
             if (!$isDryRun) {
                 $stmt = $pdo->prepare(
@@ -229,31 +200,39 @@ if (file_exists($projectsJsonFile)) {
                     $proj['og_title'] ?? $proj['title'], $proj['og_description'] ?? $proj['factual_summary'],
                     (int)($proj['display_order'] ?? 1), $proj['created_at'] ?? date('Y-m-d H:i:s'), $proj['updated_at'] ?? date('Y-m-d H:i:s')
                 ]);
+            }
+            $importedProjects++;
+        }
 
-                if (!empty($proj['media']) && is_array($proj['media'])) {
+        // Resumable media import: verify and insert any missing gallery items for the project
+        if (!empty($proj['media']) && is_array($proj['media'])) {
+            foreach ($proj['media'] as $m) {
+                $mediaExists = (bool)db_val(
+                    "SELECT 1 FROM `project_media` WHERE `project_id` = ? AND `file_path` = ? LIMIT 1",
+                    [$proj['id'], $m['file_path']]
+                );
+                if (!$mediaExists && !$isDryRun) {
                     $mediaStmt = $pdo->prepare(
                         "INSERT INTO `project_media` 
                          (`project_id`, `media_stage`, `media_type`, `file_path`, `caption`, `alt_text`, `display_order`, `created_at`) 
                          VALUES (?, ?, ?, ?, ?, ?, ?, ?)"
                     );
-                    foreach ($proj['media'] as $m) {
-                        $mediaStmt->execute([
-                            $proj['id'],
-                            $m['media_stage'] ?? 'gallery',
-                            $m['media_type'] ?? 'image',
-                            $m['file_path'],
-                            $m['caption'] ?? '',
-                            $m['alt_text'] ?? '',
-                            (int)($m['display_order'] ?? 0),
-                            $proj['created_at'] ?? date('Y-m-d H:i:s')
-                        ]);
-                    }
+                    $mediaStmt->execute([
+                        $proj['id'],
+                        $m['media_stage'] ?? 'gallery',
+                        $m['media_type'] ?? 'image',
+                        $m['file_path'],
+                        $m['caption'] ?? '',
+                        $m['alt_text'] ?? '',
+                        (int)($m['display_order'] ?? 0),
+                        $proj['created_at'] ?? date('Y-m-d H:i:s')
+                    ]);
                 }
             }
-            $importedProjects++;
         }
+        if (!$isDryRun) $pdo->commit();
     }
-    log_cli("✅ Imported {$importedProjects} project case studies and associated media.");
+    log_cli("✅ Checked project case studies ({$importedProjects} new projects imported; all project media verified/resumed).");
 }
 
 // 11. Seed Initial Business Information Tracker Items
@@ -273,3 +252,5 @@ if ($rcptCount === 0) {
 log_cli("==========================================================");
 log_cli("✅ Migration process completed successfully.");
 log_cli("==========================================================");
+
+if (!$isDryRun) verify_project_media_integrity();

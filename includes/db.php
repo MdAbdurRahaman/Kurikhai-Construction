@@ -27,6 +27,18 @@ class DB {
 
         self::$connectionAttempted = true;
 
+        if (APP_ENV === 'testing' && getenv('TEST_SQLITE_PATH')) {
+            $path = (string)getenv('TEST_SQLITE_PATH');
+            self::$instance = new PDO('sqlite:' . $path, null, null, [PDO::ATTR_ERRMODE=>PDO::ERRMODE_EXCEPTION,PDO::ATTR_DEFAULT_FETCH_MODE=>PDO::FETCH_ASSOC]);
+            self::$instance->exec('PRAGMA busy_timeout=5000');
+            self::$instance->sqliteCreateFunction('NOW', fn()=>date('Y-m-d H:i:s'));
+            self::$instance->sqliteCreateFunction('GET_LOCK', function($name,$timeout)use($path){
+                $file=fopen($path.'.worker-lock','c');if(!flock($file,LOCK_EX|LOCK_NB)){fclose($file);return 0;}$GLOBALS['test_db_lock']=$file;return 1;
+            });
+            self::$instance->sqliteCreateFunction('RELEASE_LOCK',function($name){if(isset($GLOBALS['test_db_lock'])){flock($GLOBALS['test_db_lock'],LOCK_UN);fclose($GLOBALS['test_db_lock']);unset($GLOBALS['test_db_lock']);}return 1;});
+            return self::$instance;
+        }
+
         $dsn = sprintf(
             'mysql:host=%s;port=%s;dbname=%s;charset=%s',
             DB_HOST,
@@ -79,6 +91,10 @@ class DB {
     /**
      * Check if database connection is actively available
      */
+    public static function isSqlite(): bool {
+        return self::getConnection()?->getAttribute(PDO::ATTR_DRIVER_NAME) === "sqlite";
+    }
+
     public static function isConnected(): bool {
         return self::getConnection() !== null;
     }
@@ -104,6 +120,7 @@ class DB {
         }
 
         try {
+            if (self::isSqlite()) { $sql = preg_replace('/\s+FOR UPDATE\b/i', '', $sql); $sql=str_replace('INSERT IGNORE','INSERT OR IGNORE',$sql); }
             $stmt = $pdo->prepare($sql);
             $stmt->execute($params);
             return $stmt;

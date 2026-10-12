@@ -23,10 +23,10 @@ require_once dirname(__DIR__) . '/config/config.php';
 require_once dirname(__DIR__) . '/includes/db.php';
 require_once dirname(__DIR__) . '/includes/mailer.php';
 
-$res = Mailer::processOutboxQueue(25);
+$res = Mailer::processOutboxQueue(5);
 
 $timestamp = date('Y-m-d H:i:s');
-echo "[{$timestamp}] Outbox Worker Processed: {$res['processed']} | Sent: {$res['sent']} | Simulated: {$res['simulated']} | Failed: {$res['failed']}\n";
+echo "[{$timestamp}] Outbox Worker Processed: {$res['processed']} | Sent: {$res['sent']} | Simulated: {$res['simulated']} | Failed: {$res['failed']} | Blocked: {$res['blocked']}\n";
 
 $hasErrors = !empty($res['error']) || ($res['failed'] > 0);
 exit($hasErrors ? 1 : 0);

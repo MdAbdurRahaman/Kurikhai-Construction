@@ -25,8 +25,8 @@ $pageDesc = "Learn about " . htmlspecialchars($company['brand_name']) . ", provi
     <!-- Geo Targeting Singapore -->
     <meta name="geo.region" content="SG">
     <meta name="geo.placename" content="Singapore">
-    <meta name="geo.position" content="1.3364;103.9066">
-    <meta name="ICBM" content="1.3364, 103.9066">
+    <meta name="geo.position" content="1.336358;103.911744">
+    <meta name="ICBM" content="1.336358, 103.911744">
 
     <!-- Favicon -->
     <link rel="icon" type="image/png" sizes="64x64" href="/images/favicon.png">
@@ -52,18 +52,18 @@ $pageDesc = "Learn about " . htmlspecialchars($company['brand_name']) . ", provi
       "@graph": [
         {
           "@type": "AboutPage",
-          "@id": "https://www.tabeebgroup.com/about#webpage",
-          "url": "https://www.tabeebgroup.com/about",
+          "@id": "<?= $baseUrl ?>/about#webpage",
+          "url": "<?= $baseUrl ?>/about",
           "name": <?= json_encode($pageTitle) ?>,
           "isPartOf": {
             "@type": "WebSite",
             "name": <?= json_encode($company['brand_name']) ?>,
-            "url": "https://www.tabeebgroup.com/"
+            "url": "<?= $baseUrl ?>/"
           }
         },
         {
           "@type": "GeneralContractor",
-          "@id": "https://www.tabeebgroup.com/#organization",
+          "@id": "<?= $baseUrl ?>/#organization",
           "name": <?= json_encode($company['brand_name']) ?>,
           "telephone": <?= json_encode($company['phone']) ?>,
           "email": <?= json_encode($company['email']) ?>,
@@ -73,6 +73,11 @@ $pageDesc = "Learn about " . htmlspecialchars($company['brand_name']) . ", provi
             "addressLocality": "Singapore",
             "postalCode": "417943",
             "addressCountry": "SG"
+          },
+          "geo": {
+            "@type": "GeoCoordinates",
+            "latitude": 1.336358,
+            "longitude": 103.911744
           },
           "sameAs": [
             <?= json_encode($company['google_maps_url']) ?>
@@ -85,13 +90,13 @@ $pageDesc = "Learn about " . htmlspecialchars($company['brand_name']) . ", provi
               "@type": "ListItem",
               "position": 1,
               "name": "Home",
-              "item": "https://www.tabeebgroup.com/"
+              "item": "<?= $baseUrl ?>/"
             },
             {
               "@type": "ListItem",
               "position": 2,
               "name": "About Us",
-              "item": "https://www.tabeebgroup.com/about"
+              "item": "<?= $baseUrl ?>/about"
             }
           ]
         }

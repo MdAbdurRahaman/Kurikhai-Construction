@@ -23,6 +23,7 @@ CREATE TABLE IF NOT EXISTS `notification_outbox` (
     `provider_response` VARCHAR(255) NULL,
     `last_error` TEXT NULL,
     `idempotency_key` VARCHAR(64) NOT NULL UNIQUE,
+    `worker_token` VARCHAR(64) NULL,
     `sent_at` DATETIME NULL,
     `created_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
     `updated_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
@@ -74,6 +75,7 @@ CREATE TABLE IF NOT EXISTS `project_media` (
     `created_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
     INDEX `idx_pm_proj` (`project_id`),
     INDEX `idx_pm_stage` (`media_stage`),
+    UNIQUE KEY `uniq_pm_proj_file` (`project_id`, `file_path`),
     CONSTRAINT `fk_pm_project` FOREIGN KEY (`project_id`) REFERENCES `projects` (`id`) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
@@ -220,31 +222,31 @@ INSERT INTO `integration_verifications`
 (`service_type`, `property_identifier`, `verification_method`, `token_or_record`, `status`, `evidence_summary`) 
 VALUES
 ('gsc_domain', 'tabeebgroup.com', 'DNS TXT', NULL, 'Verification instructions prepared', 'Awaiting client DNS TXT record deployment on authoritative nameserver'),
-('gsc_prefix', 'https://tabeebgroup.com/', 'HTML verification file', 'googlea9c88d1e38989379.html', 'Verification file present on server (Account verification pending)', 'Legacy file googlea9c88d1e38989379.html preserved on disk; awaiting client Search Console access'),
+('gsc_prefix', 'https://tabeebgroup.com/', 'HTML verification file', 'googlea9c88d1e38989379.html', 'Verification pending', 'Verification file present on server (Account verification pending). Legacy file googlea9c88d1e38989379.html preserved on disk; awaiting client Search Console access'),
 ('gtm_container', 'GTM-XXXXXXX', 'GTM Container Snippet', NULL, 'Not configured', 'Awaiting authorized client GTM container ID and container publication'),
 ('ga4_stream', 'G-XXXXXXXXXX', 'GA4 Measurement via GTM', NULL, 'Not configured', 'Awaiting real GA4 Measurement ID and GTM tag configuration')
 ON DUPLICATE KEY UPDATE `property_identifier` = VALUES(`property_identifier`);
 
 -- 9. Seed Initial Baseline Metrics Structure (Phase C Day 1 Milestone)
 INSERT INTO `marketing_baseline` 
-(`metric_key`, `metric_category`, `title`, `unit`, `source_name`, `reporting_timezone`, `collection_status`, `status_reason`, `owner`)
+(`metric_key`, `metric_category`, `title`, `unit`, `window_start`, `window_end`, `comparison_window_start`, `comparison_window_end`, `source_name`, `reporting_timezone`, `collection_status`, `status_reason`, `owner`)
 VALUES
-('ga4_organic_sessions', 'traffic', 'Organic Search Sessions (28 Days)', 'sessions', 'Google Analytics 4', 'Asia/Singapore', 'Not previously tracked', 'Tracking container not previously configured or connected to live stream', 'Technical SEO Specialist'),
-('ga4_organic_users', 'traffic', 'Organic Search Active Users (28 Days)', 'users', 'Google Analytics 4', 'Asia/Singapore', 'Not previously tracked', 'Tracking container not previously configured or connected to live stream', 'Technical SEO Specialist'),
-('ga4_total_sessions', 'traffic', 'Total Website Sessions (28 Days)', 'sessions', 'Google Analytics 4', 'Asia/Singapore', 'Not previously tracked', 'GTM container and GA4 tag awaiting verified deployment', 'Technical SEO Specialist'),
-('gsc_organic_clicks', 'search_performance', 'Search Console Total Clicks (Last 28 Days)', 'clicks', 'Google Search Console', 'Asia/Singapore', 'Pending access', 'Search Console domain property access pending client authorization', 'Technical SEO Specialist'),
-('gsc_organic_impressions', 'search_performance', 'Search Console Total Impressions (Last 28 Days)', 'impressions', 'Google Search Console', 'Asia/Singapore', 'Pending access', 'Search Console domain property access pending client authorization', 'Technical SEO Specialist'),
-('gsc_organic_ctr', 'search_performance', 'Search Console Average CTR (Last 28 Days)', '%', 'Google Search Console', 'Asia/Singapore', 'Pending access', 'Search Console domain property access pending client authorization', 'Technical SEO Specialist'),
-('gsc_average_position', 'search_performance', 'Search Console Average Position (Last 28 Days)', 'position', 'Google Search Console', 'Asia/Singapore', 'Pending access', 'Search Console domain property access pending client authorization', 'Technical SEO Specialist'),
-('target_keyword_renovation_sg', 'rankings', 'Rank: renovation contractor singapore', 'rank', 'Manual SERP Snapshot', 'Asia/Singapore', 'Not available', 'No authenticated third-party rank tracker or pre-repair audit active', 'Technical SEO Specialist'),
-('target_keyword_hdb_renovation', 'rankings', 'Rank: hdb renovation contractor singapore', 'rank', 'Manual SERP Snapshot', 'Asia/Singapore', 'Not available', 'No authenticated third-party rank tracker or pre-repair audit active', 'Technical SEO Specialist'),
-('target_keyword_commercial_reinstatement', 'rankings', 'Rank: commercial reinstatement contractor singapore', 'rank', 'Manual SERP Snapshot', 'Asia/Singapore', 'Not available', 'No authenticated third-party rank tracker or pre-repair audit active', 'Technical SEO Specialist'),
-('target_keyword_tiling_works', 'rankings', 'Rank: tiling contractor singapore', 'rank', 'Manual SERP Snapshot', 'Asia/Singapore', 'Not available', 'No authenticated third-party rank tracker or pre-repair audit active', 'Technical SEO Specialist'),
-('target_keyword_waterproofing', 'rankings', 'Rank: waterproofing specialist singapore', 'rank', 'Manual SERP Snapshot', 'Asia/Singapore', 'Not available', 'No authenticated third-party rank tracker or pre-repair audit active', 'Technical SEO Specialist'),
-('leads_persisted_total', 'conversions', 'Total Persisted Website Enquiries', 'leads', 'Tabeeb MySQL CRM', 'Asia/Singapore', 'Not available', 'Pre-repair historical CRM baseline unavailable prior to database activation', 'CRM Administrator'),
-('leads_qualified_total', 'conversions', 'Qualified Inquiries in CRM', 'leads', 'Tabeeb MySQL CRM', 'Asia/Singapore', 'Not available', 'Pre-repair historical CRM baseline unavailable prior to database activation', 'CRM Administrator'),
-('leads_won_total', 'conversions', 'Closed / Won Inquiries in CRM', 'leads', 'Tabeeb MySQL CRM', 'Asia/Singapore', 'Not available', 'Pre-repair historical CRM baseline unavailable prior to database activation', 'CRM Administrator'),
-('conversion_rate_session', 'conversions', 'Website Lead Conversion Rate (Enquiries / Eligible Sessions)', '%', 'Derived (CRM / GA4)', 'Asia/Singapore', 'Not available', 'Eligible session denominator unavailable prior to live GA4 tracking activation', 'Technical SEO Specialist')
+('ga4_organic_sessions', 'traffic', 'Organic Search Sessions (28 Days)', 'sessions', '2026-09-12', '2026-10-09', '2026-08-15', '2026-09-11', 'Google Analytics 4', 'Asia/Singapore', 'Not previously tracked', 'Tracking container not previously configured or connected to live stream', 'Technical SEO Specialist'),
+('ga4_organic_users', 'traffic', 'Organic Search Active Users (28 Days)', 'users', '2026-09-12', '2026-10-09', '2026-08-15', '2026-09-11', 'Google Analytics 4', 'Asia/Singapore', 'Not previously tracked', 'Tracking container not previously configured or connected to live stream', 'Technical SEO Specialist'),
+('ga4_total_sessions', 'traffic', 'Total Website Sessions (28 Days)', 'sessions', '2026-09-12', '2026-10-09', '2026-08-15', '2026-09-11', 'Google Analytics 4', 'Asia/Singapore', 'Not previously tracked', 'GTM container and GA4 tag awaiting verified deployment', 'Technical SEO Specialist'),
+('gsc_organic_clicks', 'search_performance', 'Search Console Total Clicks (Last 28 Days)', 'clicks', '2026-09-12', '2026-10-09', '2026-08-15', '2026-09-11', 'Google Search Console', 'Asia/Singapore', 'Pending access', 'Search Console domain property access pending client authorization', 'Technical SEO Specialist'),
+('gsc_organic_impressions', 'search_performance', 'Search Console Total Impressions (Last 28 Days)', 'impressions', '2026-09-12', '2026-10-09', '2026-08-15', '2026-09-11', 'Google Search Console', 'Asia/Singapore', 'Pending access', 'Search Console domain property access pending client authorization', 'Technical SEO Specialist'),
+('gsc_organic_ctr', 'search_performance', 'Search Console Average CTR (Last 28 Days)', '%', '2026-09-12', '2026-10-09', '2026-08-15', '2026-09-11', 'Google Search Console', 'Asia/Singapore', 'Pending access', 'Search Console domain property access pending client authorization', 'Technical SEO Specialist'),
+('gsc_average_position', 'search_performance', 'Search Console Average Position (Last 28 Days)', 'position', '2026-09-12', '2026-10-09', '2026-08-15', '2026-09-11', 'Google Search Console', 'Asia/Singapore', 'Pending access', 'Search Console domain property access pending client authorization', 'Technical SEO Specialist'),
+('target_keyword_renovation_sg', 'rankings', 'Rank: renovation contractor singapore', 'rank', '2026-09-12', '2026-10-09', '2026-08-15', '2026-09-11', 'Manual SERP Snapshot', 'Asia/Singapore', 'Not available', 'No authenticated third-party rank tracker or pre-repair audit active', 'Technical SEO Specialist'),
+('target_keyword_hdb_renovation', 'rankings', 'Rank: hdb renovation contractor singapore', 'rank', '2026-09-12', '2026-10-09', '2026-08-15', '2026-09-11', 'Manual SERP Snapshot', 'Asia/Singapore', 'Not available', 'No authenticated third-party rank tracker or pre-repair audit active', 'Technical SEO Specialist'),
+('target_keyword_commercial_reinstatement', 'rankings', 'Rank: commercial reinstatement contractor singapore', 'rank', '2026-09-12', '2026-10-09', '2026-08-15', '2026-09-11', 'Manual SERP Snapshot', 'Asia/Singapore', 'Not available', 'No authenticated third-party rank tracker or pre-repair audit active', 'Technical SEO Specialist'),
+('target_keyword_tiling_works', 'rankings', 'Rank: tiling contractor singapore', 'rank', '2026-09-12', '2026-10-09', '2026-08-15', '2026-09-11', 'Manual SERP Snapshot', 'Asia/Singapore', 'Not available', 'No authenticated third-party rank tracker or pre-repair audit active', 'Technical SEO Specialist'),
+('target_keyword_waterproofing', 'rankings', 'Rank: waterproofing specialist singapore', 'rank', '2026-09-12', '2026-10-09', '2026-08-15', '2026-09-11', 'Manual SERP Snapshot', 'Asia/Singapore', 'Not available', 'No authenticated third-party rank tracker or pre-repair audit active', 'Technical SEO Specialist'),
+('leads_persisted_total', 'conversions', 'Total Persisted Website Enquiries', 'leads', '2026-09-12', '2026-10-09', '2026-08-15', '2026-09-11', 'Tabeeb MySQL CRM', 'Asia/Singapore', 'Not available', 'Pre-repair historical CRM baseline unavailable prior to database activation', 'CRM Administrator'),
+('leads_qualified_total', 'conversions', 'Qualified Inquiries in CRM', 'leads', '2026-09-12', '2026-10-09', '2026-08-15', '2026-09-11', 'Tabeeb MySQL CRM', 'Asia/Singapore', 'Not available', 'Pre-repair historical CRM baseline unavailable prior to database activation', 'CRM Administrator'),
+('leads_won_total', 'conversions', 'Closed / Won Inquiries in CRM', 'leads', '2026-09-12', '2026-10-09', '2026-08-15', '2026-09-11', 'Tabeeb MySQL CRM', 'Asia/Singapore', 'Not available', 'Pre-repair historical CRM baseline unavailable prior to database activation', 'CRM Administrator'),
+('conversion_rate_session', 'conversions', 'Website Lead Conversion Rate (Enquiries / Eligible Sessions)', '%', '2026-09-12', '2026-10-09', '2026-08-15', '2026-09-11', 'Derived (CRM / GA4)', 'Asia/Singapore', 'Not available', 'Eligible session denominator unavailable prior to live GA4 tracking activation', 'Technical SEO Specialist')
 ON DUPLICATE KEY UPDATE `title` = VALUES(`title`);
 
 -- 10. Seed Serangoon Avenue 3 Case Study (Draft Pending Approval)
@@ -262,15 +264,15 @@ VALUES
  1, '2026-10-10 12:00:00', '2026-10-10 12:00:00')
 ON DUPLICATE KEY UPDATE `slug` = VALUES(`slug`);
 
--- 11. Seed Serangoon Avenue 3 Media Items
+-- 11. Seed Serangoon Avenue 3 Media Items (Generated PKs, deduplicated on project_id and file_path)
 INSERT INTO `project_media` 
-(`id`, `project_id`, `media_stage`, `media_type`, `file_path`, `caption`, `alt_text`, `display_order`, `created_at`)
+(`project_id`, `media_stage`, `media_type`, `file_path`, `caption`, `alt_text`, `display_order`, `created_at`)
 VALUES
-(1, 'proj_serangoon_01', 'before', 'image', '/images/projects/serangoon-before.webp', 'Existing tile condition and floor preparation area', 'Existing floor condition prior to renovation', 1, '2026-10-10 12:00:00'),
-(2, 'proj_serangoon_01', 'in_progress', 'image', '/images/projects/serangoon-in-progress.webp', 'Floor screeding and surface levelling stage', 'Cement screed flooring work in progress', 2, '2026-10-10 12:00:00'),
-(3, 'proj_serangoon_01', 'completed', 'image', '/images/projects/serangoon-completed.webp', 'Completed tiled flooring finish with skirting', 'Completed tiled flooring finish', 3, '2026-10-10 12:00:00'),
-(4, 'proj_serangoon_01', 'gallery', 'image', '/images/projects/serangoon-board-full.webp', 'Complete project documentation board provided by client', 'Full Serangoon Avenue 3 project board', 4, '2026-10-10 12:00:00'),
-(5, 'proj_serangoon_01', 'gallery', 'image', '/images/projects/renovation-stages-collage.webp', 'Client reference composite showing renovation progression (Preserving anonymization blurs)', 'Renovation process stages collage', 5, '2026-10-10 12:00:00')
-ON DUPLICATE KEY UPDATE `file_path` = VALUES(`file_path`);
+('proj_serangoon_01', 'before', 'image', '/images/projects/serangoon-before.webp', 'Existing tile condition and floor preparation area', 'Existing floor condition prior to renovation', 1, '2026-10-10 12:00:00'),
+('proj_serangoon_01', 'in_progress', 'image', '/images/projects/serangoon-in-progress.webp', 'Floor screeding and surface levelling stage', 'Cement screed flooring work in progress', 2, '2026-10-10 12:00:00'),
+('proj_serangoon_01', 'completed', 'image', '/images/projects/serangoon-completed.webp', 'Completed tiled flooring finish with skirting', 'Completed tiled flooring finish', 3, '2026-10-10 12:00:00'),
+('proj_serangoon_01', 'gallery', 'image', '/images/projects/serangoon-board-full.webp', 'Complete project documentation board provided by client', 'Full Serangoon Avenue 3 project board', 4, '2026-10-10 12:00:00'),
+('proj_serangoon_01', 'gallery', 'image', '/images/projects/renovation-stages-collage.webp', 'Client reference composite showing renovation progression (Preserving anonymization blurs)', 'Renovation process stages collage', 5, '2026-10-10 12:00:00')
+ON DUPLICATE KEY UPDATE `caption` = VALUES(`caption`), `alt_text` = VALUES(`alt_text`), `display_order` = VALUES(`display_order`);
 
 SET FOREIGN_KEY_CHECKS = 1;

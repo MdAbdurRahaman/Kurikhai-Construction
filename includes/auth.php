@@ -23,23 +23,7 @@ function init_secure_session(): void {
         return;
     }
 
-    $isSecure = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off')
-             || (isset($_SERVER['SERVER_PORT']) && $_SERVER['SERVER_PORT'] == 443)
-             || (!empty($_SERVER['HTTP_X_FORWARDED_PROTO']) && $_SERVER['HTTP_X_FORWARDED_PROTO'] === 'https');
-
-    ini_set('session.use_only_cookies', '1');
-    ini_set('session.use_strict_mode', '1');
-
-    session_set_cookie_params([
-        'lifetime' => SESSION_LIFETIME,
-        'path'     => '/',
-        'domain'   => '',
-        'secure'   => $isSecure,
-        'httponly' => true,
-        'samesite' => 'Lax'
-    ]);
-
-    session_start();
+    secure_session_start();
 
     // Check session timeout & database account status
     if (!empty($_SESSION['tabeeb_admin_user'])) {

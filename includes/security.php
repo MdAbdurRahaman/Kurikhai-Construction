@@ -22,7 +22,7 @@ require_once __DIR__ . '/db.php';
  */
 function get_csrf_token(): string {
     if (session_status() === PHP_SESSION_NONE) {
-        session_start();
+        secure_session_start();
     }
     if (empty($_SESSION['csrf_token'])) {
         $_SESSION['csrf_token'] = bin2hex(random_bytes(32));
@@ -35,7 +35,7 @@ function verify_csrf_token(mixed $token): bool {
         return false;
     }
     if (session_status() === PHP_SESSION_NONE) {
-        session_start();
+        secure_session_start();
     }
     if (empty($_SESSION['csrf_token'])) {
         return false;
@@ -51,26 +51,13 @@ function csrf_input_field(): string {
  * Verify that the incoming request originates from the approved application host
  */
 function verify_same_origin(): bool {
-    $allowedHost = parse_url(APP_URL, PHP_URL_HOST);
-    
-    // Check Origin header first if present
-    if (!empty($_SERVER['HTTP_ORIGIN'])) {
-        $originHost = parse_url($_SERVER['HTTP_ORIGIN'], PHP_URL_HOST);
-        return $originHost !== null && (strcasecmp($originHost, $allowedHost) === 0 || $originHost === 'localhost' || $originHost === '127.0.0.1');
+    foreach (['HTTP_ORIGIN', 'HTTP_REFERER'] as $header) {
+        if (!empty($_SERVER[$header])) {
+            $u = parse_url((string)$_SERVER[$header]); $a = parse_url(APP_URL);
+            return is_array($u) && ($u['scheme'] ?? '') === ($a['scheme'] ?? '') && strtolower($u['host'] ?? '') === strtolower($a['host'] ?? '') && ($u['port'] ?? (($u['scheme'] ?? '') === 'https' ? 443 : 80)) === ($a['port'] ?? (($a['scheme'] ?? '') === 'https' ? 443 : 80));
+        }
     }
-
-    // Check Referer header
-    if (!empty($_SERVER['HTTP_REFERER'])) {
-        $refererHost = parse_url($_SERVER['HTTP_REFERER'], PHP_URL_HOST);
-        return $refererHost !== null && (strcasecmp($refererHost, $allowedHost) === 0 || $refererHost === 'localhost' || $refererHost === '127.0.0.1');
-    }
-
-    // If neither header is sent by modern browser on same-origin POST, check Sec-Fetch-Site
-    if (!empty($_SERVER['HTTP_SEC_FETCH_SITE'])) {
-        return in_array($_SERVER['HTTP_SEC_FETCH_SITE'], ['same-origin', 'same-site', 'none'], true);
-    }
-
-    return true; // Allow non-browser CLI or test calls
+    return ($_SERVER['HTTP_SEC_FETCH_SITE'] ?? '') === 'same-origin';
 }
 
 /**
@@ -110,6 +97,9 @@ function check_rate_limit(string $actionType, int $maxAttempts = 5, int $windowS
 
     if (DB::isConnected()) {
         try {
+            if (DB::isSqlite()) {
+                db_exec("INSERT INTO rate_limits(rate_key,action_type,attempts,reset_at) VALUES (?,?,1,?) ON CONFLICT(rate_key,action_type) DO UPDATE SET attempts=CASE WHEN reset_at < NOW() THEN 1 ELSE attempts+1 END,reset_at=CASE WHEN reset_at < NOW() THEN excluded.reset_at ELSE reset_at END",[$rateKey,$actionType,$resetAt]);
+            } else {
             // Atomic UPSERT avoids race conditions under concurrent requests
             db_exec(
                 "INSERT INTO `rate_limits` (`rate_key`, `action_type`, `attempts`, `reset_at`) 
@@ -120,6 +110,7 @@ function check_rate_limit(string $actionType, int $maxAttempts = 5, int $windowS
                 [$rateKey, $actionType, $resetAt]
             );
 
+            }
             $record = db_one(
                 "SELECT `attempts`, `reset_at` FROM `rate_limits` WHERE `rate_key` = ? AND `action_type` = ? LIMIT 1",
                 [$rateKey, $actionType]
@@ -147,7 +138,7 @@ function check_rate_limit(string $actionType, int $maxAttempts = 5, int $windowS
 
     // Fallback to PHP session rate limiting if DB is offline
     if (session_status() === PHP_SESSION_NONE) {
-        session_start();
+        secure_session_start();
     }
     $sessionKey = 'rate_' . $actionType;
     $history = $_SESSION[$sessionKey] ?? ['attempts' => 0, 'reset_at' => time() + $windowSeconds];

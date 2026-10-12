@@ -27,8 +27,8 @@ $services = get_all_services(true);
     <!-- Geo Targeting Singapore -->
     <meta name="geo.region" content="SG">
     <meta name="geo.placename" content="Singapore">
-    <meta name="geo.position" content="1.3364;103.9066">
-    <meta name="ICBM" content="1.3364, 103.9066">
+    <meta name="geo.position" content="1.336358;103.911744">
+    <meta name="ICBM" content="1.336358, 103.911744">
 
     <!-- Favicon -->
     <link rel="icon" type="image/png" sizes="64x64" href="/images/favicon.png">
@@ -85,13 +85,13 @@ $services = get_all_services(true);
               "@type": "ListItem",
               "position": 1,
               "name": "Home",
-              "item": "https://www.tabeebgroup.com/"
+              "item": "<?= $baseUrl ?>/"
             },
             {
               "@type": "ListItem",
               "position": 2,
               "name": "Services",
-              "item": "https://www.tabeebgroup.com/services"
+              "item": "<?= $baseUrl ?>/services"
             }
           ]
         }

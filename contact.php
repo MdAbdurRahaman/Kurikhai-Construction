@@ -27,8 +27,8 @@ $preselectedService = trim($_GET['service'] ?? '');
     <!-- Geo Targeting Singapore -->
     <meta name="geo.region" content="SG">
     <meta name="geo.placename" content="Singapore">
-    <meta name="geo.position" content="1.3364;103.9066">
-    <meta name="ICBM" content="1.3364, 103.9066">
+    <meta name="geo.position" content="1.336358;103.911744">
+    <meta name="ICBM" content="1.336358, 103.911744">
 
     <!-- Favicon -->
     <link rel="icon" type="image/png" sizes="64x64" href="/images/favicon.png">
@@ -54,18 +54,18 @@ $preselectedService = trim($_GET['service'] ?? '');
       "@graph": [
         {
           "@type": "ContactPage",
-          "@id": "https://www.tabeebgroup.com/contact#webpage",
-          "url": "https://www.tabeebgroup.com/contact",
+          "@id": "<?= $baseUrl ?>/contact#webpage",
+          "url": "<?= $baseUrl ?>/contact",
           "name": <?= json_encode($pageTitle) ?>,
           "isPartOf": {
             "@type": "WebSite",
             "name": <?= json_encode($company['brand_name']) ?>,
-            "url": "https://www.tabeebgroup.com/"
+            "url": "<?= $baseUrl ?>/"
           }
         },
         {
           "@type": ["GeneralContractor", "HomeAndConstructionBusiness"],
-          "@id": "https://www.tabeebgroup.com/#organization",
+          "@id": "<?= $baseUrl ?>/#organization",
           "name": <?= json_encode($company['brand_name']) ?>,
           "telephone": <?= json_encode($company['phone']) ?>,
           "email": <?= json_encode($company['email']) ?>,
@@ -75,6 +75,11 @@ $preselectedService = trim($_GET['service'] ?? '');
             "addressLocality": "Singapore",
             "postalCode": "417943",
             "addressCountry": "SG"
+          },
+          "geo": {
+            "@type": "GeoCoordinates",
+            "latitude": 1.336358,
+            "longitude": 103.911744
           },
           "sameAs": [
             <?= json_encode($company['google_maps_url']) ?>
@@ -87,13 +92,13 @@ $preselectedService = trim($_GET['service'] ?? '');
               "@type": "ListItem",
               "position": 1,
               "name": "Home",
-              "item": "https://www.tabeebgroup.com/"
+              "item": "<?= $baseUrl ?>/"
             },
             {
               "@type": "ListItem",
               "position": 2,
               "name": "Contact Us",
-              "item": "https://www.tabeebgroup.com/contact"
+              "item": "<?= $baseUrl ?>/contact"
             }
           ]
         }

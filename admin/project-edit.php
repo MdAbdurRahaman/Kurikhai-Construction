@@ -38,12 +38,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $videoPath = trim($_POST['video_path'] ?? '');
         $videoPoster = trim($_POST['video_poster'] ?? '');
         $pubState = in_array($_POST['publication_state'] ?? '', ['draft', 'published', 'archived']) ? $_POST['publication_state'] : 'draft';
+        $approvalEvidence = trim((string)($_POST['approval_evidence'] ?? ''));
         $approvalStatus = in_array($_POST['approval_status'] ?? '', ['pending', 'approved', 'restricted']) ? $_POST['approval_status'] : 'pending';
         $ogTitle = trim($_POST['og_title'] ?? '');
         $ogDesc = trim($_POST['og_description'] ?? '');
         $displayOrder = (int)($_POST['display_order'] ?? 0);
 
-        if (empty($title)) {
+        if ($approvalStatus === 'approved' && (!has_permission('projects.approve') || strlen($approvalEvidence) < 10)) {
+            $error = 'Publication approval requires an authorized administrator and dated client evidence.';
+        } elseif (empty($title)) {
             $error = 'Project Title is required.';
         } elseif (empty($factualSummary)) {
             $error = 'Factual Summary is required to document genuine project evidence.';
@@ -70,7 +73,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 'display_order'     => $displayOrder
             ];
 
-            $res = save_project($projData);
+            if (!DB::isConnected()) { $error = 'Database unavailable; project changes were not saved.'; $res = ['success'=>false,'message'=>$error]; } else {
+            $res = DB::transaction(function()use($projData,$approvalStatus,$approvalEvidence){
+                $r = save_project($projData);
+                if (!empty($r['success'])) {
+                    db_exec('UPDATE projects SET approved_by=?,approved_at=? WHERE id=?',[$approvalStatus==='approved'?(current_user()['id']??null):null,$approvalStatus==='approved'?date('Y-m-d H:i:s'):null,$r['project']['id']]);
+                    audit_log('project.approval_recorded','projects',$r['project']['id'],null,['status'=>$approvalStatus,'evidence'=>$approvalEvidence]);
+                }
+                return $r;
+            });
+            }
             if (!empty($res['success'])) {
                 header('Location: projects.php?msg=' . urlencode('Project case study saved successfully!'));
                 exit;
@@ -93,6 +105,7 @@ require_once __DIR__ . '/header.php';
             <span style="font-size: 13px; color: var(--admin-text-muted);">Ensure all facts, locations, and media reflect client-supplied documentation only.</span>
         </div>
         <div>
+            <?php if($isEdit):?><a href="project-media.php?project=<?= urlencode($projId) ?>">Edit project media</a><?php endif;?>
             <a href="projects.php" class="btn-adm btn-adm-outline">← Back to Projects</a>
         </div>
     </div>
@@ -224,6 +237,7 @@ require_once __DIR__ . '/header.php';
                         </div>
 
                         <div class="form-group">
+                            <label class="form-label">Dated client approval evidence <input name="approval_evidence" class="form-control-adm" placeholder="Client confirmation reference and date"></label>
                             <label class="form-label" for="approval_status">Client Approval Status</label>
                             <select name="approval_status" id="approval_status" class="form-control-adm">
                                 <option value="pending" <?= (($_POST['approval_status'] ?? $proj['approval_status'] ?? 'pending') === 'pending') ? 'selected' : '' ?>>Pending Confirmation</option>

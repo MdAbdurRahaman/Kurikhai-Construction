@@ -1,167 +1,52 @@
-name: 🚀 Controlled Release Deployment to cPanel
-
+name: Build and validate release candidate
 on:
   workflow_dispatch:
-    inputs:
-      target_env:
-        description: 'Target Deployment Environment'
-        required: true
-        default: 'staging'
-        type: choice
-        options:
-          - staging
-          - production
-      confirmation:
-        description: 'Type "CONFIRM_RELEASE" to authorize release execution'
-        required: true
-        default: ''
-
 jobs:
-  controlled-release:
-    name: 🌐 Authenticated cPanel Release Workflow
+  build:
     runs-on: ubuntu-latest
+    services:
+      mariadb:
+        image: mariadb:10.11
+        env:
+          MARIADB_ROOT_PASSWORD: disposable-ci-password
+        ports:
+          - 3306:3306
+        options: >-
+          --health-cmd="healthcheck.sh --connect --innodb_initialized"
+          --health-interval=10s --health-timeout=5s --health-retries=10
+    env:
+      APP_ENV: testing
+      APP_URL: http://127.0.0.1:8086
+      DB_HOST: 127.0.0.1
+      DB_PORT: 3306
+      DB_NAME: tabeeb_test_ci
+      DB_USER: root
+      DB_PASS: disposable-ci-password
+      HMAC_SECRET: disposable-ci-hmac-material-minimum-32-characters
+    permissions:
+      contents: read
     steps:
-      - name: 🛡️ Validate Manual Authorization
+      - uses: actions/checkout@v4
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.3'
+          extensions: pdo_mysql, pdo_sqlite, mbstring, dom, gd
+      - name: Syntax validation
         run: |
-          if [ "${{ github.event.inputs.confirmation }}" != "CONFIRM_RELEASE" ]; then
-            echo "::error::Release execution aborted: Confirmation string must be CONFIRM_RELEASE."
-            exit 1
-          fi
-          echo "Release authorized for target: ${{ github.event.inputs.target_env }}"
-
-      - name: 🚚 Checkout Release Source Code
-        uses: actions/checkout@v4
-
-      - name: 📦 Build Allowlisted Release Package
+          find . -name '*.php' -not -path './vendor/*' -print0 | xargs -0 -n1 php -l
+          node --check app.js
+      - name: Application contracts
+        run: php tests/contracts.php
+      - name: Real MariaDB driver migrations
         run: |
-          echo "Packaging application files with strict exclusion of runtime data, secrets, and test suites..."
-          # Exclude production runtime data, uploads, environment secrets, tests, and raw source artifacts
-          zip -r website-deploy.zip . \
-            -x ".git*" \
-            -x ".github*" \
-            -x "*.md" \
-            -x ".cpanel.yml" \
-            -x "*.zip" \
-            -x ".env*" \
-            -x "*.sql" \
-            -x "data/*" \
-            -x "tests/*" \
-            -x "scripts/test*" \
-            -x "images/blog/*" \
-            -x "images/projects/client_originals/*"
-          
-          echo "Package created successfully:"
-          unzip -l website-deploy.zip | head -n 30
-
-      - name: 🚀 Authenticated Upload, Extraction & Verification
-        run: |
-          CPANEL_USER="${{ secrets.CPANEL_USERNAME || 'tabeebgroup' }}"
-          CPANEL_HOST="${{ secrets.CPANEL_HOST || '151.158.158.31' }}"
-          API_TOKEN="${{ secrets.CPANEL_API_TOKEN }}"
-          
-          if [ -z "$API_TOKEN" ]; then
-            echo "::error::CPANEL_API_TOKEN secret is missing! Please configure in GitHub Secrets."
-            exit 1
-          fi
-
-          # 1. Generate one-time cryptographic deployment secret
-          DEPLOY_KEY=$(openssl rand -hex 24)
-
-          # 2. Ephemeral self-destructing extractor with ZipSlip and extraction validation
-          cat << 'EOF' > deploy_extractor.php
-          <?php
-          header('Content-Type: application/json');
-          $secret = 'DEPLOY_KEY_PLACEHOLDER';
-          if (!isset($_GET['token']) || !hash_equals($secret, (string)$_GET['token'])) {
-              http_response_code(403);
-              echo json_encode(['status' => 'error', 'message' => 'Forbidden: Invalid deployment key']);
-              exit(1);
-          }
-          $zipPath = __DIR__ . '/website-deploy.zip';
-          if (!file_exists($zipPath)) {
-              @unlink(__FILE__);
-              http_response_code(404);
-              echo json_encode(['status' => 'error', 'message' => 'Archive missing']);
-              exit(1);
-          }
-          $zip = new ZipArchive();
-          if ($zip->open($zipPath) === true) {
-              for ($i = 0; $i < $zip->numFiles; $i++) {
-                  $entry = $zip->getNameIndex($i);
-                  if (strpos($entry, '../') !== false || strpos($entry, '..\\') !== false) {
-                      $zip->close();
-                      @unlink($zipPath);
-                      @unlink(__FILE__);
-                      http_response_code(400);
-                      echo json_encode(['status' => 'error', 'message' => 'ZipSlip traversal detected']);
-                      exit(1);
-                  }
-              }
-              $extracted = $zip->extractTo(__DIR__);
-              $zip->close();
-              @unlink($zipPath);
-              @unlink(__FILE__);
-              if ($extracted) {
-                  echo json_encode(['status' => 'success', 'message' => 'Files extracted and extractor self-destructed']);
-                  exit(0);
-              } else {
-                  http_response_code(500);
-                  echo json_encode(['status' => 'error', 'message' => 'Extraction failed']);
-                  exit(1);
-              }
-          } else {
-              @unlink(__FILE__);
-              http_response_code(500);
-              echo json_encode(['status' => 'error', 'message' => 'Failed to open zip archive']);
-              exit(1);
-          }
-          EOF
-
-          sed -i "s/DEPLOY_KEY_PLACEHOLDER/${DEPLOY_KEY}/g" deploy_extractor.php
-
-          echo "1️⃣ Uploading package archive and ephemeral extractor..."
-          UPLOAD_RES=$(curl -s -S -X POST \
-            -H "Authorization: cpanel ${CPANEL_USER}:${API_TOKEN}" \
-            -F "dir=public_html" \
-            -F "file-1=@website-deploy.zip" \
-            -F "file-2=@deploy_extractor.php" \
-            "https://${CPANEL_HOST}:2083/execute/Fileman/upload_files")
-          echo "Upload Response: $UPLOAD_RES"
-
-          # Verify upload succeeded
-          if ! echo "$UPLOAD_RES" | grep -q '"status":1'; then
-            echo "::error::cPanel Fileman upload_files failed: $UPLOAD_RES"
-            exit 1
-          fi
-
-          echo "2️⃣ Triggering authenticated extraction..."
-          EXTRACT_RES=$(curl -s -S -L "https://tabeebgroup.com/deploy_extractor.php?token=${DEPLOY_KEY}")
-          echo "Extractor Response: $EXTRACT_RES"
-
-          # Verify extraction succeeded
-          if ! echo "$EXTRACT_RES" | grep -q '"status":"success"'; then
-            echo "::error::Deployment extractor returned failure: $EXTRACT_RES"
-            exit 1
-          fi
-
-          echo "3️⃣ Ensuring cleanup of any residual temporary files..."
-          curl -s -S -X POST \
-            -H "Authorization: cpanel ${CPANEL_USER}:${API_TOKEN}" \
-            -d "dir=public_html" \
-            -d "files=website-deploy.zip" \
-            "https://${CPANEL_HOST}:2083/execute/Fileman/delete_files" > /dev/null 2>&1 || true
-
-          curl -s -S -X POST \
-            -H "Authorization: cpanel ${CPANEL_USER}:${API_TOKEN}" \
-            -d "dir=public_html" \
-            -d "files=deploy_extractor.php" \
-            "https://${CPANEL_HOST}:2083/execute/Fileman/delete_files" > /dev/null 2>&1 || true
-
-          echo "4️⃣ Post-deploy HTTP smoke check..."
-          HTTP_STATUS=$(curl -s -o /dev/null -w "%{http_code}" "https://tabeebgroup.com/")
-          echo "Live HTTP Status: $HTTP_STATUS"
-          if [ "$HTTP_STATUS" != "200" ]; then
-            echo "::warning::Homepage returned HTTP status $HTTP_STATUS after deployment. Please inspect live site."
-          fi
-
-          echo "🎉 Controlled release successfully completed and validated."
+          php tests/mysql_prepare.php
+          php scripts/migrate.php --seed
+          php scripts/migrate.php
+      - name: Build immutable release bundle
+        run: python3 ops/package.py --output Tabeeb_Production_Package.zip
+      - uses: actions/upload-artifact@v4
+        with:
+          name: production-candidate
+          path: Tabeeb_Production_Package.zip
+# Publishing is a separate CLI release using ops/release.sh and a protected environment.
+# This workflow has no hosting credentials and cannot overwrite production or runtime data.

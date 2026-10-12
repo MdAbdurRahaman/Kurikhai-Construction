@@ -19,6 +19,7 @@ class TrackingService {
      * Determine if current request URL is on an excluded/sensitive path
      */
     public static function isSensitiveRoute(): bool {
+        if (APP_ENV !== 'production') return true;
         // Strictly suppress tracking on staff preview responses
         if (!empty($GLOBALS['isStaffPreview'])) {
             return true;
@@ -153,4 +154,15 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
 <!-- End Google Tag Manager (noscript) -->
         <?php
     }
+}
+
+/**
+ * Compatibility aliases for legacy templates
+ */
+function render_analytics_head(): void {
+    render_gtm_head();
+}
+
+function render_analytics_body(): void {
+    render_gtm_body();
 }

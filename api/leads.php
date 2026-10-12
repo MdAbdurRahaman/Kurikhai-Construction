@@ -208,7 +208,7 @@ $preferredContact = in_array($prefInput, $allowedContacts, true) ? $prefInput : 
 
 // Consent status (Explicit agreement check or submission notice consent)
 $consentMethod = trim((string)($data['consent_mechanism'] ?? ''));
-$hasExplicitConsent = !empty($data['consent']) || !empty($data['consent_agree']) || (isset($data['consent_status']) && (string)$data['consent_status'] === '1');
+$hasExplicitConsent = in_array(strtolower((string)($data['consent'] ?? $data['consent_agree'] ?? $data['consent_status'] ?? '')), ['1', 'true', 'on', 'yes'], true);
 $hasNoticeConsent = ($consentMethod === 'submission_notice_consent');
 
 if (!$hasExplicitConsent && !$hasNoticeConsent) {
@@ -250,55 +250,25 @@ if (!DB::isConnected()) {
     exit;
 }
 
-// 11. Deduplication / Idempotency Check
+require_once __DIR__ . '/../includes/lead_request.php';
+
+// A key identifies one intended submission. Different keys always identify different enquiries.
 $providedIdempotencyKey = trim((string)($data['idempotency_key'] ?? ''));
-if (!empty($providedIdempotencyKey)) {
-    $idempotencyKey = substr($providedIdempotencyKey, 0, 64);
-} else {
-    $timeWindow = floor(time() / 600);
-    $idempotencyKey = hash('sha256', "lead_{$formattedPhone}_{$serviceSlug}_{$timeWindow}");
+if ($providedIdempotencyKey !== '' && !preg_match('/^[a-zA-Z0-9_\-]{8,64}$/', $providedIdempotencyKey)) {
+    http_response_code(422); echo json_encode(['success'=>false, 'message'=>'Invalid submission identifier.']); exit;
 }
-
+$idempotencyKey = $providedIdempotencyKey ?: 'srv_' . bin2hex(random_bytes(16));
+$payloadHash = lead_request_fingerprint([
+    'name'=>$name, 'phone'=>$formattedPhone, 'email'=>$email, 'service_requested'=>$validService,
+    'property_type'=>$propertyType, 'estimated_budget'=>$budget, 'project_description'=>$message,
+    'preferred_contact_method'=>$preferredContact, 'consent_status'=>$consentStatus, 'source'=>$source
+]);
 try {
-    // Check by idempotency key
-    $existingByKey = db_one(
-        "SELECT `id`, `lead_number` FROM `leads` WHERE `idempotency_key` = ? LIMIT 1",
-        [$idempotencyKey]
-    );
-
-    if ($existingByKey) {
-        http_response_code(200);
-        echo json_encode([
-            'success'      => true,
-            'lead_id'      => $existingByKey['lead_number'],
-            'service_id'   => $serviceSlug,
-            'message'      => 'Thank you! We have already received your inquiry and our coordinator is reviewing your details right now.',
-            'is_duplicate' => true
-        ]);
-        exit;
-    }
-
-    // Secondary check: same phone & service requested within 10 minutes
-    $tenMinAgo = date('Y-m-d H:i:s', time() - 600);
-    $duplicate = db_one(
-        "SELECT `id`, `lead_number`, `project_description` FROM `leads` 
-         WHERE `phone` = ? AND `service_requested` = ? AND `created_at` >= ? LIMIT 1",
-        [$formattedPhone, $validService, $tenMinAgo]
-    );
-
-    if ($duplicate && $duplicate['project_description'] === $message) {
-        http_response_code(200);
-        echo json_encode([
-            'success'      => true,
-            'lead_id'      => $duplicate['lead_number'],
-            'service_id'   => $serviceSlug,
-            'message'      => 'Thank you! We have already received your inquiry and our coordinator is reviewing your details right now.',
-            'is_duplicate' => true
-        ]);
-        exit;
-    }
+    $existingByKey = DB::query("SELECT * FROM leads WHERE idempotency_key = ? LIMIT 1", [$idempotencyKey])->fetch();
+    if ($existingByKey) lead_replay_response($existingByKey, $payloadHash, $serviceSlug);
 } catch (Throwable $t) {
-    error_log('[Deduplication Check Error] ' . $t->getMessage());
+    error_log('[Lead replay lookup failed] ' . get_class($t));
+    http_response_code(503); echo json_encode(['success'=>false,'message'=>'The enquiry system is temporarily unavailable. Please try again.']); exit;
 }
 
 // 12. Generate Unique Human-Readable Reference
@@ -313,7 +283,7 @@ try {
     $insertedId = DB::transaction(function($pdo) use (
         $leadNumber, $name, $formattedPhone, $email, $preferredContact, $validService, $serviceSlug,
         $propertyType, $budget, $message, $source, $landingPage, $referrer, $utmJson,
-        $consentStatus, $now, $ipHash, $userAgent, $idempotencyKey
+        $consentStatus, $now, $ipHash, $userAgent, $idempotencyKey, $payloadHash
     ) {
         // A. Insert Primary Lead with Idempotency Key
         $stmt = $pdo->prepare(
@@ -321,13 +291,13 @@ try {
              (`lead_number`, `name`, `phone`, `email`, `preferred_contact_method`, `service_requested`, 
               `property_type`, `estimated_budget`, `project_description`, `status`, `priority`, 
               `source`, `landing_page`, `referrer`, `utm_params`, `consent_status`, `consent_timestamp`, `submission_timestamp`, 
-              `ip_hash`, `idempotency_key`, `user_agent`, `created_at`) 
-             VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, 'new', 'medium', ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)"
+              `ip_hash`, `idempotency_key`, `payload_hash`, `user_agent`, `created_at`) 
+             VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, 'new', 'medium', ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)"
         );
         $stmt->execute([
             $leadNumber, $name, $formattedPhone, $email, $preferredContact, $validService,
             $propertyType, $budget, $message, $source, $landingPage, $referrer, $utmJson,
-            $consentStatus, $now, $now, $ipHash, $idempotencyKey, $userAgent, $now
+            $consentStatus, $now, $now, $ipHash, $idempotencyKey, $payloadHash, $userAgent, $now
         ]);
 
         $leadId = (int)$pdo->lastInsertId();
@@ -418,20 +388,11 @@ try {
 } catch (Throwable $t) {
     error_log('[Lead Ingestion Transaction Failure] ' . $t->getMessage());
 
-    // Check if error was caused by idempotency unique key race collision
-    if (str_contains($t->getMessage(), 'idempotency_key') || str_contains($t->getMessage(), 'Duplicate entry')) {
-        $existing = db_one("SELECT `lead_number` FROM `leads` WHERE `idempotency_key` = ? LIMIT 1", [$idempotencyKey]);
-        if ($existing) {
-            http_response_code(200);
-            echo json_encode([
-                'success'      => true,
-                'lead_id'      => $existing['lead_number'],
-                'service_id'   => $serviceSlug,
-                'message'      => 'Thank you! We have already received your inquiry and our coordinator is reviewing your details right now.',
-                'is_duplicate' => true
-            ]);
-            exit;
-        }
+    if ($t instanceof PDOException && (int)($t->errorInfo[1] ?? 0) === 1062) {
+        try {
+            $existing = DB::query("SELECT * FROM leads WHERE idempotency_key = ? LIMIT 1", [$idempotencyKey])->fetch();
+            if ($existing) lead_replay_response($existing, $payloadHash, $serviceSlug);
+        } catch (Throwable $lookupError) { error_log('[Lead race lookup failed] ' . get_class($lookupError)); }
     }
 
     http_response_code(500);

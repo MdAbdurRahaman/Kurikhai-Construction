@@ -25,8 +25,8 @@ $pageDesc = "Terms of Service for Tabeeb Contractor Singapore. Conditions for we
     <!-- Geo Targeting Singapore -->
     <meta name="geo.region" content="SG">
     <meta name="geo.placename" content="Singapore">
-    <meta name="geo.position" content="1.3364;103.9066">
-    <meta name="ICBM" content="1.3364, 103.9066">
+    <meta name="geo.position" content="1.336358;103.911744">
+    <meta name="ICBM" content="1.336358, 103.911744">
 
     <!-- Favicon -->
     <link rel="icon" type="image/png" sizes="64x64" href="/images/favicon.png">
@@ -49,10 +49,10 @@ $pageDesc = "Terms of Service for Tabeeb Contractor Singapore. Conditions for we
     <link rel="stylesheet" href="/style.css?v=3.5">
 
     <!-- Google Analytics & Tag Manager (Privacy-preserving loader) -->
-    <?= render_analytics_head() ?>
+    <?php render_gtm_head(); ?>
 </head>
 <body>
-    <?= render_analytics_body() ?>
+    <?php render_gtm_body(); ?>
     
     <?php require_once __DIR__ . '/includes/public_header.php'; ?>
 

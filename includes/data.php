@@ -622,6 +622,7 @@ function get_project_media(string $projectId): array {
 }
 
 function save_project(array $data): array {
+    if(!DB::isConnected()) return ['success'=>false,'message'=>'Database unavailable; project was not saved.'];
     $now = date('Y-m-d H:i:s');
     $cleanSummary = sanitize_html_content($data['factual_summary'] ?? '');
     $cleanScope = sanitize_html_content($data['scope_details'] ?? '');
@@ -670,10 +671,6 @@ function save_project(array $data): array {
             );
         }
 
-        $projects = read_json_file(PROJECTS_FILE, []);
-        array_unshift($projects, $proj);
-        write_json_file(PROJECTS_FILE, $projects);
-
         audit_log('project.created', 'project', $id, null, ['title' => $proj['title']]);
         return ['success' => true, 'project' => $proj];
     } else {
@@ -711,23 +708,6 @@ function save_project(array $data): array {
                 ]
             );
         }
-
-        $projects = read_json_file(PROJECTS_FILE, []);
-        foreach ($projects as &$p) {
-            if ($p['id'] === $id) {
-                $p['slug'] = $slug;
-                $p['title'] = trim($data['title']);
-                $p['location_label'] = trim($data['location_label'] ?? '');
-                $p['public_location'] = trim($data['public_location'] ?? 'Singapore');
-                $p['service_id'] = !empty($data['service_id']) ? trim($data['service_id']) : null;
-                $p['factual_summary'] = $cleanSummary;
-                $p['scope_details'] = $cleanScope;
-                $p['publication_state'] = $pubState;
-                $p['updated_at'] = $now;
-                break;
-            }
-        }
-        write_json_file(PROJECTS_FILE, $projects);
 
         audit_log('project.updated', 'project', $id, $existing, ['title' => $data['title']]);
         return ['success' => true, 'project' => get_project_by_id($id)];
