@@ -55,6 +55,8 @@ jobs:
           php scripts/migrate.php --seed
           php scripts/migrate.php
           SQL_MODE_TEST_DISPOSABLE=1 php tests/mysql_sql_mode.php
+          APP_ENV=production APP_URL=https://tabeebgroup.com SMTP_PASS=disposable-smtp-fixture SMTP_VERIFICATION_TEST_DISPOSABLE=1 php tests/mysql_smtp_verification.php --to=smtp_fixture@example.invalid
+          APP_ENV=production APP_URL=https://tabeebgroup.com SMTP_PASS=disposable-smtp-fixture-updated SMTP_VERIFICATION_TEST_DISPOSABLE=1 php tests/mysql_smtp_verification.php --to=smtp_fixture@example.invalid
       - name: Build and verify the deployment bundle
         run: |
           python3 ops/package.py --output Tabeeb_release.zip
