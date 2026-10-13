@@ -59,6 +59,16 @@ class DB {
             // Execute timezone separately to guarantee standard MySQL/MariaDB grammar compliance
             if (self::$instance->getAttribute(PDO::ATTR_DRIVER_NAME) === 'mysql') {
                 self::$instance->exec("SET time_zone = '+08:00'");
+                // Shared hosts may use permissive defaults. Configure this connection only,
+                // preserving all existing modes and any stricter STRICT_ALL_TABLES setting.
+                $modes = array_filter(array_map('trim', explode(',', strtoupper(
+                    (string)self::$instance->query('SELECT @@SESSION.sql_mode')->fetchColumn()
+                ))));
+                if (!in_array('STRICT_TRANS_TABLES', $modes, true) && !in_array('STRICT_ALL_TABLES', $modes, true)) {
+                    $modes[] = 'STRICT_TRANS_TABLES';
+                    $statement = self::$instance->prepare('SET SESSION sql_mode = ?');
+                    $statement->execute([implode(',', $modes)]);
+                }
             }
             self::$lastError = null;
             return self::$instance;

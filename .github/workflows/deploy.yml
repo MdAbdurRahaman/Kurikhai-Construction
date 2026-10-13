@@ -54,6 +54,7 @@ jobs:
           php tests/mysql_prepare.php
           php scripts/migrate.php --seed
           php scripts/migrate.php
+          SQL_MODE_TEST_DISPOSABLE=1 php tests/mysql_sql_mode.php
       - name: Build and verify the deployment bundle
         run: |
           python3 ops/package.py --output Tabeeb_release.zip
