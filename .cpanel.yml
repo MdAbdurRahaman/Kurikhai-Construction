@@ -1,6 +1,3 @@
----
 deployment:
   tasks:
-    - export DEPLOYPATH=/home/tabeebgroup/public_html
-    - /bin/cp -R * $DEPLOYPATH
-    - /bin/cp -f .htaccess $DEPLOYPATH 2>/dev/null || true
+    - /bin/echo "Direct cPanel overwrite deployment is disabled. Use the reviewed private release procedure."

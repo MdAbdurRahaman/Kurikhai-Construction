@@ -1,0 +1,36 @@
+TABEEB CORRECTED RELEASE VERIFICATION — 13 OCTOBER 2026
+
+REPAIRS
+- Restored the missing baseline editing permission block and removed the unmatched endif error.
+- Date suggestions use only saved website enquiries on complete past days; empty/today-only history remains blank. Manual/deleted enquiries do not affect suggestions. The query now runs inside the controller error handler.
+- Corrected application-root resolution in the contracts fixture, HTTP router and package rebuilder for standalone bundles.
+- Added a repeatable local runner and actual baseline template checks for editor and read-only roles, with completion evidence checked instead of relying only on process exit status.
+- Administrator provisioning verifies terminal echo suppression, refuses interactive entry if it cannot hide input, and restores terminal settings.
+- Updated standalone-package instructions and first-install rollback guidance.
+- Preserved the prior privacy/terms repairs and application data/migration behavior.
+
+EXECUTED CHECKS
+- PHP 8.3.6: all 375 packaged application PHP files, including vendor files, passed syntax lint.
+- All 4 private ops PHP files and all 5 PHP test files passed syntax lint.
+- Bash release script syntax passed; app.js Node syntax passed.
+- 23 actual PHP contract checks passed with a disposable SQLite fixture; SMTP was simulated.
+- 38 actual PHP HTTP checks passed, including public privacy/terms routes, both form paths, retries/conflicts, validation, draft media privacy, database errors and rate limits.
+- 15 baseline template/date checks passed: 8 reader checks and 7 editor checks.
+- Real Linux PTY administrator provisioning: password not echoed, terminal echo restored, account persisted, initial password rotation enabled.
+- The final ZIP was rebuilt and extracted into a fresh directory; its manifest and the local runner were verified against that extraction.
+
+LIMITS
+These results are local application checks, not certification of the production host. Hosting MySQL/MariaDB migrations, LiteSpeed/Apache rules, staging isolation, domain mapping, live SMTP receipt, worker cron, live Google tracking and Search Console verification still require hosting/account access. No production website or account was modified. Earlier database-engine tests are not presented as newly rerun tests here.
+
+Run from the extracted bundle root:
+  php ops/verify_package.php
+  python3 tests/run_local.py
+
+The ZIP contains no production .env, runtime database, raw images/client-media directory or user-account JSON import. Bootstrap content and SQL schema/migration scripts are intentional application inputs.
+
+GITHUB AUTOMATION ADDENDUM
+- Source-layout local runner passed: 23 contracts, 15 baseline checks, 38 HTTP checks.
+- GitHub workflow YAML parsed; new Python scripts compiled; PHP CI helper linted.
+- Private CLI orchestration tested with disposable release doubles: staging precedes production; staging failure prevents production; staging credentials are absent from production child environment and output; uninitialized hosts are refused.
+- A generated release retains exactly 604 immutable application inputs, all matching their hashes.
+- GitHub runner execution, live SSH transfer and server activation are pending. The remote orchestration test used controlled release doubles, not a production host.

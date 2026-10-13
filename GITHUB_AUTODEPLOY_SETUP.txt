@@ -1,0 +1,63 @@
+TABEEB — ONE-TIME GITHUB AUTOMATIC DEPLOYMENT SETUP
+13 October 2026
+
+WHAT THIS ARCHIVE IS
+This is the GitHub-ready source project. index.php, admin/, includes/, config/, ops/, tests/ and .github/workflows/deploy.yml are at its root. It contains the corrected website and the new automatic deployment workflow. It is not a ZIP to extract over public_html. Keep your existing .git directory and Git history when integrating these files; use a review branch first. Do not commit secrets, live uploads or runtime data. The private release builder supplies only approved immutable application inputs.
+
+AFTER ONE-TIME SETUP
+A push to main triggers application/HTTP checks, fresh and repeated MariaDB migrations on a disposable CI database, bundle construction and hash verification. If AUTO_DEPLOY_ENABLED=true, the workflow uploads that candidate over pinned SSH, prepares and activates staging, checks staging, then prepares and activates production. Production never activates if staging fails. Activation reuses the supplied preflight and HTTP checks and rollback behavior. Database credentials and SMTP configuration stay in private server .env files. Shared uploads, accounts and leads are preserved.
+
+The hosting account must support SSH from the GitHub runner. This account is on server366.web-hosting.com; Namecheap shared SSH generally uses port 21098. Test the actual connection and verify the host key before enabling deployment. The file-manager Terminal interface is not needed for routine updates once the setup is complete.
+
+INITIAL HOSTING SETUP — REQUIRED ONCE
+Finish the existing home-directory backup, database/user creation, separate production and staging private environment files, staging DNS/HTTPS, authentication, SMTP setup, initial administrators, approved recipients, worker cron and document-root mappings. Use PRODUCTION_SETUP.txt. Initialize and verify both environments using the private release procedure. Both current symlinks must point to verified releases within their environment's releases directory. The automation deliberately refuses the first installation so it cannot replace the old public_html without an established mapping/rollback plan.
+
+Create a dedicated SSH deployment key, authorize its public key for this cPanel account, and securely store its private key in GitHub. Obtain the server's SSH host key through a trusted hosting channel and compare the fingerprint with the hosting provider. Do not turn off strict host-key checking or blindly trust a key obtained during an unauthenticated scan.
+
+GITHUB SETTINGS — REQUIRED ONCE
+Repository Settings > Secrets and variables > Actions. If using the production environment's settings, create an environment named production with no required reviewers if unattended deployment is intended; keep main as the only permitted deployment branch. Branch protection/review policy is your choice. Do not loosen an existing policy just to get the workflow running.
+
+Variables:
+AUTO_DEPLOY_ENABLED=false (change to true only after the first verified setup)
+CPANEL_HOST=server366.web-hosting.com
+CPANEL_SSH_PORT=21098 (confirm with the host)
+CPANEL_USER=tabegomk
+CPANEL_ACCOUNT_ROOT=/home/tabegomk (confirm the actual path)
+CPANEL_PHP_BIN=/usr/local/bin/php
+
+Secrets:
+CPANEL_SSH_PRIVATE_KEY — dedicated hosting deployment key, complete PEM/OpenSSH text
+CPANEL_KNOWN_HOSTS — verified known_hosts entry for [server366.web-hosting.com]:21098
+STAGING_SMOKE_USER — actual staging Basic Authentication username
+STAGING_SMOKE_PASSWORD — actual staging access password
+
+The staging password is sent in SSH stdin JSON, not command arguments or printed commands. Production DB/SMTP passwords are not GitHub variables or committed files. Keep passwords out of screenshots and chat.
+
+INTEGRATING INTO THE CONNECTED REPOSITORY
+Confirm the correct repository URL, deployment branch and root directory. Copy these source files into the existing local checkout while preserving .git and genuine client source material. Review git status and the diff. Ensure raw private client media, existing runtime files and secrets were never already tracked; .gitignore does not untrack previously committed files. Disable conflicting FTP/overwrite publishing workflows and retain only one deployment path. The supplied .cpanel.yml keeps direct overwrite deployment disabled.
+
+The workflow targets main. If the actual production branch is different, update both the push branch and the deploy-step ref check together. Commit only intended project changes and push the setup branch for review/validation. For the first automated run, merge/push to the chosen production branch with deployment disabled, inspect the checks, then enable AUTO_DEPLOY_ENABLED and manually run the workflow from main. Inspect the first staging and production release headers and a labelled enquiry/worker result. Future main pushes deploy automatically when their checks pass.
+
+RESULTS AND LIMITS
+The workflow has been prepared and checked locally. It has not been pushed to your repository, run on GitHub, or connected to the host. The remote SSH/deployment path requires an actual first-run check. Your website is not deployed merely by copying this archive into a folder or by connecting GitHub to cPanel.
+
+ROLLBACK
+Use ops/release.sh rollback with the confirmed production private root. This restores prior code while retaining additive DB changes and new leads. If automation fails during a preflight/migration, the old production current link remains; if HTTP activation checks fail, the release script restores its prior link. SMTP delivery and Google metrics remain separate external checks.
+
+LOCAL COMMANDS
+python3 tests/run_local.py
+python3 ops/package.py --output Tabeeb_release.zip
+
+The full setup guide and TEST_RESULTS.txt accompany this archive. No hosting or GitHub credentials have been added.
+
+Primary documentation consulted:
+https://www.namecheap.com/support/knowledgebase/article.aspx/1016/89/how-to-access-a-hosting-account-via-ssh/
+https://github.com/actions/checkout
+https://github.com/shivammathur/setup-php
+
+EXISTING CONNECTION IN THIS REPOSITORY
+The current main workflow uses CPANEL_API_TOKEN, CPANEL_USERNAME and CPANEL_HOST. It uploads via HTTPS cPanel UAPI and a public web extractor. This updated project preserves use of CPANEL_API_TOKEN for the new One-time database setup workflow. It uses TLS verification and a server hostname, not curl -k. No secret value was read from GitHub during preparation.
+
+You can initialize missing databases without the cPanel GUI: add PRODUCTION_DB_PASSWORD and STAGING_DB_PASSWORD as two different strong GitHub secrets, matching the credentials you will store in the server private .env files. After the reviewed setup reaches main, open Actions > One-time database setup > Run workflow on main and select provision. The script verifies that the account owns tabeebgroup.com before creating missing account-prefixed tbprod/tbstg databases/users. Existing passwords and database contents are preserved. If a user already exists, use its actual password in the server configuration; the workflow does not rotate it. This provisions databases only; private configuration, first domain mapping, SMTP and initial administrator setup remain separate one-time steps.
+
+The new routine release workflow executes CLI migrations and activation through SSH. The old HTTPS extractor did not execute these checks. It therefore needs the separate SSH credentials and pinned host key listed above; having a cPanel API token does not itself authenticate SSH. This connection is configured once, then main pushes deploy automatically after checks.

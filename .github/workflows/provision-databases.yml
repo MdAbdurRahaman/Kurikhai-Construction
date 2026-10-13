@@ -1,0 +1,36 @@
+name: One-time database setup
+
+on:
+  workflow_dispatch:
+    inputs:
+      provision:
+        description: Create missing Tabeeb production/staging databases and matching users
+        type: boolean
+        required: true
+        default: false
+
+permissions:
+  contents: read
+
+concurrency:
+  group: tabeeb-database-setup
+  cancel-in-progress: false
+
+jobs:
+  provision:
+    if: github.event.inputs.provision == 'true' && github.ref == 'refs/heads/main'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    environment: production
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+      - name: Create missing databases using the existing cPanel API connection
+        env:
+          CPANEL_API_HOST: ${{ vars.CPANEL_API_HOST || 'server366.web-hosting.com' }}
+          CPANEL_USERNAME: ${{ secrets.CPANEL_USERNAME || vars.CPANEL_USER || 'tabegomk' }}
+          CPANEL_API_TOKEN: ${{ secrets.CPANEL_API_TOKEN }}
+          PRODUCTION_DB_PASSWORD: ${{ secrets.PRODUCTION_DB_PASSWORD }}
+          STAGING_DB_PASSWORD: ${{ secrets.STAGING_DB_PASSWORD }}
+        run: python3 ops/provision_databases.py

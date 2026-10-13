@@ -1,0 +1,72 @@
+[
+  {
+    "id": "proj_serangoon_01",
+    "slug": "serangoon-avenue-3-flooring-works",
+    "title": "Serangoon Avenue 3 Flooring Works",
+    "location_label": "Blk 234 Serangoon Avenue 3",
+    "public_location": "Serangoon, Singapore",
+    "service_id": "tiling-works",
+    "factual_summary": "Client-supplied photographs show the existing floor condition, work in progress and the completed tiled finish at Serangoon Avenue 3.",
+    "scope_details": "Floor tile replacement and screeding as documented in client project board artwork.",
+    "duration_label": null,
+    "materials_used": null,
+    "source_file": "WhatsApp Image 2026-10-09 at 7.11.04 PM.jpeg",
+    "featured_image": "/images/projects/serangoon-featured-thumb.webp",
+    "video_path": "/images/projects/serangoon-board-video.mp4",
+    "video_poster": "/images/projects/serangoon-board-full.webp",
+    "publication_state": "draft",
+    "approval_status": "pending",
+    "og_title": "Serangoon Avenue 3 Flooring Works | Tabeeb Contractor",
+    "og_description": "Client-supplied photographs show the existing floor condition, work in progress and the completed tiled finish at Serangoon Avenue 3.",
+    "display_order": 1,
+    "created_at": "2026-10-10 12:00:00",
+    "updated_at": "2026-10-10 12:00:00",
+    "media": [
+      {
+        "id": 1,
+        "media_stage": "before",
+        "media_type": "image",
+        "file_path": "/images/projects/serangoon-before.webp",
+        "caption": "Existing tile condition and floor preparation area",
+        "alt_text": "Existing floor condition prior to renovation",
+        "display_order": 1
+      },
+      {
+        "id": 2,
+        "media_stage": "in_progress",
+        "media_type": "image",
+        "file_path": "/images/projects/serangoon-in-progress.webp",
+        "caption": "Floor screeding and surface levelling stage",
+        "alt_text": "Cement screed flooring work in progress",
+        "display_order": 2
+      },
+      {
+        "id": 3,
+        "media_stage": "completed",
+        "media_type": "image",
+        "file_path": "/images/projects/serangoon-completed.webp",
+        "caption": "Completed tiled flooring finish with skirting",
+        "alt_text": "Completed tiled flooring finish",
+        "display_order": 3
+      },
+      {
+        "id": 4,
+        "media_stage": "gallery",
+        "media_type": "image",
+        "file_path": "/images/projects/serangoon-board-full.webp",
+        "caption": "Complete project documentation board provided by client",
+        "alt_text": "Full Serangoon Avenue 3 project board",
+        "display_order": 4
+      },
+      {
+        "id": 5,
+        "media_stage": "gallery",
+        "media_type": "image",
+        "file_path": "/images/projects/renovation-stages-collage.webp",
+        "caption": "Client reference composite showing renovation progression (Preserving anonymization blurs)",
+        "alt_text": "Renovation process stages collage",
+        "display_order": 5
+      }
+    ]
+  }
+]

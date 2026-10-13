@@ -1,3 +1,5 @@
+> Production update: the corrected site uses PHP routes and a database-backed CRM. Start with GITHUB_AUTODEPLOY_SETUP.txt and PRODUCTION_SETUP.txt. The supplied workflow tests main pushes, then deploys to staging and production once one-time hosting setup is verified and AUTO_DEPLOY_ENABLED is enabled. The old web extractor and direct cPanel overwrite path are disabled.
+
 # Tabeeb Contractor Website & Lead Management CRM
 
 A premium, highly secure website and CRM platform for **Tabeeb Contractor**, a direct building, residential & commercial renovation, commercial reinstatement, hacking, and alterations contractor in Singapore.

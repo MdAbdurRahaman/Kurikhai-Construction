@@ -5,6 +5,12 @@ require_once __DIR__ . '/header.php';
 $allPosts = get_all_posts(false);
 $allServices = get_all_services();
 
+$currentUser = current_user();
+$canViewAllLeads = has_permission('leads.view');
+$canViewAssignedLeads = has_permission('leads.view_assigned');
+$canViewAnalytics = has_permission('analytics.view');
+$canManageContent = has_permission('content.manage');
+
 // Real Database Metrics
 $dbConnected = DB::isConnected();
 $leadsToday = 0;
@@ -19,37 +25,57 @@ $recentLeads = [];
 $serviceDistribution = [];
 $statusCounts = [];
 
-if ($dbConnected) {
-    $leadsToday = (int)db_val("SELECT COUNT(*) FROM `leads` WHERE DATE(`created_at`) = CURDATE() AND `deleted_at` IS NULL");
-    $leadsWeek = (int)db_val("SELECT COUNT(*) FROM `leads` WHERE `created_at` >= DATE_SUB(CURDATE(), INTERVAL 7 DAY) AND `deleted_at` IS NULL");
-    $totalLeads = (int)db_val("SELECT COUNT(*) FROM `leads` WHERE `deleted_at` IS NULL");
-    $leadsQualified = (int)db_val("SELECT COUNT(*) FROM `leads` WHERE `status` = 'qualified' AND `deleted_at` IS NULL");
-    $siteVisitsScheduled = (int)db_val("SELECT COUNT(*) FROM `leads` WHERE `status` = 'site_visit_scheduled' AND `deleted_at` IS NULL");
-    $quotationsSent = (int)db_val("SELECT COUNT(*) FROM `leads` WHERE `status` = 'quotation_sent' AND `deleted_at` IS NULL");
-    $leadsWon = (int)db_val("SELECT COUNT(*) FROM `leads` WHERE `status` = 'won' AND `deleted_at` IS NULL");
-    $pipelineValue = (float)db_val("SELECT COALESCE(SUM(`estimated_deal_value`), 0) FROM `leads` WHERE `status` NOT IN ('lost', 'spam', 'archived') AND `deleted_at` IS NULL");
+// Role Scoping: If user only has assigned leads permission (Sales Rep), scope dashboard metrics
+$isAssignedOnly = !$canViewAnalytics && !$canViewAllLeads && $canViewAssignedLeads;
+$assignedUserId = (int)($currentUser['id'] ?? 0);
+$scopeSql = $isAssignedOnly ? " AND `assigned_user_id` = ?" : "";
+$scopeParams = $isAssignedOnly ? [$assignedUserId] : [];
 
-    $recentLeads = db_all(
-        "SELECT l.*, u.name AS assigned_name 
-         FROM `leads` l 
-         LEFT JOIN `users` u ON l.assigned_user_id = u.id 
-         WHERE l.deleted_at IS NULL 
-         ORDER BY l.created_at DESC LIMIT 5"
-    );
+if ($dbConnected && ($canViewAnalytics || $canViewAllLeads || $canViewAssignedLeads)) {
+    $leadsToday = (int)db_val("SELECT COUNT(*) FROM `leads` WHERE DATE(`created_at`) = CURDATE() AND `deleted_at` IS NULL" . $scopeSql, $scopeParams);
+    $leadsWeek = (int)db_val("SELECT COUNT(*) FROM `leads` WHERE `created_at` >= DATE_SUB(CURDATE(), INTERVAL 7 DAY) AND `deleted_at` IS NULL" . $scopeSql, $scopeParams);
+    $totalLeads = (int)db_val("SELECT COUNT(*) FROM `leads` WHERE `deleted_at` IS NULL" . $scopeSql, $scopeParams);
+    $leadsQualified = (int)db_val("SELECT COUNT(*) FROM `leads` WHERE `status` = 'qualified' AND `deleted_at` IS NULL" . $scopeSql, $scopeParams);
+    $siteVisitsScheduled = (int)db_val("SELECT COUNT(*) FROM `leads` WHERE `status` = 'site_visit_scheduled' AND `deleted_at` IS NULL" . $scopeSql, $scopeParams);
+    $quotationsSent = (int)db_val("SELECT COUNT(*) FROM `leads` WHERE `status` = 'quotation_sent' AND `deleted_at` IS NULL" . $scopeSql, $scopeParams);
+    $leadsWon = (int)db_val("SELECT COUNT(*) FROM `leads` WHERE `status` = 'won' AND `deleted_at` IS NULL" . $scopeSql, $scopeParams);
+    $pipelineValue = (float)db_val("SELECT COALESCE(SUM(`estimated_deal_value`), 0) FROM `leads` WHERE `status` NOT IN ('lost', 'spam', 'archived') AND `deleted_at` IS NULL" . $scopeSql, $scopeParams);
+
+    // Only query recent customer details if authorized to view leads
+    if ($canViewAllLeads) {
+        $recentLeads = db_all(
+            "SELECT l.*, u.name AS assigned_name
+             FROM `leads` l
+             LEFT JOIN `users` u ON l.assigned_user_id = u.id
+             WHERE l.deleted_at IS NULL
+             ORDER BY l.created_at DESC LIMIT 5"
+        );
+    } elseif ($canViewAssignedLeads) {
+        $recentLeads = db_all(
+            "SELECT l.*, u.name AS assigned_name
+             FROM `leads` l
+             LEFT JOIN `users` u ON l.assigned_user_id = u.id
+             WHERE l.deleted_at IS NULL AND l.assigned_user_id = ?
+             ORDER BY l.created_at DESC LIMIT 5",
+            [$currentUser['id'] ?? 0]
+        );
+    }
 
     $serviceRows = db_all(
-        "SELECT `service_requested`, COUNT(*) AS count 
-         FROM `leads` WHERE `deleted_at` IS NULL 
-         GROUP BY `service_requested` ORDER BY count DESC LIMIT 6"
+        "SELECT `service_requested`, COUNT(*) AS count
+         FROM `leads` WHERE `deleted_at` IS NULL" . $scopeSql . "
+         GROUP BY `service_requested` ORDER BY count DESC LIMIT 6",
+        $scopeParams
     );
     foreach ($serviceRows as $sr) {
         $serviceDistribution[$sr['service_requested']] = (int)$sr['count'];
     }
 
     $statusRows = db_all(
-        "SELECT `status`, COUNT(*) AS count 
-         FROM `leads` WHERE `deleted_at` IS NULL 
-         GROUP BY `status`"
+        "SELECT `status`, COUNT(*) AS count
+         FROM `leads` WHERE `deleted_at` IS NULL" . $scopeSql . "
+         GROUP BY `status`",
+        $scopeParams
     );
     foreach ($statusRows as $str) {
         $statusCounts[$str['status']] = (int)$str['count'];
@@ -59,6 +85,12 @@ if ($dbConnected) {
 // Business Tracker Metrics
 $trackerMetrics = BusinessTracker::getMetrics();
 ?>
+
+<?php if ($isAssignedOnly): ?>
+    <div style="background: #e0f2fe; border: 1px solid #bae6fd; color: #0369a1; padding: 12px 18px; border-radius: 8px; margin-bottom: 20px; font-size: 13px; font-weight: 500;">
+        ℹ️ <strong>Assigned Lead View:</strong> Dashboard metrics reflect leads specifically assigned to your staff profile (<?= htmlspecialchars($currentUser['name'] ?? 'You') ?>).
+    </div>
+<?php endif; ?>
 
 <!-- Metric Stats Grid -->
 <div class="stat-grid" style="grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));">
@@ -125,6 +157,7 @@ $trackerMetrics = BusinessTracker::getMetrics();
     </div>
 </div>
 
+<?php if ($canViewAllLeads || $canViewAssignedLeads): ?>
 <!-- Recent Leads Table -->
 <div class="table-card" style="margin-bottom: 35px;">
     <div class="table-header">
@@ -157,7 +190,7 @@ $trackerMetrics = BusinessTracker::getMetrics();
                         </td>
                     </tr>
                 <?php else: ?>
-                    <?php foreach ($recentLeads as $lead): 
+                    <?php foreach ($recentLeads as $lead):
                         $badgeColor = match($lead['status']) {
                             'new' => '#ef4444',
                             'contacted' => '#0284c7',
@@ -195,6 +228,7 @@ $trackerMetrics = BusinessTracker::getMetrics();
         </table>
     </div>
 </div>
+<?php endif; ?>
 
 <!-- Social Share Simulator Box (Client WhatsApp Feature) -->
 <div class="table-card" style="margin-bottom: 35px; border-left: 4px solid var(--admin-accent);">
@@ -216,7 +250,7 @@ $trackerMetrics = BusinessTracker::getMetrics();
 
     <div style="padding: 24px;">
         <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 30px; align-items: start;" class="preview-layout-grid">
-            
+
             <!-- Selector Controls -->
             <div>
                 <div class="form-group">
@@ -224,7 +258,7 @@ $trackerMetrics = BusinessTracker::getMetrics();
                     <select id="shareItemSelector" class="form-control-adm" style="font-weight: 500;">
                         <optgroup label="Core Contracting Services (Individual Links)">
                             <?php foreach ($allServices as $srv): ?>
-                                <option value="service" 
+                                <option value="service"
                                         data-title="<?= htmlspecialchars($srv['og_title'] ?? $srv['name']) ?>"
                                         data-desc="<?= htmlspecialchars($srv['og_description'] ?? $srv['overview']) ?>"
                                         data-img="/<?= ltrim($srv['image'], '/') ?>"

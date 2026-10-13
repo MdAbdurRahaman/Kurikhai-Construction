@@ -1,4 +1,8 @@
 <?php
+require_once dirname(__DIR__) . '/includes/data.php';
+require_login();
+require_permission('content.manage');
+
 $pageTitle = 'Service Social Share Links Hub';
 require_once __DIR__ . '/header.php';
 
@@ -30,8 +34,8 @@ $baseUrl = get_base_url();
                 </tr>
             </thead>
             <tbody>
-                <?php foreach ($services as $srv): 
-                    $srvUrl = $baseUrl . '/' . htmlspecialchars($srv['slug']) . '/';
+                <?php foreach ($services as $srv):
+                    $srvUrl = $baseUrl . '/' . htmlspecialchars($srv['slug']);
                     $img = (strpos($srv['image'], 'http') === 0) ? $srv['image'] : ('/' . ltrim($srv['image'], '/'));
                     $waText = urlencode($srv['og_title'] . "\n" . $srvUrl);
                     $fbUrl = 'https://www.facebook.com/sharer/sharer.php?u=' . urlencode($srvUrl);
@@ -70,7 +74,7 @@ $baseUrl = get_base_url();
                                 <a href="<?= $fbUrl ?>" target="_blank" rel="noopener noreferrer" class="btn-adm" style="background: #1877f2; color: #fff; padding: 5px 9px; font-size: 12px;" title="Share this service on Facebook">
                                     🌐 Facebook
                                 </a>
-                                <a href="/<?= htmlspecialchars($srv['slug']) ?>/" target="_blank" class="btn-adm btn-adm-outline" style="padding: 5px 9px; font-size: 12px;" title="View Live Page">
+                                <a href="/<?= htmlspecialchars($srv['slug']) ?>" target="_blank" class="btn-adm btn-adm-outline" style="padding: 5px 9px; font-size: 12px;" title="View Live Page">
                                     👁️
                                 </a>
                             </div>

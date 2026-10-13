@@ -1,6 +1,6 @@
 <?php
 require_once dirname(__DIR__) . '/includes/data.php';
-require_login();
+require_permission('content.manage');
 
 // Handle Actions (Toggle status, Delete)
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
@@ -79,7 +79,7 @@ foreach ($allPosts as $p) {
             <a href="posts.php?status=all" class="btn-adm <?= $filterStatus === 'all' ? 'btn-adm-primary' : 'btn-adm-outline' ?>" style="padding: 6px 12px; font-size: 12px;">All</a>
             <a href="posts.php?status=published" class="btn-adm <?= $filterStatus === 'published' ? 'btn-adm-primary' : 'btn-adm-outline' ?>" style="padding: 6px 12px; font-size: 12px;">Published</a>
             <a href="posts.php?status=draft" class="btn-adm <?= $filterStatus === 'draft' ? 'btn-adm-primary' : 'btn-adm-outline' ?>" style="padding: 6px 12px; font-size: 12px;">Drafts</a>
-            
+
             <form method="GET" action="posts.php" style="display: inline-flex; margin-left: 10px;">
                 <input type="hidden" name="status" value="<?= htmlspecialchars($filterStatus) ?>">
                 <select name="cat" class="form-control-adm" style="padding: 5px 10px; font-size: 12px; width: auto;" onchange="this.form.submit()">
@@ -123,7 +123,7 @@ foreach ($allPosts as $p) {
                         </td>
                     </tr>
                 <?php else: ?>
-                    <?php foreach ($filteredPosts as $p): 
+                    <?php foreach ($filteredPosts as $p):
                         $img = (strpos($p['image'], 'http') === 0) ? $p['image'] : ('/' . ltrim($p['image'], '/'));
                     ?>
                         <tr>

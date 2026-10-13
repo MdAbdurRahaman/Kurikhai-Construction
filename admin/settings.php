@@ -1,7 +1,6 @@
 <?php
-$pageTitle = 'Website & Integration Settings';
-require_once __DIR__ . '/header.php';
-
+require_once dirname(__DIR__) . '/includes/data.php';
+require_login();
 require_super_admin();
 
 $msg = '';
@@ -19,8 +18,8 @@ function get_setting(string $key, string $default = ''): string {
 function set_setting(string $group, string $key, string $val): void {
     if (DB::isConnected()) {
         db_exec(
-            "INSERT INTO settings (setting_group, setting_key, setting_value, updated_at) 
-             VALUES (?, ?, ?, NOW()) 
+            "INSERT INTO settings (setting_group, setting_key, setting_value, updated_at)
+             VALUES (?, ?, ?, NOW())
              ON DUPLICATE KEY UPDATE setting_value = VALUES(setting_value), updated_at = NOW()",
             [$group, $key, $val]
         );
@@ -35,6 +34,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         // Analytics & Tracking
         set_setting('analytics', 'ga4_id', trim($_POST['ga4_id'] ?? ''));
         set_setting('analytics', 'gtm_id', trim($_POST['gtm_id'] ?? ''));
+        set_setting('analytics', 'tracking_mode', in_array($_POST['tracking_mode'] ?? '', ['gtm', 'direct_ga4']) ? $_POST['tracking_mode'] : 'gtm');
         set_setting('analytics', 'gsc_token', trim($_POST['gsc_token'] ?? ''));
         set_setting('analytics', 'turnstile_key', trim($_POST['turnstile_key'] ?? ''));
 
@@ -50,11 +50,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
 $ga4Id = get_setting('ga4_id', getenv('GA4_MEASUREMENT_ID') ?: '');
 $gtmId = get_setting('gtm_id', getenv('GTM_CONTAINER_ID') ?: '');
+$trackingMode = get_setting('tracking_mode', 'gtm');
 $gscToken = get_setting('gsc_token', getenv('GSC_VERIFICATION_TOKEN') ?: 'googlea9c88d1e38989379');
 $turnstileKey = get_setting('turnstile_key', getenv('TURNSTILE_SITE_KEY') ?: '');
 $titleSuffix = get_setting('meta_title_suffix', ' | Tabeeb Contractor Singapore');
 $retentionDays = get_setting('retention_days', '365');
 $privacyEmail = get_setting('privacy_contact_email', 'info@tabeebgroup.com');
+
+$pageTitle = 'Website & Integration Settings';
+require_once __DIR__ . '/header.php';
 ?>
 
 <?php if (!empty($msg)): ?>
@@ -67,7 +71,7 @@ $privacyEmail = get_setting('privacy_contact_email', 'info@tabeebgroup.com');
     <?= csrf_input_field() ?>
 
     <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 25px; align-items: start;">
-        
+
         <!-- Left Column: Analytics & Integrations -->
         <div class="table-card">
             <div class="table-header">
@@ -75,10 +79,30 @@ $privacyEmail = get_setting('privacy_contact_email', 'info@tabeebgroup.com');
             </div>
             <div style="padding: 24px;">
                 <div class="form-group">
+                    <label class="form-label">Integration Mode</label>
+                    <select name="tracking_mode" class="form-control-adm">
+                        <option value="gtm" <?= $trackingMode === 'gtm' ? 'selected' : '' ?>>GA4 through Google Tag Manager (Recommended)</option>
+                        <option value="direct_ga4" <?= $trackingMode === 'direct_ga4' ? 'selected' : '' ?>>Direct GA4 gtag.js (Mutually Exclusive)</option>
+                    </select>
+                    <div style="font-size: 12px; color: #64748b; margin-top: 4px;">Never loads duplicate tags. GTM mode dispatches GA4 via container trigger.</div>
+                </div>
+
+                <div class="form-group">
                     <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
-                        <label class="form-label" for="ga4_id" style="margin-bottom: 0;">Google Analytics 4 (GA4)</label>
-                        <span style="font-size: 11px; font-weight: 700; color: <?= !empty($ga4Id) ? '#16a34a' : '#94a3b8' ?>;">
-                            <?= !empty($ga4Id) ? '● Configured' : '○ Not configured' ?>
+                        <label class="form-label" for="gtm_id" style="margin-bottom: 0;">Google Tag Manager Container ID</label>
+                        <span style="font-size: 11px; font-weight: 700; color: <?= !empty($gtmId) ? '#0284c7' : '#94a3b8' ?>;">
+                            <?= !empty($gtmId) ? '● Saved (Awaiting Publish)' : '○ Not configured' ?>
+                        </span>
+                    </div>
+                    <input type="text" name="gtm_id" id="gtm_id" class="form-control-adm" placeholder="GTM-XXXXXXX" value="<?= htmlspecialchars($gtmId) ?>">
+                    <div style="font-size: 12px; color: #64748b; margin-top: 4px;">Primary container for all public tag management.</div>
+                </div>
+
+                <div class="form-group">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
+                        <label class="form-label" for="ga4_id" style="margin-bottom: 0;">Google Analytics 4 Measurement ID</label>
+                        <span style="font-size: 11px; font-weight: 700; color: <?= !empty($ga4Id) ? '#0284c7' : '#94a3b8' ?>;">
+                            <?= !empty($ga4Id) ? '● Saved' : '○ Not configured' ?>
                         </span>
                     </div>
                     <input type="text" name="ga4_id" id="ga4_id" class="form-control-adm" placeholder="G-XXXXXXXXXX" value="<?= htmlspecialchars($ga4Id) ?>">
@@ -87,23 +111,13 @@ $privacyEmail = get_setting('privacy_contact_email', 'info@tabeebgroup.com');
 
                 <div class="form-group">
                     <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
-                        <label class="form-label" for="gtm_id" style="margin-bottom: 0;">Google Tag Manager (GTM)</label>
-                        <span style="font-size: 11px; font-weight: 700; color: <?= !empty($gtmId) ? '#16a34a' : '#94a3b8' ?>;">
-                            <?= !empty($gtmId) ? '● Configured' : '○ Not configured' ?>
-                        </span>
-                    </div>
-                    <input type="text" name="gtm_id" id="gtm_id" class="form-control-adm" placeholder="GTM-XXXXXXX" value="<?= htmlspecialchars($gtmId) ?>">
-                </div>
-
-                <div class="form-group">
-                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
-                        <label class="form-label" for="gsc_token" style="margin-bottom: 0;">Google Search Console Token</label>
+                        <label class="form-label" for="gsc_token" style="margin-bottom: 0;">Google Search Console Token (URL-Prefix)</label>
                         <span style="font-size: 11px; font-weight: 700; color: <?= !empty($gscToken) ? '#16a34a' : '#94a3b8' ?>;">
-                            <?= !empty($gscToken) ? '● Active' : '○ Pending' ?>
+                            <?= !empty($gscToken) ? '● Active File' : '○ Pending' ?>
                         </span>
                     </div>
                     <input type="text" name="gsc_token" id="gsc_token" class="form-control-adm" placeholder="googlea9c88d1e38989379" value="<?= htmlspecialchars($gscToken) ?>">
-                    <div style="font-size: 12px; color: #64748b; margin-top: 4px;">Site verification HTML identifier for search indexing.</div>
+                    <div style="font-size: 12px; color: #64748b; margin-top: 4px;">Legacy URL-prefix verification file identifier. Domain property is verified via DNS TXT.</div>
                 </div>
 
                 <div class="form-group">

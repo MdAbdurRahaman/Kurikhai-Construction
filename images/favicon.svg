@@ -7,20 +7,20 @@
     </defs>
     <!-- Background rounded squircle -->
     <rect width="500" height="500" rx="110" fill="#07274D"/>
-    
+
     <!-- Stylized Tabeeb Mark -->
     <g transform="translate(60, 80) scale(0.76)">
         <!-- Skyscraper bars (right side) -->
         <polygon points="310,95 350,75 350,330 310,330" fill="#0A3668" />
         <polygon points="360,135 385,115 385,270 360,270" fill="url(#goldGrad)" />
         <polygon points="395,160 415,145 415,290 395,290" fill="#0A3668" />
-        
+
         <!-- Big Bold 'T' in Navy White / Foreground -->
         <polygon points="50,80 320,80 270,140 215,140 215,360 155,360 155,140 50,140" fill="#FFFFFF" />
-        
+
         <!-- Pitched Roofline in Architectural Gold -->
         <polygon points="215,150 155,210 175,230 215,190 355,320 375,300" fill="url(#goldGrad)" />
-        
+
         <!-- 4-Pane Window Grid in Gold -->
         <g fill="url(#goldGrad)" transform="translate(230, 240)">
             <rect x="0" y="0" width="22" height="22" rx="2" />

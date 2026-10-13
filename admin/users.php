@@ -123,7 +123,7 @@ $users = get_all_users();
                 </tr>
             </thead>
             <tbody>
-                <?php foreach ($users as $u): 
+                <?php foreach ($users as $u):
                     $isSelf = ($currentUser['id'] === $u['id']);
                 ?>
                     <tr>
@@ -163,7 +163,7 @@ $users = get_all_users();
                         </td>
                         <td style="text-align: right;">
                             <div style="display: inline-flex; gap: 6px;">
-                                <button type="button" class="btn-adm btn-adm-outline edit-user-btn" 
+                                <button type="button" class="btn-adm btn-adm-outline edit-user-btn"
                                         style="padding: 5px 9px; font-size: 12px;"
                                         data-id="<?= htmlspecialchars($u['id']) ?>"
                                         data-name="<?= htmlspecialchars($u['name']) ?>"

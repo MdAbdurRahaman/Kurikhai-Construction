@@ -1,29 +1,48 @@
 <?php
 require_once __DIR__ . '/includes/data.php';
+require_once __DIR__ . '/includes/business_tracker.php';
 
-$slug = $_GET['slug'] ?? $_GET['id'] ?? '';
-$service = get_service_by_slug($slug);
+$rawSlug = trim($_GET['slug'] ?? $_GET['id'] ?? '');
 
-// If service not found, default to first service or redirect to services.html
-if (!$service) {
-    $allServices = get_all_services();
-    if (!empty($allServices)) {
-        $service = $allServices[0];
-    } else {
-        header('Location: services.html');
-        exit;
-    }
+$aliasMap = [
+    'demolition-hacking'              => 'hacking-demolition',
+    'commercial-office-reinstatement' => 'reinstatement',
+    'flooring-cement-screed'          => 'tiling-works',
+    'false-ceiling-drywall-partition' => 'ceiling-partition',
+    'painting-plastering'             => 'painting-works',
+    'plumbing-sanitary'               => 'plumbing',
+    'electrical-lighting'             => 'electrical',
+    'waterproofing-pu-injection'      => 'waterproofing',
+    'plastering'                      => 'painting-works',
+    'metal-fabrication-grilles'       => 'renovation-contractor-singapore',
+    'home-extensions-alterations'     => 'renovation-contractor-singapore'
+];
+
+if (isset($aliasMap[$rawSlug])) {
+    header('Location: /' . $aliasMap[$rawSlug], true, 301);
+    exit;
 }
 
+$service = get_service_by_slug($rawSlug, true);
+
+// If service not found or not published, return genuine 404!
+// Never fall back to the first service under an unrelated URL.
+if (!$service || empty($service['is_published'])) {
+    http_response_code(404);
+    require __DIR__ . '/404.php';
+    exit;
+}
+
+$company = get_company_info();
 $baseUrl = get_base_url();
-$canonicalUrl = $baseUrl . '/' . htmlspecialchars($service['slug']) . '/';
+$canonicalUrl = $baseUrl . '/' . htmlspecialchars($service['slug']);
 $imageUrl = (strpos($service['image'], 'http') === 0) ? $service['image'] : ($baseUrl . '/' . ltrim($service['image'], '/'));
-$ogTitle = $service['og_title'] ?? ($service['name'] . ' | Tabeeb Contractor Singapore');
+$ogTitle = $service['og_title'] ?? ($service['name'] . ' | ' . $company['brand_name']);
 $ogDesc = $service['og_description'] ?? $service['overview'];
-$whatsappShareText = urlencode($service['og_title'] . "\n" . $canonicalUrl);
+$whatsappShareText = urlencode($service['name'] . ' – Tabeeb Contractor Singapore' . "\n" . $canonicalUrl);
 $facebookShareUrl = 'https://www.facebook.com/sharer/sharer.php?u=' . urlencode($canonicalUrl);
 $linkedinShareUrl = 'https://www.linkedin.com/sharing/share-offsite/?url=' . urlencode($canonicalUrl);
-$twitterShareUrl = 'https://twitter.com/intent/tweet?text=' . urlencode($service['og_title']) . '&url=' . urlencode($canonicalUrl);
+$twitterShareUrl = 'https://twitter.com/intent/tweet?text=' . urlencode($service['name']) . '&url=' . urlencode($canonicalUrl);
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -32,12 +51,12 @@ $twitterShareUrl = 'https://twitter.com/intent/tweet?text=' . urlencode($service
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title><?= htmlspecialchars($ogTitle) ?></title>
     <meta name="description" content="<?= htmlspecialchars($ogDesc) ?>">
-    
+
     <!-- Geo Targeting Singapore -->
     <meta name="geo.region" content="SG">
     <meta name="geo.placename" content="Singapore">
-    <meta name="geo.position" content="1.3364;103.9066">
-    <meta name="ICBM" content="1.3364, 103.9066">
+    <meta name="geo.position" content="1.336358;103.911744">
+    <meta name="ICBM" content="1.336358, 103.911744">
 
     <!-- Canonical URL -->
     <link rel="canonical" href="<?= $canonicalUrl ?>">
@@ -67,7 +86,9 @@ $twitterShareUrl = 'https://twitter.com/intent/tweet?text=' . urlencode($service
     <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon.png">
 
     <!-- Stylesheets -->
-    <link rel="stylesheet" href="/style.css?v=3.4">
+    <link rel="stylesheet" href="/style.css?v=3.5">
+
+    <?php require_once __DIR__ . '/includes/tracking.php'; render_gtm_head(); ?>
 
     <!-- Schema.org Service JSON-LD -->
     <script type="application/ld+json">
@@ -78,15 +99,20 @@ $twitterShareUrl = 'https://twitter.com/intent/tweet?text=' . urlencode($service
       "description": <?= json_encode($service['overview']) ?>,
       "provider": {
         "@type": "GeneralContractor",
-        "name": "Tabeeb Contractor",
-        "telephone": "+65 8648 4883",
-        "url": "https://www.tabeebgroup.com/",
+        "name": <?= json_encode($company['brand_name']) ?>,
+        "telephone": <?= json_encode($company['phone']) ?>,
+        "url": "<?= $baseUrl ?>/",
         "address": {
           "@type": "PostalAddress",
           "streetAddress": "61 Kaki Bukit Ave 1, #03-34 Shun Li Industrial Park",
           "addressLocality": "Singapore",
           "postalCode": "417943",
           "addressCountry": "SG"
+        },
+        "geo": {
+          "@type": "GeoCoordinates",
+          "latitude": 1.336358,
+          "longitude": 103.911744
         }
       },
       "areaServed": "Singapore",
@@ -136,7 +162,7 @@ $twitterShareUrl = 'https://twitter.com/intent/tweet?text=' . urlencode($service
             gap: 15px;
             align-items: center;
         }
-        
+
         /* Share Bar Sticky & Floating Component */
         .social-share-strip {
             background: #ffffff;
@@ -373,55 +399,15 @@ $twitterShareUrl = 'https://twitter.com/intent/tweet?text=' . urlencode($service
     </style>
 </head>
 <body>
-
-    <!-- Header Navigation with Topbar -->
-    <header class="header scrolled" id="header">
-        <div class="topbar">
-            <div class="container">
-                <div class="topbar-left">
-                    <span class="topbar-item"><span class="topbar-icon">📍</span> 61 Kaki Bukit Ave 1, #03-34 Shun Li Industrial Park, Singapore 417943</span>
-                    <span class="topbar-item"><span class="topbar-icon">🕒</span> Mon - Sat: 9:00 AM - 6:00 PM</span>
-                </div>
-                <div class="topbar-right">
-                    <span class="topbar-item"><span class="topbar-icon">📞</span> <a href="tel:+6586484883">+65 8648 4883</a></span>
-                    <a href="https://wa.me/6586484883?text=Hello%20Tabeeb%20Contractor,%20I%20am%20inquiring%20about%20<?= urlencode($service['name']) ?>." target="_blank" rel="noopener noreferrer" class="topbar-whatsapp">
-                        <svg width="14" height="14" fill="currentColor" viewBox="0 0 24 24"><path d="M.057 24l1.687-6.163c-1.041-1.804-1.588-3.849-1.587-5.946.003-6.556 5.338-11.891 11.893-11.891 3.181.001 6.167 1.24 8.413 3.488 2.245 2.248 3.481 5.236 3.48 8.414-.003 6.557-5.338 11.892-11.893 11.892-1.99-.001-3.951-.5-5.688-1.448l-6.305 1.654zm6.597-3.807c1.676.995 3.276 1.591 5.392 1.592 5.448 0 9.886-4.434 9.889-9.885.002-5.462-4.415-9.89-9.881-9.892-5.452 0-9.887 4.434-9.889 9.884-.001 2.225.651 3.891 1.746 5.634l-.999 3.648 3.742-.981z"/></svg> WhatsApp Us
-                    </a>
-                </div>
-            </div>
-        </div>
-        <div class="header-main">
-            <div class="container">
-                <div class="header-wrapper">
-                    <a href="/" class="logo" id="header-logo" aria-label="Tabeeb Contractor">
-                        <img src="/images/logo-horizontal.png?v=3.3" alt="Tabeeb Contractor" class="header-logo-img">
-                    </a>
-                    <nav>
-                        <ul class="nav-list" id="nav-list">
-                            <li><a href="/" class="nav-link">Home</a></li>
-                            <li><a href="/services" class="nav-link active">Services</a></li>
-                            <li><a href="/blog" class="nav-link">Blog</a></li>
-                            <li><a href="/about" class="nav-link">About Us</a></li>
-                            <li><a href="/contact" class="nav-link">Contact</a></li>
-                            <li><a href="javascript:void(0)" class="btn btn-quote-header open-quote-modal-btn">Get a Quote</a></li>
-                        </ul>
-                    </nav>
-                    <button class="burger" id="burger-menu" aria-label="Toggle Menu">
-                        <div class="line1"></div>
-                        <div class="line2"></div>
-                        <div class="line3"></div>
-                    </button>
-                </div>
-            </div>
-        </div>
-    </header>
+    <?php render_gtm_body(); ?>
+    <?php $activeNav = 'services'; require_once __DIR__ . '/includes/public_header.php'; ?>
 
     <!-- Subpage Hero Header -->
     <section class="service-single-hero">
         <div class="container">
             <div class="breadcrumbs" style="color: #94a3b8; margin-bottom: 12px; font-size: 14px;">
-                <a href="/" style="color: #38bdf8;">Home</a> &gt; 
-                <a href="/services" style="color: #38bdf8;">Services</a> &gt; 
+                <a href="/" style="color: #38bdf8;">Home</a> &gt;
+                <a href="/services" style="color: #38bdf8;">Services</a> &gt;
                 <span><?= htmlspecialchars($service['short_title'] ?? $service['name']) ?></span>
             </div>
             <div class="badge-tag">
@@ -470,10 +456,10 @@ $twitterShareUrl = 'https://twitter.com/intent/tweet?text=' . urlencode($service
     <section class="section" style="padding-top: 10px;">
         <div class="container">
             <div style="display: grid; grid-template-columns: 2fr 1fr; gap: 40px; align-items: start;" class="service-layout-grid">
-                
+
                 <!-- Left Main Content Column -->
                 <div class="service-main-col">
-                    
+
                     <!-- Featured Showcase Image -->
                     <div style="border-radius: 18px; overflow: hidden; box-shadow: var(--shadow-md); margin-bottom: 35px; border: 1px solid #e2e8f0;">
                         <img src="/<?= ltrim($service['image'], '/') ?>" alt="<?= htmlspecialchars($service['name']) ?>" style="width: 100%; max-height: 480px; object-fit: cover;">
@@ -502,7 +488,7 @@ $twitterShareUrl = 'https://twitter.com/intent/tweet?text=' . urlencode($service
 
                     <!-- Why Choose Tabeeb for this trade -->
                     <h2 style="font-size: 24px; margin: 40px 0 10px;">Why Engage Tabeeb Contractor</h2>
-                    <p style="color: var(--color-text-muted); font-size: 15px;">We are a direct builder with experienced, in-house craftsmen—delivering cost savings, rapid timelines, and strict compliance with Singapore statutory regulations.</p>
+                    <p style="color: var(--color-text-muted); font-size: 15px;">We provide direct trade contracting solutions across residential and commercial properties in Singapore—delivering clear site coordination, structured project supervision, and compliance with statutory trade guidelines.</p>
 
                     <div class="benefit-card-grid">
                         <?php if (!empty($service['key_benefits'])): ?>
@@ -518,7 +504,7 @@ $twitterShareUrl = 'https://twitter.com/intent/tweet?text=' . urlencode($service
                     <!-- 4-Step Working Process -->
                     <h2 style="font-size: 24px; margin: 40px 0 10px;">Execution & Handover Process</h2>
                     <p style="color: var(--color-text-muted); font-size: 15px;">Every project follows a transparent, monitored timeline from initial blueprint consultation to final handover.</p>
-                    
+
                     <div class="step-timeline">
                         <?php if (!empty($service['process'])): ?>
                             <?php foreach ($service['process'] as $step): ?>
@@ -530,6 +516,21 @@ $twitterShareUrl = 'https://twitter.com/intent/tweet?text=' . urlencode($service
                             <?php endforeach; ?>
                         <?php endif; ?>
                     </div>
+
+                    <?php if ($service['slug'] === 'tiling-works'): ?>
+                        <!-- Authentic Case Study Callout -->
+                        <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 12px; padding: 24px; margin: 36px 0; display: flex; gap: 20px; align-items: center; flex-wrap: wrap;">
+                            <img src="/images/projects/serangoon-featured-thumb.webp" alt="Serangoon Avenue 3 Flooring Works" style="width: 160px; height: 110px; object-fit: cover; border-radius: 8px; border: 1px solid #cbd5e1;" loading="lazy" width="490" height="325">
+                            <div style="flex: 1; min-width: 240px;">
+                                <span style="font-size: 11px; font-weight: 700; color: #0284c7; text-transform: uppercase;">Authentic Case Study</span>
+                                <h3 style="font-size: 1.25rem; margin: 4px 0 8px; color: #0f172a;">Serangoon Avenue 3 Flooring Works</h3>
+                                <p style="font-size: 0.95rem; color: #64748b; margin-bottom: 12px; line-height: 1.5;">
+                                    Client-supplied photographs show the existing floor condition, work in progress and the completed tiled finish at Serangoon Avenue 3.
+                                </p>
+                                <a href="/projects/serangoon-avenue-3-flooring-works" class="btn btn-primary" style="padding: 8px 18px; font-size: 13px;">View Full Project Board & Video ➔</a>
+                            </div>
+                        </div>
+                    <?php endif; ?>
 
                     <!-- FAQ Section -->
                     <?php if (!empty($service['faq'])): ?>
@@ -568,7 +569,7 @@ $twitterShareUrl = 'https://twitter.com/intent/tweet?text=' . urlencode($service
                         <span style="background: rgba(194, 150, 63, 0.25); color: #f59e0b; border: 1px solid rgba(245, 158, 11, 0.4); padding: 4px 10px; border-radius: 9999px; font-size: 12px; font-weight: 600; text-transform: uppercase;">Direct Contractor</span>
                         <h3 style="margin-top: 14px;">Inquire About This Service</h3>
                         <p>Speak directly with our project manager. We conduct site visits across all areas of Singapore.</p>
-                        
+
                         <div style="margin-bottom: 24px; background: rgba(255,255,255,0.06); padding: 16px; border-radius: 12px;">
                             <div style="font-size: 12px; color: #94a3b8; text-transform: uppercase; letter-spacing: 0.5px;">Service Name</div>
                             <div style="font-size: 15px; font-weight: 600; color: #38bdf8; margin-top: 4px;"><?= htmlspecialchars($service['name']) ?></div>
@@ -594,7 +595,7 @@ $twitterShareUrl = 'https://twitter.com/intent/tweet?text=' . urlencode($service
                     <div style="background: #fff; border: 1px solid #e2e8f0; border-radius: 16px; padding: 24px; margin-top: 25px;">
                         <h4 style="font-size: 17px; margin-bottom: 14px; color: var(--color-primary);">All 10 Core Services</h4>
                         <ul style="list-style: none; padding: 0; margin: 0;">
-                            <?php 
+                            <?php
                             $otherServices = get_all_services();
                             foreach ($otherServices as $other):
                                 $isActive = ($other['slug'] === $service['slug']);
@@ -624,64 +625,7 @@ $twitterShareUrl = 'https://twitter.com/intent/tweet?text=' . urlencode($service
     </section>
 
     <!-- Footer -->
-    <footer class="footer">
-        <div class="container">
-            <div class="footer-grid">
-                <div class="footer-col footer-brand-col">
-                    <a href="/" class="footer-logo-link" aria-label="Tabeeb Contractor">
-                        <img src="/images/logo-white.png?v=3.3" alt="Tabeeb Contractor" class="footer-logo-img" width="220">
-                    </a>
-                    <p>Tabeeb Contractor is a direct contracting firm specializing in commercial office reinstatement, HDB wall hacking, architectural tiling, waterproofing, and structural alterations in Singapore.</p>
-                </div>
-                <div class="footer-col">
-                    <h3>Quick Links</h3>
-                    <ul>
-                        <li><a href="/">Home</a></li>
-                        <li><a href="/services">Our Services</a></li>
-                        <li><a href="/blog">Renovation Blog</a></li>
-                        <li><a href="/about">About Company</a></li>
-                        <li><a href="/contact">Contact Us</a></li>
-                        <li><a href="/admin">Admin Portal</a></li>
-                    </ul>
-                </div>
-                <div class="footer-col">
-                    <h3>Direct Services</h3>
-                    <ul>
-                        <li><a href="/renovation-contractor-singapore/">Renovation Contractor</a></li>
-                        <li><a href="/hdb-renovation/">HDB Renovation</a></li>
-                        <li><a href="/tiling-works/">Tiles Flooring Works</a></li>
-                        <li><a href="/vinyl-flooring/">Vinyl Flooring Works</a></li>
-                        <li><a href="/hacking-demolition/">Hacking & Demolition</a></li>
-                        <li><a href="/painting-works/">Painting & Plastering</a></li>
-                        <li><a href="/waterproofing/">Waterproofing Works</a></li>
-                        <li><a href="/plumbing/">Plumbing Works</a></li>
-                        <li><a href="/electrical/">Electrical Works</a></li>
-                        <li><a href="/ceiling-partition/">Ceiling & Partition</a></li>
-                        <li><a href="/reinstatement/">Reinstatement Works</a></li>
-                    </ul>
-                </div>
-                <div class="footer-col">
-                    <h3>Headquarters</h3>
-                    <p style="color: #cbd5e1; font-size: 14px; margin-bottom: 12px;">
-                        📍 61 Kaki Bukit Ave 1, #03-34 Shun Li Industrial Park, Singapore 417943
-                    </p>
-                    <p style="color: #cbd5e1; font-size: 14px; margin-bottom: 8px;">
-                        📞 Phone: <a href="tel:+6586484883" style="color: #38bdf8;">+65 8648 4883</a>
-                    </p>
-                    <p style="color: #cbd5e1; font-size: 14px;">
-                        🕒 Mon - Sat: 9:00 AM - 6:00 PM
-                    </p>
-                </div>
-            </div>
-            <div class="footer-bottom">
-                <p>&copy; <?= date('Y') ?> Tabeeb Contractor. All Rights Reserved. UEN: 202506878W.</p>
-                <div class="footer-legal-links" style="display: flex; gap: 16px;">
-                    <a href="/privacy" style="color: #94a3b8; font-size: 13px; text-decoration: none;">Privacy Policy</a>
-                    <a href="/terms" style="color: #94a3b8; font-size: 13px; text-decoration: none;">Terms of Service</a>
-                </div>
-            </div>
-        </div>
-    </footer>
+    <?php require_once __DIR__ . '/includes/public_footer.php'; ?>
 
     <!-- Toast Copied Notification -->
     <div class="toast-copied" id="copyToast">
@@ -689,11 +633,8 @@ $twitterShareUrl = 'https://twitter.com/intent/tweet?text=' . urlencode($service
         <span>Link copied! Ready to share on WhatsApp or Facebook.</span>
     </div>
 
-    <!-- Scripts -->
-    <script src="/app.js?v=3.4"></script>
     <script>
         document.addEventListener('DOMContentLoaded', () => {
-            // Copy Link Functionality
             const copyBtn = document.getElementById('copyShareLinkBtn');
             const copyToast = document.getElementById('copyToast');
 
@@ -722,7 +663,6 @@ $twitterShareUrl = 'https://twitter.com/intent/tweet?text=' . urlencode($service
                 });
             }
 
-            // Native Web Share API (For Mobile devices: WhatsApp, Instagram Stories, Telegram)
             const nativeBtn = document.getElementById('nativeShareBtn');
             if (nativeBtn && navigator.share) {
                 nativeBtn.style.display = 'inline-flex';
@@ -733,9 +673,7 @@ $twitterShareUrl = 'https://twitter.com/intent/tweet?text=' . urlencode($service
                             text: nativeBtn.getAttribute('data-text'),
                             url: nativeBtn.getAttribute('data-url')
                         });
-                    } catch (err) {
-                        // User cancelled share
-                    }
+                    } catch (err) {}
                 });
             }
         });

@@ -10,11 +10,11 @@
     --color-primary: #07274d;       /* Authority Contractor Navy */
     --color-primary-light: #0d386b; /* Slate Contractor Navy */
     --color-primary-dark: #041933;  /* Deep Midnight Foundation */
-    
+
     --color-accent: #00b4d8;        /* Vibrant Engineering Cyan */
     --color-accent-hover: #0077b6;  /* Sapphire Blue */
     --color-accent-light: #e0f2fe;  /* Soft Ice Blue */
-    
+
     --color-gold: #c2963f;          /* Architectural Gold */
     --color-gold-hover: #a67d2e;    /* Deep Gold Accent */
     --color-gold-light: #fef8ee;    /* Warm Champagne */
@@ -22,28 +22,28 @@
     --color-text-dark: #0f172a;     /* Deep Slate Text */
     --color-text-muted: #64748b;    /* Slate Muted Text */
     --color-bg-light: #f8fafc;      /* Clean Off-white */
-    --color-bg-white: #ffffff;      
+    --color-bg-white: #ffffff;
     --color-bg-dark: #0a1128;       /* Dark Page Background */
-    
+
     /* Layout Details */
     --font-heading: 'Outfit', sans-serif;
     --font-body: 'Inter', sans-serif;
-    
+
     --radius-sm: 8px;
     --radius-md: 16px;
     --radius-lg: 24px;
     --radius-full: 9999px;
-    
+
     --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.1);
     --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03);
     --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.05), 0 4px 6px -2px rgba(0, 0, 0, 0.02);
     --shadow-xl: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
     --shadow-gold: 0 10px 20px -5px rgba(212, 175, 55, 0.35);
-    
+
     --transition-fast: 0.2s cubic-bezier(0.4, 0, 0.2, 1);
     --transition-normal: 0.35s cubic-bezier(0.4, 0, 0.2, 1);
     --transition-slow: 0.6s cubic-bezier(0.4, 0, 0.2, 1);
-    
+
     --container-width: 1280px;
     --header-height: 80px;
     --topbar-height: 40px;
@@ -1402,7 +1402,7 @@ textarea.form-control {
     .burger {
         display: block;
     }
-    
+
     /* Toggle animations on burger menu */
     .burger.active .line1 {
         transform: rotate(-45deg) translate(-5px, 6px);
@@ -1413,7 +1413,7 @@ textarea.form-control {
     .burger.active .line3 {
         transform: rotate(45deg) translate(-5px, -6px);
     }
-    
+
     .hero {
         background: linear-gradient(180deg, rgba(7, 39, 77, 0.86) 0%, rgba(7, 39, 77, 0.70) 55%, rgba(7, 39, 77, 0.40) 100%), url('images/hero-bg.jpg') no-repeat center center/cover;
         padding-top: calc(var(--header-height) + 24px);
@@ -2338,6 +2338,3 @@ textarea.form-control {
     transform: translateY(0);
     opacity: 1;
 }
-
-
-

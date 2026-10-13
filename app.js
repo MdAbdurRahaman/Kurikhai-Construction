@@ -180,6 +180,19 @@ document.addEventListener('DOMContentLoaded', () => {
         return re.test(String(email).toLowerCase());
     };
 
+    // Helper to generate opaque random request ID for idempotency
+    const generateSubmissionId = () => {
+        if (typeof crypto !== 'undefined' && typeof crypto.randomUUID === 'function') {
+            return 'req_' + crypto.randomUUID().replace(/-/g, '');
+        }
+        if (typeof crypto !== 'undefined' && typeof crypto.getRandomValues === 'function') {
+            const buf = new Uint8Array(16);
+            crypto.getRandomValues(buf);
+            return 'req_' + Array.from(buf, b => b.toString(16).padStart(2, '0')).join('');
+        }
+        return 'req_' + Date.now().toString(16) + Math.random().toString(16).substring(2, 14);
+    };
+
     const setupFormValidation = (form, onSuccessCallback) => {
         if (!form) return;
 
@@ -237,11 +250,21 @@ document.addEventListener('DOMContentLoaded', () => {
                 });
 
                 // Anti-spam & attribution metadata
-                data['form_loaded_ts'] = window.__formLoadedTime || Math.floor(Date.now() / 1000) - 5;
+                if (!data['form_loaded_ts']) {
+                    data['form_loaded_ts'] = form.querySelector('input[name="form_loaded_ts"]')?.value || '';
+                }
+                if (!data['source']) {
+                    data['source'] = form.querySelector('input[name="source"]')?.value || 'website_quote_form';
+                }
                 data['website_url_hp'] = form.querySelector('input[name="website_url_hp"]')?.value || '';
                 data['landing_page'] = window.location.href;
                 data['referrer'] = document.referrer || '';
-                data['source'] = 'website_quote_form';
+
+                // Client request idempotency key (opaque random token, retained across retries of this submission)
+                if (!form._currentSubmissionId) {
+                    form._currentSubmissionId = generateSubmissionId();
+                }
+                data['idempotency_key'] = form._currentSubmissionId;
 
                 // Remove existing form-level error message if any
                 const existingAlert = form.querySelector('.form-alert-msg');
@@ -254,7 +277,22 @@ document.addEventListener('DOMContentLoaded', () => {
                     const alertDiv = document.createElement('div');
                     alertDiv.className = 'form-alert-msg';
                     alertDiv.style.cssText = 'background: #fef2f2; border: 1px solid #fecaca; color: #b91c1c; padding: 12px 16px; border-radius: 8px; margin-bottom: 16px; font-size: 13px; line-height: 1.5;';
-                    alertDiv.innerHTML = `<strong>Submission Notice:</strong> ${msg || 'Unable to submit your request at this moment.'} <br>You can also reach our duty supervisor directly via <strong><a href="tel:+6586484883" style="color: #b91c1c; text-decoration: underline;">+65 8648 4883</a></strong> or <strong><a href="https://wa.me/6586484883" target="_blank" style="color: #15803d; text-decoration: underline;">WhatsApp</a></strong>.`;
+
+                    const strongNotice = document.createElement('strong');
+                    strongNotice.textContent = 'Submission Notice: ';
+                    alertDiv.appendChild(strongNotice);
+
+                    const textSpan = document.createElement('span');
+                    textSpan.textContent = (msg || 'Unable to submit your request at this moment.') + ' ';
+                    alertDiv.appendChild(textSpan);
+
+                    alertDiv.appendChild(document.createElement('br'));
+
+                    const contactSpan = document.createElement('span');
+                    const cCfg = window.TABEEB_CONTACT || { phone: '+65 8648 4883', phoneRaw: '6586484883', whatsappRaw: '6586484883' };
+                    contactSpan.innerHTML = 'You can also reach our duty supervisor directly via <strong><a href="tel:+' + cCfg.phoneRaw + '" style="color: #b91c1c; text-decoration: underline;">' + cCfg.phone + '</a></strong> or <strong><a href="https://wa.me/' + cCfg.whatsappRaw + '" target="_blank" style="color: #15803d; text-decoration: underline;">WhatsApp</a></strong>.';
+                    alertDiv.appendChild(contactSpan);
+
                     submitBtn.parentNode.insertBefore(alertDiv, submitBtn);
                 };
 
@@ -275,13 +313,28 @@ document.addEventListener('DOMContentLoaded', () => {
                     }
 
                     if (response.ok && result.success) {
+                        // Submission complete: rotate/clear submission ID so future inquiries are distinct
+                        form._currentSubmissionId = null;
+
+                        // DataLayer conversion event (Only emit if NOT duplicate - Zero PII)
+                        if (!result.is_duplicate) {
+                            window.dataLayer = window.dataLayer || [];
+                            window.dataLayer.push({
+                                event: 'generate_lead',
+                                lead_id: result.lead_id || '',
+                                service_id: result.service_id || data.service || 'general'
+                            });
+                        }
+
                         // Success modal with real lead reference ID
-                        if (successModal) {
-                            const refElem = successModal.querySelector('.modal-lead-ref');
-                            if (refElem && result.lead_id) {
-                                refElem.textContent = 'Reference ID: ' + result.lead_id;
-                            }
-                            successModal.classList.add('active');
+                        const activeModal = document.getElementById('successModal');
+                        if (activeModal) {
+                            const refElems = activeModal.querySelectorAll('#leadRefNumber, .modal-lead-ref');
+                            refElems.forEach(el => {
+                                el.textContent = result.lead_id || '';
+                            });
+                            activeModal.classList.add('active');
+                            activeModal.setAttribute('aria-hidden', 'false');
                         }
                         form.reset();
                         submitBtn.disabled = false;
@@ -291,16 +344,34 @@ document.addEventListener('DOMContentLoaded', () => {
                             onSuccessCallback();
                         }
                     } else {
+                        // If server reported a 409 conflict, rotate submission ID
+                        if (response.status === 409 || (result && result.code === 'IDEMPOTENCY_CONFLICT')) {
+                            form._currentSubmissionId = null;
+                        }
+
                         // Honest error reporting
                         showServerError(result.message || 'Submission failed. Please check required fields.');
                     }
                 })
                 .catch((err) => {
                     console.error('Submission network error:', err);
-                    showServerError('Network error or connection lost. Please verify your connection.');
+                    // Network error: retain form._currentSubmissionId so an immediate user retry is idempotent
+                    showServerError('Network error or connection lost. Please verify your connection and click submit again to retry.');
                 });
             }
         });
+
+        // Track form interaction start (Zero PII)
+        form.addEventListener('focusin', () => {
+            if (!form.__formStarted) {
+                form.__formStarted = true;
+                window.dataLayer = window.dataLayer || [];
+                window.dataLayer.push({
+                    event: 'form_start',
+                    form_id: form.id || 'quote_form'
+                });
+            }
+        }, { once: true });
 
         // Reset custom styles if user types or checks
         form.addEventListener('input', (e) => {
@@ -357,19 +428,44 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-    // Close success modal actions
-    if (closeModalBtn && successModal) {
-        closeModalBtn.addEventListener('click', () => {
-            successModal.classList.remove('active');
-        });
+    // Close success modal actions (Accessible unified modal handling)
+    const successModalEl = document.getElementById('successModal');
+    const closeSuccessBtn = document.getElementById('closeSuccessModalBtn');
+    const closeSuccessX = document.getElementById('closeSuccessModalX');
+    const oldCloseBtn = document.getElementById('closeModalBtn');
+    const allCloseBtns = [closeSuccessBtn, closeSuccessX, oldCloseBtn].filter(Boolean);
 
-        // Close modal when clicking on the overlay backdrop
-        successModal.addEventListener('click', (e) => {
-            if (e.target === successModal) {
-                successModal.classList.remove('active');
+    const hideSuccessModal = () => {
+        if (successModalEl) {
+            successModalEl.classList.remove('active');
+            successModalEl.setAttribute('aria-hidden', 'true');
+        }
+    };
+
+    allCloseBtns.forEach(btn => {
+        btn.addEventListener('click', (e) => {
+            e.preventDefault();
+            hideSuccessModal();
+        });
+    });
+
+    if (successModalEl) {
+        successModalEl.addEventListener('click', (e) => {
+            if (e.target === successModalEl) {
+                hideSuccessModal();
             }
         });
     }
+
+    // Accessible Escape key listener for all open modals
+    document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape') {
+            hideSuccessModal();
+            if (quoteModal) {
+                quoteModal.classList.remove('active');
+            }
+        }
+    });
 
     // 8. FAQ Accordion Toggle (For SEO Rich FAQ Sections)
     const faqButtons = document.querySelectorAll('.faq-question');
@@ -378,7 +474,7 @@ document.addEventListener('DOMContentLoaded', () => {
             btn.addEventListener('click', () => {
                 const currentItem = btn.closest('.faq-item');
                 const wasActive = currentItem.classList.contains('active');
-                
+
                 // Close other items in the same container
                 const parentAccordion = currentItem.closest('.faq-accordion');
                 if (parentAccordion) {
@@ -386,7 +482,7 @@ document.addEventListener('DOMContentLoaded', () => {
                         if (item !== currentItem) item.classList.remove('active');
                     });
                 }
-                
+
                 currentItem.classList.toggle('active', !wasActive);
             });
         });
@@ -526,6 +622,41 @@ document.addEventListener('DOMContentLoaded', () => {
     };
 
     setupGlobalShare();
+
+    // 10. DataLayer Intent Click Tracking (Phone, WhatsApp, Email, Maps - Zero PII)
+    document.addEventListener('click', (e) => {
+        const target = e.target.closest('a');
+        if (!target) return;
+        const href = target.getAttribute('href') || '';
+
+        if (href.startsWith('tel:')) {
+            window.dataLayer = window.dataLayer || [];
+            window.dataLayer.push({
+                event: 'contact_click',
+                contact_type: 'phone',
+                element_id: target.id || ''
+            });
+        } else if (href.includes('wa.me') || href.includes('whatsapp.com')) {
+            window.dataLayer = window.dataLayer || [];
+            window.dataLayer.push({
+                event: 'contact_click',
+                contact_type: 'whatsapp',
+                element_id: target.id || ''
+            });
+        } else if (href.startsWith('mailto:')) {
+            window.dataLayer = window.dataLayer || [];
+            window.dataLayer.push({
+                event: 'contact_click',
+                contact_type: 'email',
+                element_id: target.id || ''
+            });
+        } else if (href.includes('google.com/maps') || href.includes('maps.google.com')) {
+            window.dataLayer = window.dataLayer || [];
+            window.dataLayer.push({
+                event: 'contact_click',
+                contact_type: 'maps',
+                element_id: target.id || ''
+            });
+        }
+    });
 });
-
-
