@@ -26,6 +26,9 @@ print(f'Application PHP syntax: {len(php_files)} files passed.',flush=True)
 for p in (bundle/'tests').glob('*.php'):run([args.php,'-l',str(p)])
 for p in (bundle/'ops').glob('*.php'):run([args.php,'-l',str(p)])
 if shutil.which('bash'):run(['bash','-n',str(bundle/'ops/release.sh')])
+if shutil.which('bash'):
+    run(['bash','-n',str(bundle/'ops/web_permissions.sh')])
+    run([sys.executable,str(bundle/'tests/test_web_permissions.py')])
 if shutil.which('node'):run(['node','--check',str(app/'app.js')])
 if (bundle/'tests/test_provision_databases.py').is_file():
     run([sys.executable,str(bundle/'tests/test_provision_databases.py')])

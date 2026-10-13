@@ -50,6 +50,7 @@ if [[ "$ACTION" == prepare ]]; then
   grep -q "Dump completed" "$ENV_ROOT/backups/$RELEASE_ID.sql" || { echo 'Database dump incomplete.' >&2; exit 1; }
   "$PHP_BIN" "$DEST/scripts/migrate.php" "${SEED_FLAG:---no-seed}"
   "$PHP_BIN" "$SOURCE/ops/configure_release.php" "$DEST" "$ENV_ROOT" "$TARGET"
+  bash "$SOURCE/ops/web_permissions.sh" "$ENV_ROOT" "$RELEASE_ID" "$TARGET"
   printf '%s\n' "$RELEASE_ID" > "$ENV_ROOT/prepared"
   echo "Prepared $RELEASE_ID. Site remains unchanged. Provision admin/recipients, test this candidate on staging, then activate."
 elif [[ "$ACTION" == activate ]]; then
@@ -57,6 +58,8 @@ elif [[ "$ACTION" == activate ]]; then
   [[ "$RELEASE_ID" =~ ^[a-zA-Z0-9_-]+$ ]] || exit 2
   DEST="$ENV_ROOT/releases/$RELEASE_ID"
   "$PHP_BIN" "$DEST/scripts/preflight.php" --expect="$TARGET" --schema --release-check
+  SOURCE=$(cd "$(dirname "$0")/.." && pwd -P)
+  bash "$SOURCE/ops/web_permissions.sh" "$ENV_ROOT" "$RELEASE_ID" "$TARGET"
   if [[ -L "$ENV_ROOT/current" ]]; then readlink -f "$ENV_ROOT/current" > "$ENV_ROOT/previous"; fi
   ln -s "$DEST" "$ENV_ROOT/current.next"
   mv -Tf "$ENV_ROOT/current.next" "$ENV_ROOT/current"
