@@ -2,7 +2,7 @@
 $pageTitle = 'Overview & Analytics';
 require_once __DIR__ . '/header.php';
 
-$allPosts = get_all_posts(false);
+$allPosts = get_all_posts(!has_permission('content.manage'));
 $allServices = get_all_services();
 
 $currentUser = current_user();
@@ -83,7 +83,8 @@ if ($dbConnected && ($canViewAnalytics || $canViewAllLeads || $canViewAssignedLe
 }
 
 // Business Tracker Metrics
-$trackerMetrics = BusinessTracker::getMetrics();
+$canManageBusiness = has_permission('business_info.manage');
+$trackerMetrics = $canManageBusiness ? BusinessTracker::getMetrics() : [];
 ?>
 
 <?php if ($isAssignedOnly): ?>
@@ -129,6 +130,7 @@ $trackerMetrics = BusinessTracker::getMetrics();
         </div>
         <div class="stat-icon" style="background: #ecfdf5; color: #059669;">💰</div>
     </div>
+    <?php if ($canManageBusiness): ?>
     <div class="stat-card">
         <div>
             <div class="stat-val"><?= $trackerMetrics['confirmed'] ?> / <?= $trackerMetrics['total'] ?></div>
@@ -136,10 +138,12 @@ $trackerMetrics = BusinessTracker::getMetrics();
         </div>
         <div class="stat-icon" style="background: #fff1f2; color: #e11d48;">📋</div>
     </div>
+<?php endif; ?>
 </div>
 
 <!-- Quick Action & Verification Bar -->
 <div style="display: flex; gap: 15px; margin-bottom: 25px; flex-wrap: wrap;">
+    <?php if ($canViewAllLeads || $canViewAssignedLeads): ?>
     <div style="flex: 1; min-width: 300px; background: #ffffff; border: 1px solid var(--admin-border); border-radius: var(--admin-radius); padding: 18px 24px; box-shadow: var(--admin-shadow); display: flex; align-items: center; justify-content: space-between;">
         <div>
             <h4 style="font-size: 15px; color: var(--admin-navy); margin-bottom: 4px;">🎯 Live CRM & Leads Funnel</h4>
@@ -148,6 +152,8 @@ $trackerMetrics = BusinessTracker::getMetrics();
         <a href="leads.php" class="btn-adm btn-adm-primary" style="font-size: 13px;">Manage Leads ➔</a>
     </div>
 
+    <?php endif; ?>
+    <?php if ($canManageBusiness): ?>
     <div style="flex: 1; min-width: 300px; background: #ffffff; border: 1px solid var(--admin-border); border-radius: var(--admin-radius); padding: 18px 24px; box-shadow: var(--admin-shadow); display: flex; align-items: center; justify-content: space-between;">
         <div>
             <h4 style="font-size: 15px; color: var(--admin-navy); margin-bottom: 4px;">📋 Client Information Tracker</h4>
@@ -155,6 +161,7 @@ $trackerMetrics = BusinessTracker::getMetrics();
         </div>
         <a href="business-info.php" class="btn-adm btn-adm-outline" style="font-size: 13px;">Review Facts ➔</a>
     </div>
+<?php endif; ?>
 </div>
 
 <?php if ($canViewAllLeads || $canViewAssignedLeads): ?>
@@ -242,9 +249,11 @@ $trackerMetrics = BusinessTracker::getMetrics();
             </p>
         </div>
         <div>
+            <?php if ($canManageContent): ?>
             <a href="services.php" class="btn-adm btn-adm-accent" style="font-size: 12px; padding: 6px 14px;">
                 All Service Links ➔
             </a>
+            <?php endif; ?>
         </div>
     </div>
 

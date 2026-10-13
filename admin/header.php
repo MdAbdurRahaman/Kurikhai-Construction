@@ -508,7 +508,13 @@ $baseUrl = get_base_url();
                 <span class="sidebar-icon">🎯</span>
                 <span>Leads & Inquiries</span>
                 <?php
-                $newLeadsBadge = DB::isConnected() ? (int)db_val("SELECT COUNT(*) FROM `leads` WHERE `status` = 'new'") : 0;
+                $badgeSql = "SELECT COUNT(*) FROM `leads` WHERE `status` = 'new' AND `deleted_at` IS NULL";
+                $badgeParams = [];
+                if (!has_permission('leads.view')) {
+                    $badgeSql .= " AND `assigned_user_id` = ?";
+                    $badgeParams[] = (int)$currentUser['id'];
+                }
+                $newLeadsBadge = DB::isConnected() ? (int)db_val($badgeSql, $badgeParams) : 0;
                 if ($newLeadsBadge > 0): ?>
                     <span style="background: #ef4444; color: #fff; font-size: 11px; font-weight: 700; padding: 2px 7px; border-radius: 9999px; margin-left: auto;"><?= $newLeadsBadge ?></span>
                 <?php endif; ?>
@@ -611,9 +617,11 @@ $baseUrl = get_base_url();
         <header class="admin-topbar">
             <h1 class="topbar-title"><?= $pageTitle ?? 'Dashboard' ?></h1>
             <div class="topbar-actions">
+                <?php if (has_permission('content.manage')): ?>
                 <a href="post-edit.php" class="btn-adm btn-adm-primary">
                     <span>+ New Blog Post</span>
                 </a>
+                <?php endif; ?>
                 <a href="/blog" target="_blank" class="btn-adm btn-adm-outline">
                     <span>View Public Blog ↗</span>
                 </a>

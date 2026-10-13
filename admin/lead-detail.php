@@ -14,6 +14,8 @@ if (!$canViewAll && !$canViewAssigned) {
     exit;
 }
 
+$canEditLead = has_permission('leads.edit') || has_permission('leads.edit_assigned');
+
 $leadId = (int)($_GET['id'] ?? 0);
 $leadNum = trim($_GET['num'] ?? '');
 
@@ -77,7 +79,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $assigneeChanged = false;
         if (isset($_POST['assigned_user_id'])) {
             $reqAssignee = !empty($_POST['assigned_user_id']) ? (int)$_POST['assigned_user_id'] : null;
-            if ($reqAssignee !== (int)$lead['assigned_user_id']) {
+            if ($reqAssignee !== ($lead['assigned_user_id'] === null ? null : (int)$lead['assigned_user_id'])) {
                 if (!has_permission('leads.assign')) {
                     $error = 'You do not have permission (leads.assign) to change lead assignment.';
                     $reqAssignee = $lead['assigned_user_id'];
@@ -138,6 +140,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
     } elseif ($action === 'add_note') {
         $noteText = trim($_POST['note_text'] ?? '');
+        if (!$canEditLead) {
+            http_response_code(403);
+            die('Access Denied: You do not have permission to add notes.');
+        }
         if (!empty($noteText)) {
             db_exec(
                 "INSERT INTO `lead_notes` (`lead_id`, `user_id`, `note`, `created_at`)
@@ -159,7 +165,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 require_once __DIR__ . '/header.php';
 
 // Fetch users for assignment dropdown
-$assignees = db_all("SELECT `id`, `name` FROM `users` WHERE `status` = 'active' AND `deleted_at` IS NULL ORDER BY `name` ASC");
+$assignees = has_permission('leads.assign') ? db_all("SELECT `id`, `name` FROM `users` WHERE `status` = 'active' AND `deleted_at` IS NULL ORDER BY `name` ASC") : [];
 // Fetch notes
 $notes = db_all(
     "SELECT n.*, u.name AS author_name
@@ -263,6 +269,7 @@ $activities = db_all(
                 <h3>Internal CRM Notes</h3>
             </div>
             <div style="padding: 24px;">
+                <?php if ($canEditLead): ?>
                 <form method="POST" action="lead-detail.php?id=<?= $leadId ?>" style="margin-bottom: 24px;">
                     <?= csrf_input_field() ?>
                     <input type="hidden" name="form_action" value="add_note">
@@ -271,6 +278,7 @@ $activities = db_all(
                     </div>
                     <button type="submit" class="btn-adm btn-adm-primary" style="font-size: 13px;">Add Internal Note</button>
                 </form>
+                <?php endif; ?>
 
                 <div style="display: flex; flex-direction: column; gap: 12px;">
                     <?php if (empty($notes)): ?>
@@ -320,6 +328,7 @@ $activities = db_all(
                 <h3>Pipeline Status & Control</h3>
             </div>
             <div style="padding: 24px;">
+                <?php if ($canEditLead): ?>
                 <form method="POST" action="lead-detail.php?id=<?= $leadId ?>">
                     <?= csrf_input_field() ?>
                     <input type="hidden" name="form_action" value="update_lead">
@@ -358,6 +367,7 @@ $activities = db_all(
                         </select>
                     </div>
 
+                    <?php if (has_permission('leads.assign')): ?>
                     <div class="form-group">
                         <label class="form-label" for="assigned_user_id">Assigned Staff</label>
                         <select name="assigned_user_id" id="assigned_user_id" class="form-control-adm">
@@ -370,6 +380,7 @@ $activities = db_all(
                         </select>
                     </div>
 
+                    <?php endif; ?>
                     <div class="form-group">
                         <label class="form-label" for="estimated_deal_value">Estimated Value (SGD)</label>
                         <input type="number" step="0.01" name="estimated_deal_value" id="estimated_deal_value" class="form-control-adm" placeholder="e.g. 15000" value="<?= htmlspecialchars($lead['estimated_deal_value'] ?? '') ?>">
@@ -387,6 +398,7 @@ $activities = db_all(
 
                     <button type="submit" class="btn-adm btn-adm-primary" style="width: 100%; padding: 12px;">Save Lead Updates</button>
                 </form>
+                <?php endif; ?>
             </div>
         </div>
     </div>

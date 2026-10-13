@@ -51,7 +51,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $password = $_POST['password'] ?? '';
 
         // Safeguard: cannot deactivate self
-        if ($currentUser['id'] === $id && $status === 'inactive') {
+        if ((int)$currentUser['id'] === (int)$id && $status === 'inactive') {
             header('Location: users.php?error=' . urlencode('You cannot deactivate your own account.'));
             exit;
         }
@@ -98,7 +98,7 @@ $users = get_all_users();
 <div class="table-card">
     <div class="table-header">
         <div>
-            <h3>System Administrators & Editors (<?= count($users) ?>)</h3>
+            <h3>Portal Users (<?= count($users) ?>)</h3>
             <span style="font-size: 13px; color: var(--admin-text-muted);">Manage user roles, access permissions, and account passwords</span>
         </div>
         <div>
@@ -148,7 +148,7 @@ $users = get_all_users();
                             <?php if ($u['role'] === 'super_admin'): ?>
                                 <span class="badge-adm badge-adm-blue">Super Admin</span>
                             <?php else: ?>
-                                <span class="badge-adm" style="background: #f1f5f9; color: #475569;">Content Editor</span>
+                                <span class="badge-adm" style="background: #f1f5f9; color: #475569;"><?= htmlspecialchars($u['role_name'] ?? $u['role']) ?></span>
                             <?php endif; ?>
                         </td>
                         <td>

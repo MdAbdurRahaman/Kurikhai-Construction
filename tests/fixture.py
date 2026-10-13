@@ -39,7 +39,7 @@ for table,col,typ in [('leads','payload_hash','TEXT'),('users','session_version'
 for f in files[:2]:
     for st in statements(f.read_text(encoding='utf-8')):
         if not re.match(r'\s*INSERT(?: IGNORE)? INTO `?(roles|permissions|role_permissions|marketing_baseline|integration_verifications|projects|project_media)`?\b',st):continue
-        st=st.replace('INSERT IGNORE','INSERT OR IGNORE');st=re.sub(r'ON DUPLICATE KEY UPDATE.*?;',';',st,flags=re.S)
+        st=st.replace('INSERT IGNORE','INSERT OR IGNORE');st=re.sub(r'^\s*INSERT INTO', 'INSERT OR IGNORE INTO', st);st=re.sub(r'ON DUPLICATE KEY UPDATE.*?;',';',st,flags=re.S)
         try:conn.execute(st)
         except sqlite3.IntegrityError:pass
 # Runtime seed services and posts.

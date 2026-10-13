@@ -1,6 +1,8 @@
 <?php
 require_once dirname(__DIR__) . '/includes/data.php';
 
+require_login();
+
 // Check view permissions before emitting any HTML output
 if (!has_permission('leads.view') && !has_permission('leads.view_assigned')) {
     http_response_code(403);
@@ -14,63 +16,6 @@ if (!has_permission('leads.view') && !has_permission('leads.view_assigned')) {
 $currentUser = current_user();
 $isAssignedOnly = !has_permission('leads.view') && has_permission('leads.view_assigned');
 $assignedUserId = (int)($currentUser['id'] ?? 0);
-
-// Handle CSV Export before any HTML is sent to the client
-if (isset($_GET['export']) && $_GET['export'] === 'csv') {
-    require_permission('leads.export');
-
-    $exportSql = "SELECT `lead_number`, `name`, `phone`, `email`, `preferred_contact_method`,
-                         `service_requested`, `property_type`, `estimated_budget`, `project_description`,
-                         `status`, `priority`, `source`, `created_at`
-                  FROM `leads` WHERE `deleted_at` IS NULL";
-    $exportParams = [];
-    if ($isAssignedOnly) {
-        $exportSql .= " AND `assigned_user_id` = ?";
-        $exportParams[] = $assignedUserId;
-    }
-    $exportSql .= " ORDER BY `created_at` DESC";
-    $exportRows = db_all($exportSql, $exportParams);
-
-    header('Content-Type: text/csv; charset=utf-8');
-    header('Content-Disposition: attachment; filename=tabeeb_leads_' . date('Ymd_His') . '.csv');
-    header('Pragma: no-cache');
-    header('Expires: 0');
-
-    $out = fopen('php://output', 'w');
-    // UTF-8 BOM for Excel
-    fputs($out, "\xEF\xBB\xBF");
-
-    // CSV Headers
-    fputcsv($out, [
-        'Lead Number', 'Customer Name', 'Phone', 'Email', 'Preferred Contact',
-        'Service Requested', 'Property Type', 'Budget', 'Project Description',
-        'Status', 'Priority', 'Source', 'Submitted At'
-    ]);
-
-    foreach ($exportRows as $r) {
-        fputcsv($out, [
-            escape_csv_cell($r['lead_number']),
-            escape_csv_cell($r['name']),
-            escape_csv_cell($r['phone']),
-            escape_csv_cell($r['email']),
-            escape_csv_cell($r['preferred_contact_method']),
-            escape_csv_cell($r['service_requested']),
-            escape_csv_cell($r['property_type']),
-            escape_csv_cell($r['estimated_budget']),
-            escape_csv_cell($r['project_description']),
-            escape_csv_cell($r['status']),
-            escape_csv_cell($r['priority']),
-            escape_csv_cell($r['source']),
-            escape_csv_cell($r['created_at'])
-        ]);
-    }
-    fclose($out);
-    audit_log('leads.exported', 'lead', null, null, ['count' => count($exportRows)]);
-    exit;
-}
-
-$pageTitle = 'Leads & Inquiry Management';
-require_once __DIR__ . '/header.php';
 
 // Filtering & Search
 $search = trim($_GET['q'] ?? '');
@@ -114,6 +59,59 @@ if (!empty($filterPriority)) {
 
 $whereClause = implode(' AND ', $where);
 
+
+// Handle CSV Export before any HTML is sent to the client
+if (isset($_GET['export']) && $_GET['export'] === 'csv') {
+    require_permission('leads.export');
+
+    $exportSql = "SELECT `lead_number`, `name`, `phone`, `email`, `preferred_contact_method`,
+                         `service_requested`, `property_type`, `estimated_budget`, `project_description`,
+                         `status`, `priority`, `source`, `created_at`
+                  FROM `leads` l WHERE {$whereClause} ORDER BY l.`created_at` DESC";
+    $exportParams = $params;
+    $exportRows = db_all($exportSql, $exportParams);
+
+    header('Content-Type: text/csv; charset=utf-8');
+    header('Content-Disposition: attachment; filename=tabeeb_leads_' . date('Ymd_His') . '.csv');
+    header('Pragma: no-cache');
+    header('Expires: 0');
+
+    $out = fopen('php://output', 'w');
+    // UTF-8 BOM for Excel
+    fputs($out, "\xEF\xBB\xBF");
+
+    // CSV Headers
+    fputcsv($out, [
+        'Lead Number', 'Customer Name', 'Phone', 'Email', 'Preferred Contact',
+        'Service Requested', 'Property Type', 'Budget', 'Project Description',
+        'Status', 'Priority', 'Source', 'Submitted At'
+    ]);
+
+    foreach ($exportRows as $r) {
+        fputcsv($out, [
+            escape_csv_cell($r['lead_number']),
+            escape_csv_cell($r['name']),
+            escape_csv_cell($r['phone']),
+            escape_csv_cell($r['email']),
+            escape_csv_cell($r['preferred_contact_method']),
+            escape_csv_cell($r['service_requested']),
+            escape_csv_cell($r['property_type']),
+            escape_csv_cell($r['estimated_budget']),
+            escape_csv_cell($r['project_description']),
+            escape_csv_cell($r['status']),
+            escape_csv_cell($r['priority']),
+            escape_csv_cell($r['source']),
+            escape_csv_cell($r['created_at'])
+        ]);
+    }
+    fclose($out);
+    audit_log('leads.exported', 'lead', null, null, ['count' => count($exportRows)]);
+    exit;
+}
+
+$pageTitle = 'Leads & Inquiry Management';
+require_once __DIR__ . '/header.php';
+
 $totalCount = 0;
 $leads = [];
 $servicesList = [];
@@ -142,6 +140,12 @@ if (DB::isConnected()) {
 $totalPages = max(1, ceil($totalCount / $limit));
 ?>
 
+<?php if ($isAssignedOnly): ?>
+<div class="table-card" style="padding: 18px 24px; margin-bottom: 20px;">
+    <strong>Your assigned enquiries</strong>
+    <p>Only enquiries assigned to you are shown. Ask your administrator or sales manager to assign new enquiries to your account.</p>
+</div>
+<?php endif; ?>
 <!-- Filter & Actions Bar -->
 <div class="table-card" style="margin-bottom: 25px;">
     <div style="padding: 20px 24px;">
@@ -176,11 +180,13 @@ $totalPages = max(1, ceil($totalCount / $limit));
                 <a href="leads.php" class="btn-adm btn-adm-outline">Reset</a>
             </div>
 
+            <?php if (has_permission('leads.export')): ?>
             <div style="margin-left: auto;">
-                <a href="leads.php?export=csv<?= !empty($search) ? '&q=' . urlencode($search) : '' ?><?= !empty($filterStatus) ? '&status=' . urlencode($filterStatus) : '' ?>" class="btn-adm btn-adm-accent" style="font-size: 13px;">
+                <a href="leads.php?export=csv<?= !empty($search) ? '&q=' . urlencode($search) : '' ?><?= !empty($filterStatus) ? '&status=' . urlencode($filterStatus) : '' ?><?= !empty($filterPriority) ? '&priority=' . urlencode($filterPriority) : '' ?><?= !empty($filterService) ? '&service=' . urlencode($filterService) : '' ?>" class="btn-adm btn-adm-accent" style="font-size: 13px;">
                     📥 Export CSV
                 </a>
             </div>
+            <?php endif; ?>
         </form>
     </div>
 </div>
@@ -189,7 +195,7 @@ $totalPages = max(1, ceil($totalCount / $limit));
 <div class="table-card">
     <div class="table-header">
         <div>
-            <h3>All Leads (<?= number_format($totalCount) ?> Total)</h3>
+            <h3><?= $isAssignedOnly ? 'My Assigned Leads' : 'All Leads' ?> (<?= number_format($totalCount) ?> Total)</h3>
             <p style="font-size: 13px; color: var(--admin-text-muted); margin-top: 2px;">Showing Page <?= $page ?> of <?= $totalPages ?></p>
         </div>
     </div>
@@ -214,7 +220,7 @@ $totalPages = max(1, ceil($totalCount / $limit));
                 <?php if (empty($leads)): ?>
                     <tr>
                         <td colspan="10" style="text-align: center; padding: 50px; color: #94a3b8;">
-                            No leads matched your filter criteria.
+                            <?= $isAssignedOnly && $search === '' && $filterStatus === '' && $filterPriority === '' && $filterService === '' ? 'No enquiries have been assigned to you yet. Ask your administrator or sales manager to assign them.' : 'No leads matched your filter criteria.' ?>
                         </td>
                     </tr>
                 <?php else: ?>
@@ -299,7 +305,7 @@ $totalPages = max(1, ceil($totalCount / $limit));
         </div>
         <div style="display: flex; gap: 6px;">
             <?php for ($i = 1; $i <= $totalPages; $i++): ?>
-                <a href="leads.php?page=<?= $i ?><?= !empty($search) ? '&q=' . urlencode($search) : '' ?><?= !empty($filterStatus) ? '&status=' . urlencode($filterStatus) : '' ?>"
+                <a href="leads.php?page=<?= $i ?><?= !empty($search) ? '&q=' . urlencode($search) : '' ?><?= !empty($filterStatus) ? '&status=' . urlencode($filterStatus) : '' ?><?= !empty($filterPriority) ? '&priority=' . urlencode($filterPriority) : '' ?><?= !empty($filterService) ? '&service=' . urlencode($filterService) : '' ?>"
                    class="btn-adm <?= $page === $i ? 'btn-adm-primary' : 'btn-adm-outline' ?>"
                    style="padding: 4px 10px; font-size: 12px;">
                     <?= $i ?>
