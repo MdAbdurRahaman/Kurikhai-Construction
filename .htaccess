@@ -51,6 +51,7 @@ RewriteRule ^sitemap\.xml$ sitemap.php [L]
 
 # Secure Lead Ingestion API Endpoint
 RewriteRule ^api/leads/?$ api/leads.php [L,QSA]
+RewriteRule ^api/analytics/?$ api/analytics.php [L]
 
 # Core Clean URLs Routing to Authoritative PHP Templates
 RewriteRule ^about/?$ about.php [L,QSA]

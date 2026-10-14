@@ -118,7 +118,7 @@ $canonicalUrl = APP_URL . '/404';
 <body>
     <?php render_gtm_body(); ?>
 
-    <main class="error-section">
+    <main data-page-error="not_found" class="error-section">
         <div class="error-card">
             <div class="error-code">404</div>
             <h1 class="error-title">Page or Service Not Found</h1>

@@ -16,7 +16,7 @@ def statements(s):
         elif c==';':out.append(''.join(buf));buf=[]
     return out
 path=Path(sys.argv[1]);path.unlink(missing_ok=True);conn=sqlite3.connect(path)
-files=[root/'config/schema.sql',root/'config/migrations/002_repair_core_and_projects.sql',root/'config/migrations/004_production_contracts.sql',root/'config/migrations/005_user_access_controls.sql']
+files=[root/'config/schema.sql',root/'config/migrations/002_repair_core_and_projects.sql',root/'config/migrations/004_production_contracts.sql',root/'config/migrations/005_user_access_controls.sql',root/'config/migrations/006_analytics_measurement.sql']
 for f in files:
     for st in statements(f.read_text(encoding='utf-8')):
         if not st.strip().startswith('CREATE TABLE'):continue

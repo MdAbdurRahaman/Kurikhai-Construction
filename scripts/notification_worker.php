@@ -25,6 +25,12 @@ require_once dirname(__DIR__) . '/includes/mailer.php';
 
 $res = Mailer::processOutboxQueue(5);
 
+// Reuse the existing minute worker for bounded analytics-retention cleanup.
+try {
+    require_once dirname(__DIR__).'/includes/measurement.php';
+    purge_site_measurements();
+} catch (Throwable $e) { error_log('[Analytics retention] Cleanup deferred; check migration and database health.'); }
+
 $timestamp = date('Y-m-d H:i:s');
 echo "[{$timestamp}] Outbox Worker Processed: {$res['processed']} | Sent: {$res['sent']} | Simulated: {$res['simulated']} | Failed: {$res['failed']} | Blocked: {$res['blocked']}\n";
 

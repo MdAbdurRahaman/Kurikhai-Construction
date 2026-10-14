@@ -61,7 +61,7 @@ $pageDesc = "Privacy Policy for Tabeeb Contractor Singapore. Information on how 
             <div style="background: #ffffff; border-radius: 16px; padding: 40px; border: 1px solid #e2e8f0; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05);">
                 <h1 style="font-size: 32px; color: #07274d; margin-bottom: 12px; font-family: var(--font-heading);">Privacy Policy</h1>
                 <p style="color: #64748b; font-size: 14px; margin-bottom: 30px;">
-                    Last updated: 11 October 2026 &bull; Governing Law: Singapore (PDPA)
+                    Last updated: 14 October 2026 &bull; Governing Law: Singapore (PDPA)
                 </p>
 
                 <div style="font-size: 15px; line-height: 1.8; color: #334155;">
@@ -92,6 +92,9 @@ $pageDesc = "Privacy Policy for Tabeeb Contractor Singapore. Information on how 
                     <h2 style="font-size: 20px; color: #07274d; margin: 28px 0 12px;">4. Retention and Disposal Policy</h2>
                     <p>We retain customer quote inquiries as necessary to fulfill project estimation, warranty coordination, audit requirements, and dispute resolution. In accordance with the Singapore Personal Data Protection Act (PDPA), personal data that is no longer required for legal or business operational purposes is subject to archiving or secure disposal upon customer request or periodic operational review.</p>
 
+                    <h2 style="font-size:20px;margin:28px 0 12px;">Optional analytics and performance measurement</h2>
+                    <p>With your permission, we measure page visits, traffic sources, device categories, form interactions, contact-button clicks and website speed. Browsing identifiers are random and stored as hashes in our database. Our measurement records exclude enquiry names, email addresses, phone numbers and project messages. Raw first-party analytics is retained for up to 90 days, with expired records removed during periodic processing. Analytics may also be sent to Google Analytics 4 when configured. Google processes this data under its own privacy terms and the account retention settings.</p>
+                    <p>Analytics is optional. You can decline or withdraw permission using the “Analytics preferences” button. Quote enquiries continue to work. A phone or WhatsApp click records intent and does not confirm a completed conversation.</p>
                     <h2 style="font-size: 20px; color: #07274d; margin: 28px 0 12px;">5. Your Rights and Data Protection Officer Contact</h2>
                     <p>You have the right to request access to or correction of your personal data, or to withdraw your consent for future communications at any time. To make a request, please contact our designated privacy coordinator:</p>
 

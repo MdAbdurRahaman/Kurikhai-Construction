@@ -43,4 +43,14 @@ with sqlite3.connect(db)as c:c.execute('ALTER TABLE leads_offline RENAME TO lead
 clear_rate()
 for i in range(6):status,_,_=request('/api/leads',base_payload)
 check(status==429,'rate limit enforced')
+# Real measurement endpoint: consent, CSRF, replay safety and PII filtering.
+measurement={'event_id':uuid.uuid4().hex,'session_id':uuid.uuid4().hex,'visitor_id':uuid.uuid4().hex,'event_name':'page_view','page_path':'/contact?email=private@example.invalid','channel':'direct','device_type':'mobile','csrf_token':csrf,'analytics_consent':True}
+status,_,_=request('/api/analytics',measurement);check(status==204,'measurement accepted')
+status,_,_=request('/api/analytics',measurement);check(status==204,'measurement replay accepted without duplicate')
+with sqlite3.connect(db)as c:
+    row=c.execute('SELECT COUNT(*),page_path FROM site_measurement_events WHERE event_id=?',(measurement['event_id'],)).fetchone();check(row==(1,'/contact'),'measurement deduplicated and query redacted')
+for update,expected in [({'analytics_consent':False},403),({'csrf_token':'invalid'},403),({'page_path':'/admin/users'},422),({'event_name':'unknown'},422)]:
+    p=dict(measurement);p.update(update);status,_,_=request('/api/analytics',p);check(status==expected,'measurement rejects '+str(update))
+status,_,_=request('/api/analytics',measurement,origin='https://other.invalid');check(status==403,'measurement cross-origin denied')
+status,_,_=request('/api/analytics');check(status==405,'measurement read denied')
 print(json.dumps({'passed':len(passed),'checks':passed,'engine':'real PHP HTTP, disposable SQLite schema fixture; no provider sends'}))

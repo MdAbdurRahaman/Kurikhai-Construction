@@ -29,7 +29,10 @@ if shutil.which('bash'):run(['bash','-n',str(bundle/'ops/release.sh')])
 if shutil.which('bash'):
     run(['bash','-n',str(bundle/'ops/web_permissions.sh')])
     run([sys.executable,str(bundle/'tests/test_web_permissions.py')])
-if shutil.which('node'):run(['node','--check',str(app/'app.js')])
+if shutil.which('node'):
+    run(['node','--check',str(app/'app.js')])
+    run(['node','--check',str(app/'js/analytics.js')])
+    run(['node',str(bundle/'tests/analytics_browser.js')])
 if (bundle/'tests/test_provision_databases.py').is_file():
     run([sys.executable,str(bundle/'tests/test_provision_databases.py')])
 result=run([args.php,str(bundle/'tests/contracts.php')])
@@ -53,6 +56,10 @@ with tempfile.TemporaryDirectory(prefix='tabeeb-test-local-') as temp:
         db=Path(temp)/('user-access-'+mode+'.sqlite');env['TEST_SQLITE_PATH']=str(db)
         run([sys.executable,str(bundle/'tests/fixture.py'),str(db)])
         run([args.php,str(bundle/'tests/user_access.php'),mode])
+    db=Path(temp)/'analytics.sqlite';env['TEST_SQLITE_PATH']=str(db)
+    run([sys.executable,str(bundle/'tests/fixture.py'),str(db)])
+    run([args.php,str(bundle/'tests/analytics_measurement.php')])
+    run([args.php,str(bundle/'tests/google_reporting.php')])
     db=Path(temp)/'http.sqlite';env['TEST_SQLITE_PATH']=str(db)
     run([sys.executable,str(bundle/'tests/fixture.py'),str(db)])
     with socket.socket() as s:

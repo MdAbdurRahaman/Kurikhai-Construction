@@ -3,6 +3,7 @@
 function portal_modules(): array {
     return [
         'overview'=>['label'=>'Overview & Analytics','pages'=>['index.php'],'permission'=>null],
+        'analytics'=>['label'=>'Traffic & Performance','pages'=>['analytics.php'],'permission'=>'analytics.view'],
         'leads'=>['label'=>'Leads & Inquiries','pages'=>['leads.php','lead-detail.php'],'permission'=>'leads.view_assigned'],
         'baseline'=>['label'=>'SEO Baseline','pages'=>['baseline.php'],'permission'=>'baseline.view'],
         'business'=>['label'=>'Business Info Tracker','pages'=>['business-info.php'],'permission'=>'business_info.manage'],

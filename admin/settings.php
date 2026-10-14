@@ -31,7 +31,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     if (!verify_csrf_token($csrf)) {
         $error = 'Invalid security token.';
     } else {
+        // Validate before storing any configuration.
+        $gaInput=strtoupper(trim($_POST['ga4_id']??''));$gtmInput=strtoupper(trim($_POST['gtm_id']??''));
+        $propertyInput=trim($_POST['ga4_property_id']??'');
+        if (($gaInput!=='' && !preg_match('/^G-[A-Z0-9]{6,15}$/',$gaInput)) || ($gtmInput!=='' && !preg_match('/^GTM-[A-Z0-9]{4,10}$/',$gtmInput)) || ($propertyInput!=='' && !preg_match('/^[0-9]{4,15}$/',$propertyInput))) {
+            $error='Use valid GA4, GTM and numeric property IDs.';
+        } else {
         // Analytics & Tracking
+        set_setting('analytics','first_party_analytics',isset($_POST['first_party_analytics'])?'enabled':'disabled');
+        set_setting('analytics','ga4_property_id',$propertyInput);
         set_setting('analytics', 'ga4_id', trim($_POST['ga4_id'] ?? ''));
         set_setting('analytics', 'gtm_id', trim($_POST['gtm_id'] ?? ''));
         set_setting('analytics', 'tracking_mode', in_array($_POST['tracking_mode'] ?? '', ['gtm', 'direct_ga4']) ? $_POST['tracking_mode'] : 'gtm');
@@ -45,12 +53,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
         audit_log('settings.updated', 'settings', null, null, ['user' => current_user()['username']]);
         $msg = 'Platform settings and integrations updated successfully!';
+        }
     }
 }
 
 $ga4Id = get_setting('ga4_id', getenv('GA4_MEASUREMENT_ID') ?: '');
 $gtmId = get_setting('gtm_id', getenv('GTM_CONTAINER_ID') ?: '');
 $trackingMode = get_setting('tracking_mode', 'gtm');
+$firstPartyEnabled=get_setting('first_party_analytics','enabled')==='enabled';
+$gaProperty=get_setting('ga4_property_id',getenv('GA4_PROPERTY_ID')?:'');
 $gscToken = get_setting('gsc_token', getenv('GSC_VERIFICATION_TOKEN') ?: 'googlea9c88d1e38989379');
 $turnstileKey = get_setting('turnstile_key', getenv('TURNSTILE_SITE_KEY') ?: '');
 $titleSuffix = get_setting('meta_title_suffix', ' | Tabeeb Contractor Singapore');
@@ -78,6 +89,15 @@ require_once __DIR__ . '/header.php';
                 <h3>External Analytics & Search Console</h3>
             </div>
             <div style="padding: 24px;">
+                <div class="form-group">
+                    <label><input type="checkbox" name="first_party_analytics" <?= $firstPartyEnabled?'checked':'' ?>> Enable consent-based first-party traffic and performance measurement</label>
+                    <p>View recorded metrics under Traffic & Performance. Staff and staging visits are excluded.</p>
+                </div>
+                <div class="form-group">
+                    <label for="ga4_property_id">GA4 Property ID (numeric, for authenticated reporting)</label>
+                    <input class="form-control-adm" id="ga4_property_id" name="ga4_property_id" value="<?= htmlspecialchars($gaProperty) ?>" placeholder="Numeric property ID">
+                    <p>Reporting also requires a private service-account credential file configured on the server. Do not paste private keys here.</p>
+                </div>
                 <div class="form-group">
                     <label class="form-label">Integration Mode</label>
                     <select name="tracking_mode" class="form-control-adm">

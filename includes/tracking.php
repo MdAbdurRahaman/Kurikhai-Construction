@@ -93,76 +93,18 @@ class TrackingService {
  * Render Head Tag Snippet (Called in <head>)
  */
 function render_gtm_head(): void {
-    if (TrackingService::isSensitiveRoute()) {
-        return;
-    }
-
-    $config = TrackingService::getConfig();
-    if (!$config['is_configured']) {
-        return;
-    }
-
-    if ($config['mode'] === 'gtm' && $config['is_gtm_valid']) {
-        $gtmId = htmlspecialchars($config['gtm_id'], ENT_QUOTES, 'UTF-8');
-        ?>
-<!-- Google Tag Manager (Tabeeb Contractor Production Container) -->
-<script>(function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':
-new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],
-j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
-'https://www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);
-})(window,document,'script','dataLayer','<?= $gtmId ?>');</script>
-<!-- End Google Tag Manager -->
-        <?php
-    } elseif ($config['mode'] === 'direct_ga4' && $config['is_ga4_valid']) {
-        $ga4Id = htmlspecialchars($config['ga4_id'], ENT_QUOTES, 'UTF-8');
-        ?>
-<!-- Google tag (gtag.js) Direct GA4 Mode -->
-<script async src="https://www.googletagmanager.com/gtag/js?id=<?= $ga4Id ?>"></script>
-<script>
-  window.dataLayer = window.dataLayer || [];
-  function gtag(){dataLayer.push(arguments);}
-  gtag('js', new Date());
-  gtag('config', '<?= $ga4Id ?>', {
-    'anonymize_ip': true,
-    'send_page_view': true
-  });
-</script>
-<!-- End Google tag (gtag.js) -->
-        <?php
-    }
+    if (TrackingService::isSensitiveRoute() || !empty($_SESSION['tabeeb_admin_user'])) return;
+    require_once __DIR__.'/security.php';
+    require_once __DIR__.'/measurement.php';
+    $config=TrackingService::getConfig();
+    $config['first_party_enabled']=analytics_setting('first_party_analytics','enabled')==='enabled';
+    if (!$config['first_party_enabled'] && !$config['is_configured']) return;
+    $config['csrf_token']=get_csrf_token();
+    echo '<script type="application/json" id="tabeeb-analytics-config">'.json_encode($config,JSON_HEX_TAG|JSON_HEX_AMP|JSON_HEX_APOS|JSON_HEX_QUOT).'</script>';
+    echo '<script defer src="/js/vendor/web-vitals-5.0.3.js"></script><script defer src="/js/analytics.js?v=1"></script>';
 }
-
-/**
- * Render Body Tag Snippet (Called immediately after <body> opening tag)
- */
 function render_gtm_body(): void {
-    if (TrackingService::isSensitiveRoute()) {
-        return;
-    }
-
-    $config = TrackingService::getConfig();
-    if (!$config['is_configured']) {
-        return;
-    }
-
-    if ($config['mode'] === 'gtm' && $config['is_gtm_valid']) {
-        $gtmId = htmlspecialchars($config['gtm_id'], ENT_QUOTES, 'UTF-8');
-        ?>
-<!-- Google Tag Manager (noscript) -->
-<noscript><iframe src="https://www.googletagmanager.com/ns.html?id=<?= $gtmId ?>"
-height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
-<!-- End Google Tag Manager (noscript) -->
-        <?php
-    }
+    // No noscript tag: optional analytics requires an affirmative consent choice.
 }
-
-/**
- * Compatibility aliases for legacy templates
- */
-function render_analytics_head(): void {
-    render_gtm_head();
-}
-
-function render_analytics_body(): void {
-    render_gtm_body();
-}
+function render_analytics_head(): void { render_gtm_head(); }
+function render_analytics_body(): void { render_gtm_body(); }

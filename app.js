@@ -236,6 +236,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 consentCheckbox.style.outline = '2px solid #ef4444';
             }
 
+            if (!isValid) window.TabeebAnalytics?.track('form_error', {detail:'validation'});
             if (isValid) {
                 const submitBtn = form.querySelector('button[type="submit"]');
                 const originalText = submitBtn.textContent;
@@ -312,18 +313,14 @@ document.addEventListener('DOMContentLoaded', () => {
                         result = { success: false, message: 'Server returned an invalid response.' };
                     }
 
+                    if (!response.ok || !result.success) window.TabeebAnalytics?.track('form_error', {detail:'server'});
                     if (response.ok && result.success) {
                         // Submission complete: rotate/clear submission ID so future inquiries are distinct
                         form._currentSubmissionId = null;
 
                         // DataLayer conversion event (Only emit if NOT duplicate - Zero PII)
                         if (!result.is_duplicate) {
-                            window.dataLayer = window.dataLayer || [];
-                            window.dataLayer.push({
-                                event: 'generate_lead',
-                                lead_id: result.lead_id || '',
-                                service_id: result.service_id || data.service || 'general'
-                            });
+                            window.TabeebAnalytics?.track('generate_lead');
                         }
 
                         // Success modal with real lead reference ID
@@ -365,11 +362,7 @@ document.addEventListener('DOMContentLoaded', () => {
         form.addEventListener('focusin', () => {
             if (!form.__formStarted) {
                 form.__formStarted = true;
-                window.dataLayer = window.dataLayer || [];
-                window.dataLayer.push({
-                    event: 'form_start',
-                    form_id: form.id || 'quote_form'
-                });
+                window.TabeebAnalytics?.track('form_start');
             }
         }, { once: true });
 
@@ -623,40 +616,16 @@ document.addEventListener('DOMContentLoaded', () => {
 
     setupGlobalShare();
 
-    // 10. DataLayer Intent Click Tracking (Phone, WhatsApp, Email, Maps - Zero PII)
+    // Consent-aware contact intent tracking; never send link URLs or contact details.
     document.addEventListener('click', (e) => {
         const target = e.target.closest('a');
         if (!target) return;
         const href = target.getAttribute('href') || '';
-
-        if (href.startsWith('tel:')) {
-            window.dataLayer = window.dataLayer || [];
-            window.dataLayer.push({
-                event: 'contact_click',
-                contact_type: 'phone',
-                element_id: target.id || ''
-            });
-        } else if (href.includes('wa.me') || href.includes('whatsapp.com')) {
-            window.dataLayer = window.dataLayer || [];
-            window.dataLayer.push({
-                event: 'contact_click',
-                contact_type: 'whatsapp',
-                element_id: target.id || ''
-            });
-        } else if (href.startsWith('mailto:')) {
-            window.dataLayer = window.dataLayer || [];
-            window.dataLayer.push({
-                event: 'contact_click',
-                contact_type: 'email',
-                element_id: target.id || ''
-            });
-        } else if (href.includes('google.com/maps') || href.includes('maps.google.com')) {
-            window.dataLayer = window.dataLayer || [];
-            window.dataLayer.push({
-                event: 'contact_click',
-                contact_type: 'maps',
-                element_id: target.id || ''
-            });
-        }
+        let detail = '';
+        if (href.startsWith('tel:')) detail='phone';
+        else if (href.includes('wa.me') || href.includes('whatsapp.com')) detail='whatsapp';
+        else if (href.startsWith('mailto:')) detail='email';
+        else if (href.includes('google.com/maps') || href.includes('maps.google.com')) detail='maps';
+        if (detail) window.TabeebAnalytics?.track('contact_click', {detail});
     });
 });

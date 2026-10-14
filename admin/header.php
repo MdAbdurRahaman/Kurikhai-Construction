@@ -523,6 +523,9 @@ $baseUrl = get_base_url();
             </a>
             <?php endif; ?>
 
+            <?php if (portal_module_available('analytics')): ?>
+            <a href="analytics.php" class="sidebar-link <?= $currentPage === 'analytics' ? 'active' : '' ?>"><span class="sidebar-icon">📉</span><span>Traffic & Performance</span></a>
+            <?php endif; ?>
             <?php if (portal_module_available('baseline')): ?>
             <div class="nav-category">Marketing & Baseline</div>
             <a href="baseline.php" class="sidebar-link <?= $currentPage === 'baseline' ? 'active' : '' ?>">
