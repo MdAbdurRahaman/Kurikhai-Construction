@@ -1,7 +1,7 @@
 <?php
 require_once dirname(__DIR__) . '/includes/data.php';
 require_login();
-require_super_admin();
+require_permission('settings.manage');
 
 $msg = '';
 $error = '';

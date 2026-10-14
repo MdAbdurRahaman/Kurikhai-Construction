@@ -2,7 +2,7 @@
 require_once dirname(__DIR__) . '/includes/data.php';
 
 if (is_logged_in()) {
-    header('Location: index.php');
+    header('Location: '.portal_landing_url());
     exit;
 }
 
@@ -18,7 +18,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $loginResult = login_user($username, $password);
         if ($loginResult['success']) {
             $user = $loginResult['user'];
-            header('Location: index.php?msg=' . urlencode('Welcome back, ' . $user['name'] . '!'));
+            header('Location: '.portal_landing_url().'?msg=' . urlencode('Welcome back, ' . $user['name'] . '!'));
             exit;
         } else {
             $error = $loginResult['message'];

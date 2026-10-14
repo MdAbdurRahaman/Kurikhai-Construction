@@ -433,6 +433,12 @@ function save_user(array $data): array {
         return ['success' => false, 'message' => 'Database operation unavailable.'];
     }
 
+    if (!is_super_admin()) return ['success'=>false,'message'=>'Only a Super Administrator can change user access.'];
+    try {
+        $existingAccessUser = !empty($data['id']) ? get_user_by_id((int)$data['id']) : null;
+        $access = normalize_user_access($data,$existingAccessUser);
+    } catch (Throwable $e) { return ['success'=>false,'message'=>$e->getMessage()]; }
+
     if (empty($data['id'])) {
         // Create user
         $username = strtolower(trim($data['username']));
@@ -443,18 +449,20 @@ function save_user(array $data): array {
             return ['success' => false, 'message' => 'Username or Email is already registered.'];
         }
 
-        $roleSlug = $data['role'] ?? 'editor';
-        $roleId = (int)db_val("SELECT `id` FROM `roles` WHERE `slug` = ? LIMIT 1", [$roleSlug]) ?: 2;
+        $roleSlug = implode(', ',array_keys($access['roles']));
+        $roleId = $access['primary'];
         $passHash = password_hash($data['password'], $algo);
 
-        db_exec(
-            "INSERT INTO `users` (`name`, `username`, `email`, `password_hash`, `role_id`, `status`, `force_password_change`, `session_version`, `created_at`)
-             VALUES (?, ?, ?, ?, ?, ?, 1, 1, ?)",
-            [trim($data['name']), $username, $email, $passHash, $roleId, $data['status'] ?? 'active', $now]
-        );
-        $newId = (int)db()->lastInsertId();
-        audit_log('user.created', 'user', (string)$newId, null, ['username' => $username, 'role' => $roleSlug]);
-        return ['success' => true, 'user_id' => $newId];
+        try {
+            return DB::transaction(function($pdo) use ($data,$username,$email,$passHash,$roleId,$now,$access,$roleSlug) {
+                db_exec("INSERT INTO users(name,username,email,password_hash,role_id,status,force_password_change,session_version,created_at) VALUES (?,?,?,?,?,?,1,1,?)",[trim($data['name']),$username,$email,$passHash,$roleId,$data['status'] ?? 'active',$now]);
+                $newId = (int)$pdo->lastInsertId();
+                persist_user_access($newId,$access);
+                audit_log('user.created','user',(string)$newId,null,['username'=>$username,'roles'=>array_keys($access['roles']),'modules'=>$access['modules'],'permissions'=>$access['permissions']]);
+                return ['success'=>true,'user_id'=>$newId];
+            });
+        } catch (Throwable $e) { return ['success'=>false,'message'=>$e->getMessage()]; }
+
     } else {
         // Edit user
         $id = (int)$data['id'];
@@ -462,11 +470,11 @@ function save_user(array $data): array {
         if (!$existing) return ['success' => false, 'message' => 'User not found.'];
 
         $roleSlug = $data['role'] ?? $existing['role'];
-        $roleId = (int)db_val("SELECT `id` FROM `roles` WHERE `slug` = ? LIMIT 1", [$roleSlug]) ?: (int)$existing['role_id'];
+        $roleId = $access['primary'];
         $newStatus = $data['status'] ?? $existing['status'];
 
         try {
-            return DB::transaction(function($pdo) use ($id, $data, $existing, $roleId, $newStatus, $algo, $now) {
+            return DB::transaction(function($pdo) use ($id, $data, $existing, $roleId, $newStatus, $algo, $now, $access) {
                 // Enforce final active super admin invariant strictly inside transaction with row-level lock
                 if (!can_modify_super_admin_status($id, $roleId, $newStatus, false, true)) {
                     throw new RuntimeException('Cannot demote or deactivate the final active Super Administrator.');
@@ -485,6 +493,8 @@ function save_user(array $data): array {
                     );
                 }
 
+                persist_user_access($id,$access);
+
                 // Revoke active sessions for target user so privileges are refreshed immediately
                 revoke_user_sessions($id);
 
@@ -494,7 +504,9 @@ function save_user(array $data): array {
                     'status' => $existing['status']
                 ], [
                     'name' => $data['name'],
-                    'role' => $data['role'] ?? $existing['role'],
+                    'roles' => array_keys($access['roles']),
+                    'modules' => $access['modules'],
+                    'permissions' => $access['permissions'],
                     'status' => $newStatus
                 ]);
 

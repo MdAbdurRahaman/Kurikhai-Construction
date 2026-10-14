@@ -49,6 +49,10 @@ with tempfile.TemporaryDirectory(prefix='tabeeb-test-local-') as temp:
         db=Path(temp)/(page+'-denied.sqlite');env['TEST_SQLITE_PATH']=str(db)
         run([sys.executable,str(bundle/'tests/fixture.py'),str(db)])
         run([args.php,str(bundle/'tests/admin_roles.php'),page,'sales_rep','deny'])
+    for mode in ['unit','dashboard','posts','blocked']:
+        db=Path(temp)/('user-access-'+mode+'.sqlite');env['TEST_SQLITE_PATH']=str(db)
+        run([sys.executable,str(bundle/'tests/fixture.py'),str(db)])
+        run([args.php,str(bundle/'tests/user_access.php'),mode])
     db=Path(temp)/'http.sqlite';env['TEST_SQLITE_PATH']=str(db)
     run([sys.executable,str(bundle/'tests/fixture.py'),str(db)])
     with socket.socket() as s:

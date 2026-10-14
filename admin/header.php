@@ -496,13 +496,15 @@ $baseUrl = get_base_url();
         </div>
 
         <nav class="sidebar-nav">
+            <?php if (portal_access('overview')): ?>
             <div class="nav-category">Main Dashboard</div>
             <a href="index.php" class="sidebar-link <?= $currentPage === 'index' ? 'active' : '' ?>">
                 <span class="sidebar-icon">📊</span>
                 <span>Overview & Analytics</span>
             </a>
 
-            <?php if (has_permission('leads.view') || has_permission('leads.view_assigned')): ?>
+            <?php endif; ?>
+            <?php if (portal_module_available('leads')): ?>
             <div class="nav-category">Sales & CRM</div>
             <a href="leads.php" class="sidebar-link <?= ($currentPage === 'leads' || $currentPage === 'lead-detail') ? 'active' : '' ?>">
                 <span class="sidebar-icon">🎯</span>
@@ -521,7 +523,7 @@ $baseUrl = get_base_url();
             </a>
             <?php endif; ?>
 
-            <?php if (has_permission('baseline.manage') || has_permission('analytics.view')): ?>
+            <?php if (portal_module_available('baseline')): ?>
             <div class="nav-category">Marketing & Baseline</div>
             <a href="baseline.php" class="sidebar-link <?= $currentPage === 'baseline' ? 'active' : '' ?>">
                 <span class="sidebar-icon">📈</span>
@@ -529,7 +531,7 @@ $baseUrl = get_base_url();
             </a>
             <?php endif; ?>
 
-            <?php if (has_permission('business_info.manage')): ?>
+            <?php if (portal_module_available('business')): ?>
             <div class="nav-category">Client Verification</div>
             <a href="business-info.php" class="sidebar-link <?= $currentPage === 'business-info' ? 'active' : '' ?>">
                 <span class="sidebar-icon">📋</span>
@@ -537,24 +539,28 @@ $baseUrl = get_base_url();
             </a>
             <?php endif; ?>
 
-            <?php if (has_permission('content.manage') || has_permission('projects.manage')): ?>
+            <?php if (portal_module_available('review') || portal_module_available('posts') || portal_module_available('write') || portal_module_available('services') || portal_module_available('projects')): ?>
             <div class="nav-category">Content Management</div>
-            <?php if(has_permission("content.manage")):?><a href="content-review.php" class="sidebar-link">Content factual review</a><?php endif;?>
-            <?php if (has_permission('projects.manage')): ?>
+            <?php if(portal_module_available('review')):?><a href="content-review.php" class="sidebar-link">Content factual review</a><?php endif;?>
+            <?php if (portal_module_available('projects')): ?>
             <a href="projects.php" class="sidebar-link <?= ($currentPage === 'projects' || $currentPage === 'project-edit') ? 'active' : '' ?>">
                 <span class="sidebar-icon">🏗️</span>
                 <span>Projects & Media</span>
             </a>
             <?php endif; ?>
-            <?php if (has_permission('content.manage')): ?>
+            <?php if (portal_module_available('posts')): ?>
             <a href="posts.php" class="sidebar-link <?= ($currentPage === 'posts' || ($currentPage === 'post-edit' && !empty($_GET['id']))) ? 'active' : '' ?>">
                 <span class="sidebar-icon">📝</span>
                 <span>All Blog Posts</span>
             </a>
+            <?php endif; ?>
+            <?php if (portal_module_available('write')): ?>
             <a href="post-edit.php" class="sidebar-link <?= ($currentPage === 'post-edit' && empty($_GET['id'])) ? 'active' : '' ?>">
                 <span class="sidebar-icon">✍️</span>
                 <span>Write New Post</span>
             </a>
+            <?php endif; ?>
+            <?php if (portal_module_available('services')): ?>
             <a href="services.php" class="sidebar-link <?= $currentPage === 'services' ? 'active' : '' ?>">
                 <span class="sidebar-icon">🔗</span>
                 <span>Service Share Hub</span>
@@ -562,35 +568,49 @@ $baseUrl = get_base_url();
             <?php endif; ?>
             <?php endif; ?>
 
-            <?php if (is_super_admin()): ?>
+            <?php if (portal_module_available('users') || portal_module_available('notifications') || portal_module_available('settings') || portal_module_available('audit')): ?>
             <div class="nav-category">Platform Control</div>
+            <?php endif; ?>
+            <?php if (portal_module_available('users')): ?>
             <a href="users.php" class="sidebar-link <?= $currentPage === 'users' ? 'active' : '' ?>">
                 <span class="sidebar-icon">👥</span>
                 <span>User Accounts</span>
             </a>
+            <?php endif; ?>
+            <?php if (portal_module_available('notifications')): ?>
             <a href="notifications.php" class="sidebar-link <?= $currentPage === 'notifications' ? 'active' : '' ?>">
                 <span class="sidebar-icon">🔔</span>
                 <span>Notification Routing</span>
             </a>
+            <?php endif; ?>
+            <?php if (portal_module_available('settings')): ?>
             <a href="settings.php" class="sidebar-link <?= $currentPage === 'settings' ? 'active' : '' ?>">
                 <span class="sidebar-icon">⚙️</span>
                 <span>Website Settings</span>
             </a>
+            <?php endif; ?>
+            <?php if (portal_module_available('audit')): ?>
             <a href="audit-logs.php" class="sidebar-link <?= $currentPage === 'audit-logs' ? 'active' : '' ?>">
                 <span class="sidebar-icon">🛡️</span>
                 <span>Security Audit Trail</span>
             </a>
             <?php endif; ?>
 
+            <?php if (portal_access('public_blog') || portal_access('public_site')): ?>
             <div class="nav-category">Quick View</div>
+            <?php endif; ?>
+            <?php if (portal_access('public_blog')): ?>
             <a href="/blog" target="_blank" class="sidebar-link">
                 <span class="sidebar-icon">🌐</span>
                 <span>Live Blog ↗</span>
             </a>
+            <?php endif; ?>
+            <?php if (portal_access('public_site')): ?>
             <a href="/" target="_blank" class="sidebar-link">
                 <span class="sidebar-icon">🏠</span>
                 <span>Main Website ↗</span>
             </a>
+            <?php endif; ?>
         </nav>
 
         <div class="sidebar-user">
@@ -600,7 +620,7 @@ $baseUrl = get_base_url();
                 </div>
                 <div>
                     <div class="user-name"><?= htmlspecialchars($currentUser['name'] ?? 'Administrator') ?></div>
-                    <div class="user-role"><?= htmlspecialchars($currentUser['role_name'] ?? $currentUser['role'] ?? 'Editor') ?></div>
+                    <div class="user-role"><?= htmlspecialchars(implode(', ',array_column(user_role_rows((int)$currentUser['id']),'name'))) ?></div>
                 </div>
             </div>
             <form method="POST" action="logout.php" style="margin: 0;">
@@ -617,14 +637,16 @@ $baseUrl = get_base_url();
         <header class="admin-topbar">
             <h1 class="topbar-title"><?= $pageTitle ?? 'Dashboard' ?></h1>
             <div class="topbar-actions">
-                <?php if (has_permission('content.manage')): ?>
+                <?php if (portal_module_available('write')): ?>
                 <a href="post-edit.php" class="btn-adm btn-adm-primary">
                     <span>+ New Blog Post</span>
                 </a>
                 <?php endif; ?>
+                <?php if (portal_access('public_blog')): ?>
                 <a href="/blog" target="_blank" class="btn-adm btn-adm-outline">
                     <span>View Public Blog ↗</span>
                 </a>
+                <?php endif; ?>
             </div>
         </header>
 

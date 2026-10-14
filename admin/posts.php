@@ -69,7 +69,9 @@ foreach ($allPosts as $p) {
             <span style="font-size: 13px; color: var(--admin-text-muted);">Publish, edit, and categorize your construction guides</span>
         </div>
         <div>
+            <?php if (portal_module_available('write')): ?>
             <a href="post-edit.php" class="btn-adm btn-adm-primary">+ Write New Article</a>
+            <?php endif; ?>
         </div>
     </div>
 
@@ -131,9 +133,13 @@ foreach ($allPosts as $p) {
                                 <img src="<?= $img ?>" alt="Cover" style="width: 56px; height: 42px; border-radius: 6px; object-fit: cover; border: 1px solid #e2e8f0;">
                             </td>
                             <td>
+                                <?php if (portal_module_available('write')): ?>
                                 <a href="post-edit.php?id=<?= urlencode($p['id']) ?>" style="font-weight: 600; font-size: 14px; color: var(--admin-navy); text-decoration: none;">
                                     <?= htmlspecialchars($p['title']) ?>
                                 </a>
+                                <?php else: ?>
+                                <strong><?= htmlspecialchars($p['title']) ?></strong>
+                                <?php endif; ?>
                                 <div style="font-size: 12px; color: #64748b; margin-top: 3px;">
                                     <?= htmlspecialchars(substr($p['excerpt'], 0, 75)) ?>...
                                 </div>
@@ -168,9 +174,11 @@ foreach ($allPosts as $p) {
                                             👁️
                                         </a>
                                     <?php endif; ?>
+                                    <?php if (portal_module_available('write')): ?>
                                     <a href="post-edit.php?id=<?= urlencode($p['id']) ?>" class="btn-adm btn-adm-outline" style="padding: 5px 9px; font-size: 12px;" title="Edit Article">
                                         ✏️
                                     </a>
+                                    <?php endif; ?>
                                     <form method="POST" action="posts.php" style="display: inline;" onsubmit="return confirm('Are you sure you want to delete this article? This action cannot be undone.');">
                                         <input type="hidden" name="csrf_token" value="<?= csrf_token() ?>">
                                         <input type="hidden" name="action" value="delete">

@@ -31,6 +31,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             'username' => $username,
             'email' => $email,
             'role' => $role,
+            'roles' => $_POST['roles'] ?? [],
+            'portal_modules' => $_POST['portal_modules'] ?? [],
+            'permission_overrides' => $_POST['permission_overrides'] ?? [],
             'status' => $status,
             'password' => $password
         ]);
@@ -61,6 +64,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             'name' => $name,
             'email' => $email,
             'role' => $role,
+            'roles' => $_POST['roles'] ?? [],
+            'portal_modules' => $_POST['portal_modules'] ?? [],
+            'permission_overrides' => $_POST['permission_overrides'] ?? [],
             'status' => $status
         ];
         if (!empty($password)) {
@@ -92,6 +98,8 @@ $pageTitle = 'Access Control & User Management';
 require_once __DIR__ . '/header.php';
 
 $users = get_all_users();
+$roleOptions = db_all('SELECT slug,name FROM roles ORDER BY id');
+$permissionOptions = db_all('SELECT slug,name,category FROM permissions ORDER BY category,name');
 ?>
 
 <!-- User Management Table Card -->
@@ -124,7 +132,8 @@ $users = get_all_users();
             </thead>
             <tbody>
                 <?php foreach ($users as $u):
-                    $isSelf = ($currentUser['id'] === $u['id']);
+                    $isSelf = ((int)$currentUser['id'] === (int)$u['id']);
+                    $accessSettings = user_access_settings((int)$u['id']);
                 ?>
                     <tr>
                         <td>
@@ -146,9 +155,9 @@ $users = get_all_users();
                         </td>
                         <td>
                             <?php if ($u['role'] === 'super_admin'): ?>
-                                <span class="badge-adm badge-adm-blue">Super Admin</span>
+                                <span class="badge-adm badge-adm-blue"><?= htmlspecialchars(implode(', ', $accessSettings['role_names'])) ?></span>
                             <?php else: ?>
-                                <span class="badge-adm" style="background: #f1f5f9; color: #475569;"><?= htmlspecialchars($u['role_name'] ?? $u['role']) ?></span>
+                                <span class="badge-adm" style="background: #f1f5f9; color: #475569;"><?= htmlspecialchars(implode(', ', $accessSettings['role_names'])) ?></span>
                             <?php endif; ?>
                         </td>
                         <td>
@@ -170,6 +179,7 @@ $users = get_all_users();
                                         data-username="<?= htmlspecialchars($u['username']) ?>"
                                         data-email="<?= htmlspecialchars($u['email']) ?>"
                                         data-role="<?= htmlspecialchars($u['role']) ?>"
+                                        data-access="<?= htmlspecialchars(json_encode($accessSettings), ENT_QUOTES) ?>"
                                         data-status="<?= htmlspecialchars($u['status'] ?? 'active') ?>"
                                         title="Edit User">
                                     ✏️ Edit
@@ -196,7 +206,7 @@ $users = get_all_users();
 
 <!-- Modal: Add New User -->
 <div class="modal-overlay" id="addUserModal" style="display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 1000; align-items: center; justify-content: center; padding: 20px;">
-    <div style="background: #fff; width: 100%; max-width: 480px; border-radius: 16px; padding: 32px; box-shadow: var(--admin-shadow-lg); position: relative;">
+    <div style="background: #fff; width: 100%; max-width: 640px; max-height: 90vh; overflow-y:auto; border-radius: 16px; padding: 32px; box-shadow: var(--admin-shadow-lg); position: relative;">
         <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
             <h3 style="font-family: 'Outfit', sans-serif; font-size: 19px; color: var(--admin-navy);">+ Add New User Account</h3>
             <button type="button" class="close-modal-btn" style="background: none; border: none; font-size: 22px; cursor: pointer; color: #94a3b8;">&times;</button>
@@ -223,15 +233,10 @@ $users = get_all_users();
 
             <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 14px;">
                 <div class="form-group">
-                    <label class="form-label" for="addRole">Role:</label>
-                    <select id="addRole" name="role" class="form-control-adm">
-                        <option value="super_admin">Super Administrator</option>
-                        <option value="administrator">Administrator</option>
-                        <option value="sales_manager">Sales Manager</option>
-                        <option value="sales_rep">Sales Representative</option>
-                        <option value="editor" selected>Content Editor</option>
-                        <option value="analyst">Analyst (Read Only)</option>
-                    </select>
+                    <label class="form-label">Roles (select multiple):</label>
+                    <?php foreach ($roleOptions as $roleOption): ?>
+                    <label style="display:block; margin:6px 0;"><input type="checkbox" name="roles[]" value="<?= htmlspecialchars($roleOption['slug']) ?>" <?= $roleOption['slug'] === 'editor' ? 'checked' : '' ?>> <?= htmlspecialchars($roleOption['name']) ?></label>
+                    <?php endforeach; ?>
                 </div>
                 <div class="form-group">
                     <label class="form-label" for="addStatus">Status:</label>
@@ -250,6 +255,26 @@ $users = get_all_users();
                 <input type="text" id="addPassword" name="password" class="form-control-adm" placeholder="••••••••••••" required>
             </div>
 
+
+            <fieldset style="border:1px solid #e2e8f0; padding:14px; margin:16px 0; border-radius:8px;">
+                <legend>Dashboard sections</legend>
+                <p style="font-size:12px; margin-bottom:10px;">Unchecked sections are hidden and blocked. Checked sections also require the appropriate action permissions below.</p>
+                <?php foreach (portal_modules() as $moduleSlug=>$module): ?>
+                <label style="display:block; margin:6px 0;"><input type="checkbox" name="portal_modules[]" value="<?= htmlspecialchars($moduleSlug) ?>" checked> <?= htmlspecialchars($module['label']) ?></label>
+                <?php endforeach; ?>
+                <p style="font-size:12px;">Public website shortcuts only control portal navigation; public pages remain public. Super Admin accounts always have full access.</p>
+            </fieldset>
+            <details style="margin:16px 0;">
+                <summary style="cursor:pointer; font-weight:600;">Action permissions: inherit, allow or deny</summary>
+                <p style="font-size:12px; margin:10px 0;">Inherit combines the selected roles. Deny takes priority over every selected role. “View Leads” grants access to all enquiries; “View Assigned Leads” limits access to assigned enquiries. User Accounts require the Super Admin role.</p>
+                <?php foreach ($permissionOptions as $permissionOption): ?>
+                <label style="display:block; margin:8px 0;"><?= htmlspecialchars($permissionOption['category'].' — '.$permissionOption['name']) ?>
+                    <select name="permission_overrides[<?= htmlspecialchars($permissionOption['slug']) ?>]" class="form-control-adm">
+                        <option value="inherit">Inherit from roles</option><option value="allow">Allow</option><option value="deny">Deny</option>
+                    </select>
+                </label>
+                <?php endforeach; ?>
+            </details>
             <div style="display: flex; justify-content: flex-end; gap: 10px; margin-top: 24px;">
                 <button type="button" class="btn-adm btn-adm-outline close-modal-btn">Cancel</button>
                 <button type="submit" class="btn-adm btn-adm-primary">Create User</button>
@@ -260,7 +285,7 @@ $users = get_all_users();
 
 <!-- Modal: Edit Existing User -->
 <div class="modal-overlay" id="editUserModal" style="display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 1000; align-items: center; justify-content: center; padding: 20px;">
-    <div style="background: #fff; width: 100%; max-width: 480px; border-radius: 16px; padding: 32px; box-shadow: var(--admin-shadow-lg); position: relative;">
+    <div style="background: #fff; width: 100%; max-width: 640px; max-height: 90vh; overflow-y:auto; border-radius: 16px; padding: 32px; box-shadow: var(--admin-shadow-lg); position: relative;">
         <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
             <h3 style="font-family: 'Outfit', sans-serif; font-size: 19px; color: var(--admin-navy);">✏️ Edit User Account</h3>
             <button type="button" class="close-modal-btn" style="background: none; border: none; font-size: 22px; cursor: pointer; color: #94a3b8;">&times;</button>
@@ -288,15 +313,10 @@ $users = get_all_users();
 
             <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 14px;">
                 <div class="form-group">
-                    <label class="form-label" for="editRole">Role:</label>
-                    <select id="editRole" name="role" class="form-control-adm">
-                        <option value="super_admin">Super Administrator</option>
-                        <option value="administrator">Administrator</option>
-                        <option value="sales_manager">Sales Manager</option>
-                        <option value="sales_rep">Sales Representative</option>
-                        <option value="editor">Content Editor</option>
-                        <option value="analyst">Analyst (Read Only)</option>
-                    </select>
+                    <label class="form-label">Roles (select multiple):</label>
+                    <?php foreach ($roleOptions as $roleOption): ?>
+                    <label style="display:block; margin:6px 0;"><input type="checkbox" name="roles[]" value="<?= htmlspecialchars($roleOption['slug']) ?>" <?= $roleOption['slug'] === 'editor' ? 'checked' : '' ?>> <?= htmlspecialchars($roleOption['name']) ?></label>
+                    <?php endforeach; ?>
                 </div>
                 <div class="form-group">
                     <label class="form-label" for="editStatus">Status:</label>
@@ -312,6 +332,26 @@ $users = get_all_users();
                 <input type="text" id="editPassword" name="password" class="form-control-adm" placeholder="Enter new password if changing">
             </div>
 
+
+            <fieldset style="border:1px solid #e2e8f0; padding:14px; margin:16px 0; border-radius:8px;">
+                <legend>Dashboard sections</legend>
+                <p style="font-size:12px; margin-bottom:10px;">Unchecked sections are hidden and blocked. Checked sections also require the appropriate action permissions below.</p>
+                <?php foreach (portal_modules() as $moduleSlug=>$module): ?>
+                <label style="display:block; margin:6px 0;"><input type="checkbox" name="portal_modules[]" value="<?= htmlspecialchars($moduleSlug) ?>" checked> <?= htmlspecialchars($module['label']) ?></label>
+                <?php endforeach; ?>
+                <p style="font-size:12px;">Public website shortcuts only control portal navigation; public pages remain public. Super Admin accounts always have full access.</p>
+            </fieldset>
+            <details style="margin:16px 0;">
+                <summary style="cursor:pointer; font-weight:600;">Action permissions: inherit, allow or deny</summary>
+                <p style="font-size:12px; margin:10px 0;">Inherit combines the selected roles. Deny takes priority over every selected role. “View Leads” grants access to all enquiries; “View Assigned Leads” limits access to assigned enquiries. User Accounts require the Super Admin role.</p>
+                <?php foreach ($permissionOptions as $permissionOption): ?>
+                <label style="display:block; margin:8px 0;"><?= htmlspecialchars($permissionOption['category'].' — '.$permissionOption['name']) ?>
+                    <select name="permission_overrides[<?= htmlspecialchars($permissionOption['slug']) ?>]" class="form-control-adm">
+                        <option value="inherit">Inherit from roles</option><option value="allow">Allow</option><option value="deny">Deny</option>
+                    </select>
+                </label>
+                <?php endforeach; ?>
+            </details>
             <div style="display: flex; justify-content: flex-end; gap: 10px; margin-top: 24px;">
                 <button type="button" class="btn-adm btn-adm-outline close-modal-btn">Cancel</button>
                 <button type="submit" class="btn-adm btn-adm-primary">Save Changes</button>
@@ -334,7 +374,6 @@ $users = get_all_users();
         const editUsername = document.getElementById('editUsername');
         const editName = document.getElementById('editName');
         const editEmail = document.getElementById('editEmail');
-        const editRole = document.getElementById('editRole');
         const editStatus = document.getElementById('editStatus');
         const editPassword = document.getElementById('editPassword');
 
@@ -380,7 +419,13 @@ $users = get_all_users();
                 editUsername.value = btn.getAttribute('data-username');
                 editName.value = btn.getAttribute('data-name');
                 editEmail.value = btn.getAttribute('data-email');
-                editRole.value = btn.getAttribute('data-role');
+                const access = JSON.parse(btn.getAttribute('data-access'));
+                editModal.querySelectorAll('input[name="roles[]"]').forEach(input => { input.checked = access.roles.includes(input.value); });
+                editModal.querySelectorAll('input[name="portal_modules[]"]').forEach(input => { input.checked = access.modules[input.value] !== false; });
+                editModal.querySelectorAll('select[name^="permission_overrides["]').forEach(input => {
+                    const slug = input.name.slice('permission_overrides['.length, -1);
+                    input.value = access.permissions[slug] || 'inherit';
+                });
                 editStatus.value = btn.getAttribute('data-status');
                 editPassword.value = '';
                 editModal.style.display = 'flex';

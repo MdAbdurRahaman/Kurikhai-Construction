@@ -1,7 +1,7 @@
 <?php
 require_once dirname(__DIR__) . '/includes/data.php';
 require_login();
-require_super_admin();
+require_permission('audit.view');
 
 $pageTitle = 'Security Audit Trail';
 require_once __DIR__ . '/header.php';

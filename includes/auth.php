@@ -14,6 +14,7 @@
 require_once dirname(__DIR__) . '/config/config.php';
 require_once __DIR__ . '/db.php';
 require_once __DIR__ . '/security.php';
+require_once __DIR__ . '/access.php';
 
 /**
  * 1. SECURE SESSION INITIALIZATION & LIFECYCLE
@@ -259,15 +260,15 @@ function has_permission(string $permSlug): bool {
         return true;
     }
 
-    $roleId = current_user()['role_id'] ?? 0;
+    $user = current_user();
+    $roleId = (int)($user['role_id'] ?? 0);
     if (DB::isConnected() && $roleId > 0) {
-        $match = db_val(
-            "SELECT 1 FROM `role_permissions` rp
-             JOIN `permissions` p ON rp.permission_id = p.id
-             WHERE rp.role_id = ? AND p.slug = ? LIMIT 1",
-            [$roleId, $permSlug]
-        );
-        return (bool)$match;
+        if (access_controls_ready()) {
+            $override = db_one('SELECT o.allowed FROM user_permission_overrides o JOIN permissions p ON p.id=o.permission_id WHERE o.user_id=? AND p.slug=?', [(int)$user['id'],$permSlug]);
+            if ($override) return (int)$override['allowed'] === 1;
+            return (bool)db_val('SELECT 1 FROM role_permissions rp JOIN permissions p ON p.id=rp.permission_id WHERE p.slug=? AND (rp.role_id=? OR rp.role_id IN (SELECT role_id FROM user_roles WHERE user_id=?)) LIMIT 1', [$permSlug,$roleId,(int)$user['id']]);
+        }
+        return (bool)db_val('SELECT 1 FROM role_permissions rp JOIN permissions p ON p.id=rp.permission_id WHERE rp.role_id=? AND p.slug=? LIMIT 1', [$roleId,$permSlug]);
     }
 
     return false;
@@ -288,6 +289,14 @@ function require_login(): void {
         $currentScript = basename($_SERVER['PHP_SELF'] ?? '');
         if ($currentScript !== 'change-password.php' && $currentScript !== 'logout.php') {
             header('Location: /admin/change-password.php');
+            exit;
+        }
+    }
+    $script = basename($_SERVER['PHP_SELF'] ?? '');
+    foreach (portal_modules() as $slug=>$module) {
+        if (in_array($script,$module['pages'],true) && !portal_access($slug)) {
+            http_response_code(403);
+            echo '<h1>Access unavailable</h1><p>Your administrator has disabled this dashboard section for your account.</p><a href="/admin/access-home.php">Return to your portal</a>';
             exit;
         }
     }

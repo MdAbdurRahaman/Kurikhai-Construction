@@ -49,7 +49,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
                 audit_log('auth.password_changed', 'user', (string)$user['id'], null, ['status' => 'success']);
 
-                header('Location: /admin/index.php?msg=' . urlencode('Your password has been successfully updated!'));
+                header('Location: '.portal_landing_url().'?msg=' . urlencode('Your password has been successfully updated!'));
                 exit;
             }
         }

@@ -6,9 +6,9 @@ $allPosts = get_all_posts(!has_permission('content.manage'));
 $allServices = get_all_services();
 
 $currentUser = current_user();
-$canViewAllLeads = has_permission('leads.view');
-$canViewAssignedLeads = has_permission('leads.view_assigned');
-$canViewAnalytics = has_permission('analytics.view');
+$canViewAllLeads = portal_access('leads') && has_permission('leads.view');
+$canViewAssignedLeads = portal_access('leads') && has_permission('leads.view_assigned');
+$canViewAnalytics = portal_access('leads') && has_permission('analytics.view');
 $canManageContent = has_permission('content.manage');
 
 // Real Database Metrics
@@ -83,7 +83,7 @@ if ($dbConnected && ($canViewAnalytics || $canViewAllLeads || $canViewAssignedLe
 }
 
 // Business Tracker Metrics
-$canManageBusiness = has_permission('business_info.manage');
+$canManageBusiness = portal_module_available('business');
 $trackerMetrics = $canManageBusiness ? BusinessTracker::getMetrics() : [];
 ?>
 
@@ -237,6 +237,7 @@ $trackerMetrics = $canManageBusiness ? BusinessTracker::getMetrics() : [];
 </div>
 <?php endif; ?>
 
+<?php if (portal_access('share')): ?>
 <!-- Social Share Simulator Box (Client WhatsApp Feature) -->
 <div class="table-card" style="margin-bottom: 35px; border-left: 4px solid var(--admin-accent);">
     <div class="table-header" style="background: #f0fdfa;">
@@ -249,7 +250,7 @@ $trackerMetrics = $canManageBusiness ? BusinessTracker::getMetrics() : [];
             </p>
         </div>
         <div>
-            <?php if ($canManageContent): ?>
+            <?php if (portal_module_available('services')): ?>
             <a href="services.php" class="btn-adm btn-adm-accent" style="font-size: 12px; padding: 6px 14px;">
                 All Service Links ➔
             </a>
@@ -374,4 +375,5 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 </script>
 
+<?php endif; ?>
 <?php require_once __DIR__ . '/footer.php'; ?>
