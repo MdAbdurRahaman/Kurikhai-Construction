@@ -133,7 +133,6 @@ $canonicalUrl = APP_URL . '/404';
             <div class="popular-links">
                 Quick Links:
                 <a href="/renovation-contractor-singapore">Renovation Contractor</a> •
-                <a href="/hdb-renovation">HDB Renovation</a> •
                 <a href="/tiling-works">Tiling Works</a> •
                 <a href="/waterproofing">Waterproofing</a> •
                 <a href="/reinstatement">Reinstatement</a>

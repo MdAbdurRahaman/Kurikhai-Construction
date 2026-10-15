@@ -22,7 +22,7 @@ $services = get_all_services(true);
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title><?= htmlspecialchars($pageTitle) ?></title>
     <meta name="description" content="<?= htmlspecialchars($pageDesc) ?>">
-    <meta name="keywords" content="office reinstatement singapore, reinstatement contractor singapore, hacking contractor singapore, hdb demolition contractor, commercial renovation singapore, false ceiling contractor, tiling contractor singapore, waterproofing singapore">
+    <meta name="keywords" content="office reinstatement singapore, reinstatement contractor singapore, hacking contractor singapore, commercial renovation singapore, false ceiling contractor, tiling contractor singapore, waterproofing singapore">
 
     <!-- Geo Targeting Singapore -->
     <meta name="geo.region" content="SG">

@@ -39,45 +39,6 @@
     ]
   },
   {
-    "id": "hdb-renovation",
-    "slug": "hdb-renovation",
-    "name": "HDB Renovation Contractor Singapore",
-    "short_title": "HDB Renovation Works",
-    "og_title": "HDB Renovation Contractor Singapore | BTO & Resale Renovation - Tabeeb Contractor",
-    "og_description": "Direct HDB renovation contractor in Singapore. Specialist in BTO & resale flat renovation, HDB permit clearance, kitchen & toilet makeover. Direct contractor rates.",
-    "category": "renovation",
-    "category_name": "Residential Renovation",
-    "badge": "HDB Renovation Specialist",
-    "icon": "🏢",
-    "image": "images/card-interior.jpg",
-    "hero_tagline": "Affordable, high-quality HDB flat renovations for BTO and resale homes across Singapore with direct contractor rates.",
-    "overview": "Renovating your HDB flat should be exciting, transparent, and cost-effective. As a direct renovation contractor in Singapore, Tabeeb Contractor handles complete BTO and resale flat makeovers—from permit clearance to hacking, masonry screeding, tiling, vinyl flooring, false ceilings, electrical rewiring, and custom carpentry.",
-    "scope_of_work": [
-      "Complete HDB BTO and resale flat renovation packages",
-      "HDB renovation permit submission assistance and guideline compliance",
-      "Kitchen and bathroom wet area hacking, waterproofing, and retiling",
-      "Living room and bedroom flooring (pre-packed cement screed, homogeneous tiles, SPC vinyl)",
-      "Concealed wiring, DB box upgrades, power point distribution, and LED cove lighting",
-      "False ceiling installation, L-box design, and full unit plastering & painting"
-    ],
-    "key_benefits": [
-      {"title": "Direct Contractor Rates", "desc": "Transparent pricing without interior design markup fees, saving thousands on your renovation budget."},
-      {"title": "HDB Guideline Adherence", "desc": "Strict compliance with HDB renovation timing curfews, corridor protection, and noise protocols."},
-      {"title": "Complete One-Stop Service", "desc": "From initial hacking to final chemical wash and handover, all trades are managed under one roof."},
-      {"title": "Thorough Workmanship", "desc": "Careful trade execution and structured quality checks on tile bonding, waterproofing, and electrical works."}
-    ],
-    "process": [
-      {"step": "01", "title": "Consultation & Blueprint Review", "desc": "We analyze your HDB floor plan to optimize layout flow, storage, and lighting."},
-      {"step": "02", "title": "Permit Clearance", "desc": "We assist with submitting required renovation permit documents before noisy works start."},
-      {"step": "03", "title": "Hacking & Wet Works", "desc": "Protect common lift lobbies, carry out hacking, pipe routing, waterproofing, and screeding."},
-      {"step": "04", "title": "Finishing & Handover", "desc": "Install ceilings, lighting, flooring, painting, and complete a spotless chemical wash before key handover."}
-    ],
-    "faq": [
-      {"q": "How long does a full HDB flat renovation take?", "a": "A standard BTO flat renovation takes approximately 4 to 6 weeks. A resale flat requiring complete hacking, retiling, and rewiring typically takes 6 to 8 weeks."},
-      {"q": "Can I hack walls in my HDB flat?", "a": "Non-structural partition walls may be hacked with prior written approval from HDB. Load-bearing structural walls, pillars, and RC columns cannot be touched. We verify all blueprints prior to commencing works."}
-    ]
-  },
-  {
     "id": "tiling-works",
     "slug": "tiling-works",
     "name": "Tiles Flooring Works & Tiling Contractor Singapore",

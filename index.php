@@ -21,7 +21,7 @@ $pageDesc = "Tabeeb Contractor is Singapore's direct renovation contractor. Spec
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title><?= htmlspecialchars($pageTitle) ?></title>
     <meta name="description" content="<?= htmlspecialchars($pageDesc) ?>">
-    <meta name="keywords" content="Tabeeb Contractor, renovation contractor singapore, hdb renovation contractor singapore, tiling contractor singapore, vinyl flooring contractor singapore, painting contractor singapore, waterproofing contractor singapore, hacking demolition contractor singapore, plastering contractor singapore, ceiling partition contractor singapore, reinstatement contractor singapore, electrical contractor singapore, plumbing contractor singapore">
+    <meta name="keywords" content="Tabeeb Contractor, renovation contractor singapore, tiling contractor singapore, vinyl flooring contractor singapore, painting contractor singapore, waterproofing contractor singapore, hacking demolition contractor singapore, plastering contractor singapore, ceiling partition contractor singapore, reinstatement contractor singapore, electrical contractor singapore, plumbing contractor singapore">
 
     <!-- Geo Targeting Singapore -->
     <meta name="geo.region" content="SG">
@@ -100,15 +100,6 @@ $pageDesc = "Tabeeb Contractor is Singapore's direct renovation contractor. Spec
                   "name": "Renovation Contractor in Singapore",
                   "url": "<?= $baseUrl ?>/renovation-contractor-singapore",
                   "description": "Complete residential and commercial turnkey renovations."
-                }
-              },
-              {
-                "@type": "Offer",
-                "itemOffered": {
-                  "@type": "Service",
-                  "name": "HDB Renovation Contractor Singapore",
-                  "url": "<?= $baseUrl ?>/hdb-renovation",
-                  "description": "Specialized BTO & resale HDB flat renovations."
                 }
               },
               {
@@ -283,14 +274,6 @@ $pageDesc = "Tabeeb Contractor is Singapore's direct renovation contractor. Spec
                     </div>
                     <a href="/renovation-contractor-singapore" class="btn btn-quote-header" style="align-self: flex-start; padding: 8px 18px; font-size: 13px;">Explore Renovation Contractor ➔</a>
                 </div>
-                <div style="background: linear-gradient(135deg, #0a3663 0%, #155e75 100%); color: #fff; padding: 24px; border-radius: 12px; border-left: 4px solid #38bdf8; display: flex; flex-direction: column; justify-content: space-between;">
-                    <div>
-                        <span style="font-size: 11px; text-transform: uppercase; letter-spacing: 1px; color: #38bdf8; font-weight: 700;">HDB BTO & Resale Flats</span>
-                        <h3 style="color: #fff; font-size: 20px; margin: 6px 0 10px;">HDB Renovation Contractor Singapore</h3>
-                        <p style="font-size: 14px; color: #cbd5e1; line-height: 1.5; margin: 0 0 16px;">Full HDB flat transformation, permit clearances, kitchen & toilet makeover with direct contractor rates.</p>
-                    </div>
-                    <a href="/hdb-renovation" class="btn btn-quote-header" style="align-self: flex-start; padding: 8px 18px; font-size: 13px; background: #38bdf8; color: #07274d;">Explore HDB Renovation ➔</a>
-                </div>
             </div>
 
             <div class="poster-services-grid">
@@ -433,13 +416,13 @@ $pageDesc = "Tabeeb Contractor is Singapore's direct renovation contractor. Spec
                     <h2 style="font-size: 38px; color: #ffffff; margin-bottom: 20px;">Your Trusted Renovation Partner In Singapore</h2>
                     <p style="font-size: 16px; color: rgba(255, 255, 255, 0.88); margin-bottom: 24px; line-height: 1.6;">Tabeeb Contractor provides complete building solutions. From initial structural demolition and hacking to electrical distribution, sanitary piping, false ceilings, and interior masonry, we ensure every project delivers solid craftsmanship, disciplined handover, and direct contractor value.</p>
                     <div style="display: flex; gap: 16px; flex-wrap: wrap;">
-                        <a href="/images/tabeeb-poster.webp" target="_blank" class="btn btn-quote-header" style="padding: 14px 28px; font-size: 15px;">🔍 View Official Poster (HD)</a>
+                        <a href="/images/tabeeb-services-poster-20261015.jpg" target="_blank" class="btn btn-quote-header" style="padding: 14px 28px; font-size: 15px;">🔍 View Official Poster (HD)</a>
                         <a href="/services" class="btn btn-outline-white" style="padding: 14px 28px; font-size: 15px;">Explore All Services</a>
                     </div>
                 </div>
                 <div class="poster-showcase-card fade-in-up">
-                    <a href="/images/tabeeb-poster.webp" target="_blank" title="Click to view full high-definition poster">
-                        <img src="/images/tabeeb-poster.webp" alt="Tabeeb Contractor Official Services Poster" loading="lazy" width="1600" height="1600">
+                    <a href="/images/tabeeb-services-poster-20261015.jpg" target="_blank" title="Click to view full high-definition poster">
+                        <img src="/images/tabeeb-services-poster-20261015.jpg" alt="Tabeeb Contractor Official Services Poster" loading="lazy" width="1254" height="1254">
                     </a>
                     <span style="display: block; font-size: 12px; color: var(--color-gold); margin-top: 10px; font-weight: 600;">Click image to enlarge official poster</span>
                 </div>

@@ -149,7 +149,6 @@ foreach ($publishedServices as $ps) {
 $knownCategories = [
     'renovation-contractor-singapore' => 'Renovation Contractor Singapore',
     'general-renovation'              => 'General Renovation',
-    'hdb-renovation'                  => 'HDB Renovation Works',
     'commercial-reinstatement'        => 'Commercial Reinstatement',
     'reinstatement'                   => 'Commercial Reinstatement',
     'hacking-demolition'              => 'Hacking & Demolition Works',

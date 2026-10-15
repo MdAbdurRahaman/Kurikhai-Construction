@@ -446,7 +446,7 @@ $relatedPosts = array_slice($relatedPosts, 0, 3);
                             </div>
                             <div>
                                 <h4 style="margin: 0 0 6px; font-size: 17px; color: var(--color-primary);"><?= htmlspecialchars($post['author'] ?? 'Tabeeb Contractor') ?></h4>
-                                <p style="margin: 0; font-size: 14px; color: #64748b; line-height: 1.5;">Direct commercial & residential contractor in Singapore. Specialists in office reinstatement, HDB wall hacking, waterproofing, tiling, and alterations.</p>
+                                <p style="margin: 0; font-size: 14px; color: #64748b; line-height: 1.5;">Direct commercial & residential contractor in Singapore. Specialists in office reinstatement, wall hacking, waterproofing, tiling, and alterations.</p>
                             </div>
                         </div>
 
@@ -494,8 +494,7 @@ $relatedPosts = array_slice($relatedPosts, 0, 3);
                             <h4 style="font-size: 18px; margin-bottom: 14px; color: var(--color-primary);">Direct Contractor Services</h4>
                             <ul style="list-style: none; padding: 0; margin: 0; font-size: 14px;">
                                 <li style="margin-bottom: 8px;"><a href="/renovation-contractor-singapore/" style="color: #475569;">🏠 Renovation Contractor Singapore</a></li>
-                                <li style="margin-bottom: 8px;"><a href="/hdb-renovation/" style="color: #475569;">🏢 HDB Renovation Works</a></li>
-                                <li style="margin-bottom: 8px;"><a href="/hacking-demolition/" style="color: #475569;">🔨 HDB Wall Hacking & Demolition</a></li>
+                                <li style="margin-bottom: 8px;"><a href="/hacking-demolition/" style="color: #475569;">🔨 Hacking & Demolition</a></li>
                                 <li style="margin-bottom: 8px;"><a href="/reinstatement/" style="color: #475569;">🏢 Tenancy Reinstatement Works</a></li>
                                 <li style="margin-bottom: 8px;"><a href="/tiling-works/" style="color: #475569;">🪵 Tiles & Vinyl Flooring</a></li>
                                 <li style="margin-bottom: 8px;"><a href="/waterproofing/" style="color: #475569;">💧 Waterproofing Works</a></li>

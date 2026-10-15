@@ -314,6 +314,11 @@ function format_date(string $datetimeStr): string {
    SERVICES OPERATIONS
    ========================================================================== */
 
+// Retired public offerings remain available privately for historical records.
+function is_public_service_available(array $service): bool {
+    return !preg_match('/(?:^|[^a-z0-9])(?:hdb|bca)(?:[^a-z0-9]|$)/i', (string)($service['slug'] ?? '') . ' ' . (string)($service['name'] ?? ''));
+}
+
 function get_all_services(bool $publishedOnly = true): array {
     if (DB::isConnected()) {
         $sql = "SELECT * FROM `services`";
@@ -327,11 +332,11 @@ function get_all_services(bool $publishedOnly = true): array {
             $s['process'] = !empty($s['process_json']) ? json_decode($s['process_json'], true) : [];
             $s['faqs'] = !empty($s['faqs_json']) ? json_decode($s['faqs_json'], true) : [];
         }
-        return $services;
+        return $publishedOnly ? array_values(array_filter($services, 'is_public_service_available')) : $services;
     }
     $services = read_json_file(SERVICES_FILE, []);
     if ($publishedOnly) {
-        $services = array_filter($services, fn($s) => ($s['is_published'] ?? 1) == 1);
+        $services = array_filter($services, fn($s) => ($s['is_published'] ?? 1) == 1 && is_public_service_available($s));
     }
     return array_values($services);
 }
@@ -359,7 +364,7 @@ function get_service_by_slug(string $slug, bool $publishedOnly = true): ?array {
         }
         $sql .= " LIMIT 1";
         $service = db_one($sql, [$targetSlug, $targetSlug]);
-        if ($service) {
+        if ($service && (!$publishedOnly || is_public_service_available($service))) {
             $service['features'] = !empty($service['features_json']) ? json_decode($service['features_json'], true) : [];
             $service['process'] = !empty($service['process_json']) ? json_decode($service['process_json'], true) : [];
             $service['faqs'] = !empty($service['faqs_json']) ? json_decode($service['faqs_json'], true) : [];
@@ -371,7 +376,7 @@ function get_service_by_slug(string $slug, bool $publishedOnly = true): ?array {
     $services = read_json_file(SERVICES_FILE, []);
     foreach ($services as $s) {
         if (isset($s['slug']) && ($s['slug'] === $targetSlug || $s['id'] === $targetSlug)) {
-            if ($publishedOnly && empty($s['is_published'])) {
+            if ($publishedOnly && (empty($s['is_published']) || !is_public_service_available($s))) {
                 return null;
             }
             return $s;

@@ -45,7 +45,6 @@ $company = get_company_info();
                     <h3>Specialist Services</h3>
                     <ul>
                         <li><a href="/renovation-contractor-singapore">Renovation Contractor SG</a></li>
-                        <li><a href="/hdb-renovation">HDB Renovation Contractor</a></li>
                         <li><a href="/tiling-works">Tiling Works & Screeding</a></li>
                         <li><a href="/vinyl-flooring">Vinyl Flooring Supply & Lay</a></li>
                         <li><a href="/hacking-demolition">Hacking & Demolition</a></li>
@@ -134,7 +133,6 @@ $company = get_company_info();
                     <select id="popup-service" name="service" class="form-control" required>
                         <option value="" disabled selected>-- Select a service --</option>
                         <option value="renovation-contractor-singapore">Renovation Contractor in Singapore</option>
-                        <option value="hdb-renovation">HDB Renovation Contractor</option>
                         <option value="tiling-works">Tiling Works & Screeding</option>
                         <option value="vinyl-flooring">Vinyl Flooring Works</option>
                         <option value="hacking-demolition">Hacking & Demolition Works</option>

@@ -133,7 +133,7 @@ $preselectedService = trim($_GET['service'] ?? '');
                     <span class="section-tagline">Direct Assistance</span>
                     <h2>Speak with Our Estimators & Project Coordinators</h2>
                     <p style="color: var(--color-text-muted); font-size: 15px; margin-bottom: 30px;">
-                        Whether you are planning a commercial office reinstatement, residential HDB hacking and tiling, or complete turnkey renovation, our team is ready to evaluate your layout plans and provide transparent quotations.
+                        Whether you are planning a commercial office reinstatement, residential hacking and tiling, or complete turnkey renovation, our team is ready to evaluate your layout plans and provide transparent quotations.
                     </p>
 
                     <div class="contact-methods">
@@ -223,7 +223,6 @@ $preselectedService = trim($_GET['service'] ?? '');
                             <select id="service" name="service" class="form-control" required>
                                 <option value="" disabled <?= empty($preselectedService) ? 'selected' : '' ?>>-- Select a service --</option>
                                 <option value="renovation-contractor-singapore" <?= $preselectedService === 'renovation-contractor-singapore' ? 'selected' : '' ?>>Renovation Contractor Singapore (General / Commercial)</option>
-                                <option value="hdb-renovation" <?= $preselectedService === 'hdb-renovation' ? 'selected' : '' ?>>HDB Renovation Works</option>
                                 <option value="hacking-demolition" <?= $preselectedService === 'hacking-demolition' ? 'selected' : '' ?>>1. Hacking & Demolition Works</option>
                                 <option value="tiling-works" <?= $preselectedService === 'tiling-works' ? 'selected' : '' ?>>2. Tiles Flooring Works & Screeding</option>
                                 <option value="vinyl-flooring" <?= $preselectedService === 'vinyl-flooring' ? 'selected' : '' ?>>3. Vinyl Flooring Works</option>
