@@ -166,7 +166,7 @@ $pageDesc = "Tabeeb Contractor is Singapore's direct renovation contractor. Spec
     </script>
 
     <!-- CSS Stylesheet -->
-    <link rel="stylesheet" href="/style.css?v=3.5">
+    <link rel="stylesheet" href="/style.css?v=3.6">
 
     <?php render_gtm_head(); ?>
 </head>
@@ -175,7 +175,7 @@ $pageDesc = "Tabeeb Contractor is Singapore's direct renovation contractor. Spec
     <?php $activeNav = 'home'; require_once __DIR__ . '/includes/public_header.php'; ?>
 
     <!-- Hero Section -->
-    <section class="hero" id="hero" style="background: linear-gradient(rgba(7, 39, 77, 0.88), rgba(15, 23, 42, 0.92)), url('/images/hero-bg.webp') center/cover no-repeat;">
+    <section class="hero" id="hero">
         <div class="container">
             <div class="hero-content fade-in-up">
                 <span class="hero-trusted-badge">🛡️ DIRECT RENOVATION CONTRACTOR</span>

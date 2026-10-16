@@ -520,7 +520,7 @@ img {
 /* Hero Section - Bright, Crisp Architectural Presentation */
 .hero {
     min-height: 100vh;
-    background: linear-gradient(90deg, rgba(7, 39, 77, 0.82) 0%, rgba(7, 39, 77, 0.58) 46%, rgba(7, 39, 77, 0.20) 80%, rgba(7, 39, 77, 0.08) 100%), url('images/hero-bg.jpg') no-repeat center right/cover;
+    background: linear-gradient(90deg, rgba(7, 39, 77, 0.76) 0%, rgba(7, 39, 77, 0.64) 36%, rgba(7, 39, 77, 0.16) 65%, rgba(7, 39, 77, 0.02) 100%), url('images/hero-bg.webp') no-repeat center right/cover;
     display: flex;
     align-items: center;
     color: var(--color-bg-white);
@@ -1415,14 +1415,14 @@ textarea.form-control {
     }
 
     .hero {
-        background: linear-gradient(180deg, rgba(7, 39, 77, 0.86) 0%, rgba(7, 39, 77, 0.70) 55%, rgba(7, 39, 77, 0.40) 100%), url('images/hero-bg.jpg') no-repeat center center/cover;
+        background: linear-gradient(180deg, rgba(7, 39, 77, 0.12) 0%, rgba(7, 39, 77, 0.08) 60%, rgba(7, 39, 77, 0.20) 100%), url('images/hero-bg.webp') no-repeat 68% center/cover;
         padding-top: calc(var(--header-height) + 24px);
         padding-bottom: 70px;
     }
     .hero-content {
-        background: rgba(7, 39, 77, 0.38);
-        backdrop-filter: blur(8px);
-        -webkit-backdrop-filter: blur(8px);
+        background: rgba(7, 39, 77, 0.78);
+        backdrop-filter: blur(2px);
+        -webkit-backdrop-filter: blur(2px);
         padding: 24px 18px;
         border-radius: var(--radius-md);
         border: 1px solid rgba(255, 255, 255, 0.12);
