@@ -101,7 +101,7 @@ function render_gtm_head(): void {
     if (!$config['first_party_enabled'] && !$config['is_configured']) return;
     $config['csrf_token']=get_csrf_token();
     echo '<script type="application/json" id="tabeeb-analytics-config">'.json_encode($config,JSON_HEX_TAG|JSON_HEX_AMP|JSON_HEX_APOS|JSON_HEX_QUOT).'</script>';
-    echo '<script defer src="/js/vendor/web-vitals-5.0.3.js"></script><script defer src="/js/analytics.js?v=1"></script>';
+    echo '<script defer src="/js/vendor/web-vitals-5.0.3.js"></script><script defer src="/js/analytics.js?v=2"></script>';
 }
 function render_gtm_body(): void {
     // No noscript tag: optional analytics requires an affirmative consent choice.
