@@ -166,7 +166,7 @@ $pageDesc = "Tabeeb Contractor is Singapore's direct renovation contractor. Spec
     </script>
 
     <!-- CSS Stylesheet -->
-    <link rel="stylesheet" href="/style.css?v=3.6">
+    <link rel="stylesheet" href="/style.css?v=3.7">
 
     <?php render_gtm_head(); ?>
 </head>
@@ -265,7 +265,7 @@ $pageDesc = "Tabeeb Contractor is Singapore's direct renovation contractor. Spec
             </div>
 
             <!-- Overarching Renovation Highlights -->
-            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 20px; margin-bottom: 30px;" class="fade-in-up">
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 300px), 1fr)); gap: 20px; margin-bottom: 30px;" class="fade-in-up">
                 <div style="background: linear-gradient(135deg, #07274d 0%, #0f4c81 100%); color: #fff; padding: 24px; border-radius: 12px; border-left: 4px solid var(--color-gold); display: flex; flex-direction: column; justify-content: space-between;">
                     <div>
                         <span style="font-size: 11px; text-transform: uppercase; letter-spacing: 1px; color: var(--color-gold); font-weight: 700;">Complete Turnkey Service</span>
@@ -387,7 +387,7 @@ $pageDesc = "Tabeeb Contractor is Singapore's direct renovation contractor. Spec
                 <h2 class="section-title">Featured Project Case Study</h2>
                 <p class="section-desc">Photographic site documentation from our completed contracting projects across Singapore.</p>
             </div>
-            <div style="max-width: 950px; margin: 0 auto; background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 16px; overflow: hidden; box-shadow: 0 10px 30px rgba(0,0,0,0.06); display: grid; grid-template-columns: 1fr 1fr; gap: 0;" class="fade-in-up">
+            <div style="max-width: 950px; margin: 0 auto; background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 16px; overflow: hidden; box-shadow: 0 10px 30px rgba(0,0,0,0.06); display: grid; grid-template-columns: 1fr 1fr; gap: 0;" class="featured-project-card fade-in-up">
                 <div style="position: relative; min-height: 280px;">
                     <img src="<?= htmlspecialchars($featuredProject['featured_image']) ?>" alt="<?= htmlspecialchars($featuredProject['title']) ?>" style="width: 100%; height: 100%; object-fit: cover;" loading="lazy" width="490" height="325">
                 </div>

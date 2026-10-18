@@ -72,7 +72,7 @@ if (empty($activeNav)) {
                         <li><a href="javascript:void(0)" class="btn btn-quote-header open-quote-modal-btn" id="nav-quote-cta">Get a Quote</a></li>
                     </ul>
                 </nav>
-                <button class="burger" id="burger-menu" aria-label="Toggle navigation menu">
+                <button class="burger" id="burger-menu" aria-label="Toggle navigation menu" aria-controls="nav-list" aria-expanded="false">
                     <div class="line1"></div>
                     <div class="line2"></div>
                     <div class="line3"></div>

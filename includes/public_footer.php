@@ -186,4 +186,4 @@ $company = get_company_info();
         };
     </script>
     <!-- Application Script -->
-    <script src="/app.js?v=3.6"></script>
+    <script src="/app.js?v=3.7"></script>

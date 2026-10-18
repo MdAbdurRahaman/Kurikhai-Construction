@@ -76,7 +76,7 @@ $pageTitle = htmlspecialchars($ogTitle);
     <link rel="icon" type="image/png" sizes="64x64" href="/images/favicon.png">
     <link rel="icon" type="image/x-icon" href="/favicon.ico">
     <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon.png">
-    <link rel="stylesheet" href="/style.css?v=3.5">
+    <link rel="stylesheet" href="/style.css?v=3.7">
 
     <?php require_once __DIR__ . '/includes/tracking.php'; render_gtm_head(); ?>
 

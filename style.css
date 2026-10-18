@@ -294,7 +294,7 @@ img {
    EXECUTIVE HEADER & MENU BAR - TABEEB CONTRACTOR
    ========================================================================== */
 .header {
-    position: fixed;
+    position: sticky;
     top: 0;
     left: 0;
     width: 100%;
@@ -519,12 +519,12 @@ img {
 
 /* Hero Section - Bright, Crisp Architectural Presentation */
 .hero {
-    min-height: 100vh;
+    min-height: clamp(520px, 72svh, 760px);
     background: linear-gradient(90deg, rgba(7, 39, 77, 0.76) 0%, rgba(7, 39, 77, 0.64) 36%, rgba(7, 39, 77, 0.16) 65%, rgba(7, 39, 77, 0.02) 100%), url('images/hero-bg.webp') no-repeat center right/cover;
     display: flex;
     align-items: center;
     color: var(--color-bg-white);
-    padding-top: calc(var(--header-height) + 40px);
+    padding-top: 64px;
     padding-bottom: 120px; /* Leave space for floating feature cards on short screens */
     position: relative;
 }
@@ -2337,4 +2337,71 @@ textarea.form-control {
 .global-copy-toast.show {
     transform: translateY(0);
     opacity: 1;
+}
+
+/* Public layouts: keep header in flow and fit narrow screens without hiding content. */
+.header.scrolled .header-wrapper { height: var(--header-height); }
+.hero .container { width: 100%; min-width: 0; }
+.hero-content { min-width: 0; }
+.hero h1 { font-size: clamp(32px, 4.3vw, 62px); overflow-wrap: break-word; }
+.hero-actions .btn { white-space: normal; text-align: center; }
+.hero-trusted-badge { max-width: 100%; white-space: normal; }
+.poster-services-grid, .services-grid, .projects-grid, .contact-layout, .footer-grid { min-width: 0; }
+input, select, textarea { max-width: 100%; }
+@media (min-width: 1025px) and (max-width: 1200px) {
+    .nav-list { gap: 18px; }
+    .header-logo-img { max-width: 260px; }
+    .topbar-left { gap: 12px; }
+    .topbar-left .topbar-item:nth-child(2) { display: none; }
+}
+@media (max-width: 1024px) {
+    :root { --header-height: 68px; }
+    .topbar { display: none; }
+    .header-wrapper { height: var(--header-height); gap: 16px; }
+    .header-logo-img { width: min(260px, calc(100vw - 100px)); height: auto; max-height: 48px; }
+    .burger { display: block; flex: 0 0 36px; padding: 5px; z-index: 2; }
+    .nav-list {
+        position: absolute; top: 100%; right: 0; width: 100%; height: auto;
+        max-height: calc(100dvh - var(--header-height)); overflow-y: auto;
+        padding: 20px; gap: 10px; flex-direction: column; align-items: stretch;
+        justify-content: flex-start; background: var(--color-primary-dark);
+        transform: translateY(-8px); visibility: hidden; pointer-events: none;
+        box-shadow: 0 12px 24px rgba(0,0,0,.2);
+        transition: transform .2s, visibility .2s;
+    }
+    .nav-list.active { transform: translateY(0); visibility: visible; pointer-events: auto; }
+    .nav-list .nav-link { display: block; color: #fff !important; padding: 10px 16px; font-size: 17px; }
+    .nav-list .btn { display: block; text-align: center; }
+    .hero { min-height: 0; padding: 44px 0 88px; }
+    .hero-content { max-width: 680px; }
+}
+@media (max-width: 768px) {
+    .hero { padding: 28px 0 88px; background-position: 68% center; }
+    .hero-content { padding: 22px 18px; background: rgba(7,39,77,.74); }
+    .hero h1 { font-size: clamp(28px, 7.2vw, 40px); line-height: 1.15; margin-bottom: 18px; }
+    .hero-keyword-eyebrow { font-size: 13px; letter-spacing: 1.3px; }
+    .hero-trusted-badge { font-size: 10px; letter-spacing: 1px; padding: 7px 10px; margin-bottom: 14px; }
+    .hero-pill-row { gap: 8px 12px; margin-bottom: 18px; }
+    .hero-pill-item { font-size: 11px; letter-spacing: .4px; }
+    .hero-pill-dot { display: none; }
+    .hero-desc { font-size: 15px; line-height: 1.65; margin-bottom: 22px; }
+    .hero-actions { gap: 10px; }
+    .hero-actions .btn { width: 100%; min-height: 48px; padding: 13px 12px; font-size: 14px; }
+    .floating-whatsapp { width: 48px; height: 48px; right: max(12px, env(safe-area-inset-right)); bottom: max(12px, env(safe-area-inset-bottom)); z-index: 900; }
+    .floating-whatsapp svg { width: 26px; height: 26px; }
+    .whatsapp-tooltip { display: none; }
+    .poster-showcase-info h2 { font-size: clamp(26px, 7vw, 36px) !important; }
+    .footer-legal-links { flex-wrap: wrap; gap: 12px 20px; }
+}
+@media (prefers-reduced-motion: reduce) {
+    .nav-list { transition: none; }
+}
+
+.subpage-hero { padding-top: 64px; }
+@media (max-width: 768px) {
+    .subpage-hero { padding: 44px 0; }
+    .subpage-hero h1 { font-size: clamp(28px, 7vw, 38px); overflow-wrap: break-word; }
+    .featured-project-card { grid-template-columns: minmax(0, 1fr) !important; }
+    .featured-project-card > div:last-child { padding: 24px 20px !important; }
+    .featured-project-card > div:last-child > div { flex-wrap: wrap; }
 }

@@ -99,7 +99,7 @@ $services = get_all_services(true);
     }
     </script>
 
-    <link rel="stylesheet" href="/style.css?v=3.5">
+    <link rel="stylesheet" href="/style.css?v=3.7">
     <?php render_gtm_head(); ?>
 </head>
 <body>
@@ -125,7 +125,7 @@ $services = get_all_services(true);
                 <p class="section-desc">Direct trade solutions for residential homeowners, commercial tenants, and facility managers across Singapore.</p>
             </div>
 
-            <div class="services-catalog-grid" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 30px; margin-top: 40px;">
+            <div class="services-catalog-grid" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 320px), 1fr)); gap: 30px; margin-top: 40px;">
                 <?php foreach ($services as $srv): ?>
                     <article class="service-card fade-in-up" style="background: #ffffff; border-radius: 12px; overflow: hidden; box-shadow: 0 8px 24px rgba(0,0,0,0.06); border: 1px solid #e2e8f0; display: flex; flex-direction: column;">
                         <div style="height: 200px; overflow: hidden; position: relative;">

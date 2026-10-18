@@ -38,28 +38,28 @@ document.addEventListener('DOMContentLoaded', () => {
     const navList = document.getElementById('nav-list');
 
     if (burgerMenu && navList) {
+        const setMenuOpen = (open) => {
+            burgerMenu.classList.toggle('active', open);
+            navList.classList.toggle('active', open);
+            burgerMenu.setAttribute('aria-expanded', String(open));
+        };
         burgerMenu.addEventListener('click', (e) => {
             e.stopPropagation();
-            burgerMenu.classList.toggle('active');
-            navList.classList.toggle('active');
+            setMenuOpen(burgerMenu.getAttribute('aria-expanded') !== 'true');
         });
-
-        // Close menu when clicking outside
         document.addEventListener('click', (e) => {
-            if (!navList.contains(e.target) && !burgerMenu.contains(e.target)) {
-                burgerMenu.classList.remove('active');
-                navList.classList.remove('active');
+            if (!navList.contains(e.target) && !burgerMenu.contains(e.target)) setMenuOpen(false);
+        });
+        navList.querySelectorAll('.nav-link, .btn').forEach(link => {
+            link.addEventListener('click', () => setMenuOpen(false));
+        });
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape' && burgerMenu.getAttribute('aria-expanded') === 'true') {
+                setMenuOpen(false);
+                burgerMenu.focus();
             }
         });
-
-        // Close menu when clicking links
-        const navLinks = navList.querySelectorAll('.nav-link, .btn');
-        navLinks.forEach(link => {
-            link.addEventListener('click', () => {
-                burgerMenu.classList.remove('active');
-                navList.classList.remove('active');
-            });
-        });
+        window.matchMedia('(max-width: 1024px)').addEventListener('change', () => setMenuOpen(false));
     }
 
 

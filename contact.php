@@ -106,7 +106,7 @@ $preselectedService = trim($_GET['service'] ?? '');
     }
     </script>
 
-    <link rel="stylesheet" href="/style.css?v=3.5">
+    <link rel="stylesheet" href="/style.css?v=3.7">
     <?php render_gtm_head(); ?>
 </head>
 <body>

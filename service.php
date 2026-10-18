@@ -86,7 +86,7 @@ $twitterShareUrl = 'https://twitter.com/intent/tweet?text=' . urlencode($service
     <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon.png">
 
     <!-- Stylesheets -->
-    <link rel="stylesheet" href="/style.css?v=3.5">
+    <link rel="stylesheet" href="/style.css?v=3.7">
 
     <?php require_once __DIR__ . '/includes/tracking.php'; render_gtm_head(); ?>
 

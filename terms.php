@@ -46,7 +46,7 @@ $pageDesc = "Terms of Service for Tabeeb Contractor Singapore. Conditions for we
     <meta property="og:locale" content="en_SG">
 
     <!-- Stylesheet -->
-    <link rel="stylesheet" href="/style.css?v=3.5">
+    <link rel="stylesheet" href="/style.css?v=3.7">
 
     <!-- Google Analytics & Tag Manager (Privacy-preserving loader) -->
     <?php render_gtm_head(); ?>
