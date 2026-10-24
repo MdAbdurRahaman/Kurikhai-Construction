@@ -44,6 +44,10 @@ with tempfile.TemporaryDirectory(prefix='tabeeb-test-local-') as temp:
         result=run([args.php,str(bundle/'tests/baseline_admin.php'),role])
         evidence=json.loads(result.stdout.strip().splitlines()[-1])
         if evidence.get('role')!=role or evidence.get('passed')!=(8 if role=='reader' else 7):raise RuntimeError('Missing baseline completion evidence')
+    for mode in ['unit','trash-denied','csrf']:
+        db=Path(temp)/('lead-management-'+mode+'.sqlite');env['TEST_SQLITE_PATH']=str(db)
+        run([sys.executable,str(bundle/'tests/fixture.py'),str(db)])
+        run([args.php,str(bundle/'tests/lead_management.php'),mode])
     for page, role in [('index','sales_rep'),('leads','sales_rep'),('lead-detail','sales_rep'),('users','super_admin')]:
         db=Path(temp)/(page+'-'+role+'.sqlite');env['TEST_SQLITE_PATH']=str(db)
         run([sys.executable,str(bundle/'tests/fixture.py'),str(db)])

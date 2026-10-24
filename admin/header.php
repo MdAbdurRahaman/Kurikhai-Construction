@@ -523,6 +523,10 @@ $baseUrl = get_base_url();
             </a>
             <?php endif; ?>
 
+            <?php if (is_super_admin()): ?>
+            <a href="leads.php?trash=1" class="sidebar-link"><span class="sidebar-icon">♻️</span><span>Lead Recycle Bin</span></a>
+            <?php endif; ?>
+
             <?php if (portal_module_available('analytics')): ?>
             <a href="analytics.php" class="sidebar-link <?= $currentPage === 'analytics' ? 'active' : '' ?>"><span class="sidebar-icon">📉</span><span>Traffic & Performance</span></a>
             <?php endif; ?>
