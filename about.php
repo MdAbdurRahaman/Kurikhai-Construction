@@ -42,7 +42,7 @@ $pageDesc = "Learn about " . htmlspecialchars($company['brand_name']) . ", provi
     <meta property="og:title" content="<?= htmlspecialchars($pageTitle) ?>">
     <meta property="og:description" content="<?= htmlspecialchars($pageDesc) ?>">
     <meta property="og:image" content="<?= $baseUrl ?>/images/hero-bg.webp">
-    <meta property="og:site_name" content="<?= htmlspecialchars($company['brand_name']) ?>">
+    <meta property="og:site_name" content="Tabeeb Contractor">
     <meta property="og:locale" content="en_SG">
 
     <!-- Schema.org JSON-LD -->
@@ -57,7 +57,8 @@ $pageDesc = "Learn about " . htmlspecialchars($company['brand_name']) . ", provi
           "name": <?= json_encode($pageTitle) ?>,
           "isPartOf": {
             "@type": "WebSite",
-            "name": <?= json_encode($company['brand_name']) ?>,
+            "@id": "<?= $baseUrl ?>/#website",
+            "name": "Tabeeb Contractor",
             "url": "<?= $baseUrl ?>/"
           }
         },

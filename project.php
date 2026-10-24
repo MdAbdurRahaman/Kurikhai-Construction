@@ -69,7 +69,7 @@ $pageTitle = htmlspecialchars($ogTitle);
     <meta property="og:title" content="<?= htmlspecialchars($ogTitle) ?>">
     <meta property="og:description" content="<?= htmlspecialchars($ogDesc) ?>">
     <meta property="og:image" content="<?= htmlspecialchars($ogImage) ?>">
-    <meta property="og:site_name" content="<?= htmlspecialchars($company['brand_name']) ?>">
+    <meta property="og:site_name" content="Tabeeb Contractor">
     <meta property="og:locale" content="en_SG">
 
     <!-- Favicon & Styles -->

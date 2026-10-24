@@ -70,7 +70,7 @@ $twitterShareUrl = 'https://twitter.com/intent/tweet?text=' . urlencode($service
     <meta property="og:image:secure_url" content="<?= $imageUrl ?>">
     <meta property="og:image:width" content="1200">
     <meta property="og:image:height" content="630">
-    <meta property="og:site_name" content="Tabeeb Contractor Singapore">
+    <meta property="og:site_name" content="Tabeeb Contractor">
     <meta property="og:locale" content="en_SG">
 
     <!-- Twitter Card -->

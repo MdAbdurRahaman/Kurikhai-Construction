@@ -42,7 +42,7 @@ $ogImage = $baseUrl . '/images/hero-bg.jpg';
     <meta property="og:title" content="<?= htmlspecialchars($pageTitle) ?>">
     <meta property="og:description" content="<?= htmlspecialchars($pageDesc) ?>">
     <meta property="og:image" content="<?= $ogImage ?>">
-    <meta property="og:site_name" content="Tabeeb Contractor Singapore">
+    <meta property="og:site_name" content="Tabeeb Contractor">
     <meta property="og:locale" content="en_SG">
 
     <!-- Twitter Card -->

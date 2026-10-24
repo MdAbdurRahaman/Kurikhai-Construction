@@ -42,7 +42,7 @@ $pageDesc = "Terms of Service for Tabeeb Contractor Singapore. Conditions for we
     <meta property="og:title" content="<?= htmlspecialchars($pageTitle) ?>">
     <meta property="og:description" content="<?= htmlspecialchars($pageDesc) ?>">
     <meta property="og:image" content="<?= $baseUrl ?>/images/hero-bg.webp">
-    <meta property="og:site_name" content="<?= htmlspecialchars($company['brand_name']) ?>">
+    <meta property="og:site_name" content="Tabeeb Contractor">
     <meta property="og:locale" content="en_SG">
 
     <!-- Stylesheet -->

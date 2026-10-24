@@ -43,7 +43,7 @@ $pageDesc = "Tabeeb Contractor is Singapore's direct renovation contractor. Spec
     <meta property="og:title" content="<?= htmlspecialchars($pageTitle) ?>">
     <meta property="og:description" content="<?= htmlspecialchars($pageDesc) ?>">
     <meta property="og:image" content="<?= $baseUrl ?>/images/hero-bg.webp">
-    <meta property="og:site_name" content="<?= htmlspecialchars($company['brand_name']) ?>">
+    <meta property="og:site_name" content="Tabeeb Contractor">
     <meta property="og:locale" content="en_SG">
 
     <!-- Twitter -->
@@ -58,6 +58,13 @@ $pageDesc = "Tabeeb Contractor is Singapore's direct renovation contractor. Spec
     {
       "@context": "https://schema.org",
       "@graph": [
+        {
+          "@type": "WebSite",
+          "@id": "<?= $baseUrl ?>/#website",
+          "url": "<?= $baseUrl ?>/",
+          "name": "Tabeeb Contractor",
+          "publisher": { "@id": "<?= $baseUrl ?>/#organization" }
+        },
         {
           "@type": ["HomeAndConstructionBusiness", "GeneralContractor"],
           "@id": "<?= $baseUrl ?>/#organization",
