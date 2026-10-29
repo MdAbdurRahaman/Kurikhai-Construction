@@ -35,23 +35,38 @@
         }
         return {source:src,medium,campaign,channel};
     }
+    const adsReady = () => config.is_ads_configured && /^AW-\d{6,15}$/.test(config.ads_id || '');
+    function consentState(allow) {
+        // Ads storage is only used for conversion measurement (which ad led to an enquiry); no personalisation/remarketing.
+        return {analytics_storage:allow?'granted':'denied',ad_storage:allow&&adsReady()?'granted':'denied',ad_user_data:allow&&adsReady()?'granted':'denied',ad_personalization:'denied'};
+    }
     function loadGoogle() {
-        if (!config.is_configured) return;
-        window['ga-disable-'+config.ga4_id]=false;
-        gtag('consent','update',{analytics_storage:'granted',ad_storage:'denied',ad_user_data:'denied',ad_personalization:'denied'});
+        if (!config.is_configured && !adsReady()) return;
+        if (config.ga4_id) window['ga-disable-'+config.ga4_id]=false;
+        gtag('consent','update',consentState(true));
         if (googleLoaded) return;
         googleLoaded=true;
         const script=document.createElement('script');script.async=true;
-        if (config.mode==='direct_ga4') {
-            script.src='https://www.googletagmanager.com/gtag/js?id='+config.ga4_id;
-            gtag('js',new Date());
-            gtag('config',config.ga4_id,{send_page_view:false,allow_google_signals:false,allow_ad_personalization_signals:false,page_location:location.origin+path,page_referrer:'',campaign_source:attribution.source || undefined,campaign_medium:attribution.medium || undefined,campaign_name:attribution.campaign || undefined});
-        } else {
+        const gtagId = config.is_configured && config.mode==='direct_ga4' ? config.ga4_id : (adsReady() ? config.ads_id : '');
+        if (config.is_configured && config.mode==='gtm') {
             script.src='https://www.googletagmanager.com/gtm.js?id='+config.gtm_id;
             dataLayer.push({page_location:location.origin+path,page_referrer:'',page_path:path});
             dataLayer.push({'gtm.start':Date.now(),event:'gtm.js'});
+            document.head.appendChild(script);
         }
-        document.head.appendChild(script);
+        if (gtagId) {
+            const tag = config.is_configured && config.mode==='gtm' ? document.createElement('script') : script;
+            tag.async=true;tag.src='https://www.googletagmanager.com/gtag/js?id='+gtagId;
+            gtag('js',new Date());
+            if (config.is_configured && config.mode==='direct_ga4') gtag('config',config.ga4_id,{send_page_view:false,allow_google_signals:false,allow_ad_personalization_signals:false,page_location:location.origin+path,page_referrer:'',campaign_source:attribution.source || undefined,campaign_medium:attribution.medium || undefined,campaign_name:attribution.campaign || undefined});
+            if (adsReady()) gtag('config',config.ads_id,{allow_ad_personalization_signals:false});
+            document.head.appendChild(tag);
+        }
+    }
+    function adsConversion(name,detail) {
+        if (!adsReady()) return;
+        const label = name==='generate_lead' ? config.ads_lead_label : (name==='contact_click' && ['phone','whatsapp'].includes(detail) ? config.ads_contact_label : '');
+        if (label) gtag('event','conversion',{send_to:config.ads_id+'/'+label});
     }
     function track(name,params={}) {
         if (!granted || !identity || !allowed.has(name)) return;
@@ -63,6 +78,7 @@
         if (['page_view','page_error'].includes(name) && seen.has(name)) return;
         seen.add(name);
         const safe={page_location:location.origin+path,page_path:path,contact_type:name==='contact_click'?detail:undefined,error_type:name==='form_error'?detail:undefined,metric_name:name==='web_vital'?detail:undefined,value,traffic_source:attribution.source || undefined,traffic_medium:attribution.medium || undefined,campaign_name:attribution.campaign || undefined};
+        adsConversion(name,detail);
         if (config.is_configured) {
             if (config.mode==='direct_ga4') gtag('event',name,{...safe,send_to:config.ga4_id});
             else dataLayer.push({event:name,...safe});
@@ -95,17 +111,17 @@
         granted=allowed;write('tabeeb_analytics_consent',{allowed,at:Date.now()});
         if (allowed) start();
         else {
-            gtag('consent','update',{analytics_storage:'denied',ad_storage:'denied',ad_user_data:'denied',ad_personalization:'denied'});
+            gtag('consent','update',consentState(false));
             if(config.ga4_id) window['ga-disable-'+config.ga4_id]=true;
             clearInterval(heartbeat);identity=null;started=false;seen.clear();
             try {localStorage.removeItem('tabeeb_analytics_visitor');sessionStorage.removeItem('tabeeb_analytics_session');}catch(_){}
-            document.cookie.split(';').forEach(cookie=>{const name=cookie.split('=')[0].trim();if(/^_ga(?:_|$)/.test(name)){document.cookie=name+'=; Max-Age=0; Path=/';document.cookie=name+'=; Max-Age=0; Path=/; Domain='+location.hostname;}});
+            document.cookie.split(';').forEach(cookie=>{const name=cookie.split('=')[0].trim();if(/^(_ga(?:_|$)|_gcl_)/.test(name)){document.cookie=name+'=; Max-Age=0; Path=/';document.cookie=name+'=; Max-Age=0; Path=/; Domain='+location.hostname;}});
         }
         panel.hidden=true;
     }
     const panel=document.createElement('section');panel.setAttribute('aria-label','Analytics preferences');panel.setAttribute('role','region');
     panel.style.cssText='position:fixed;bottom:max(8px,env(safe-area-inset-bottom));left:8px;right:8px;max-width:440px;max-height:calc(100dvh - 16px);overflow-y:auto;box-sizing:border-box;margin:auto;z-index:10000;background:white;color:#07274d;padding:10px 12px;border:1px solid #cbd5e1;border-radius:10px;box-shadow:0 4px 20px #0003;font:12px/1.4 sans-serif';
-    panel.innerHTML='<strong style="font-size:13px">Optional analytics</strong><p style="margin:4px 0 8px">Help us measure website use and performance. Enquiries work either way. <a href="/privacy" style="color:inherit;text-decoration:underline">Privacy policy</a></p><div style="display:flex;gap:8px"><button type="button" data-consent="allow">Allow analytics</button><button type="button" data-consent="deny">Decline analytics</button></div>';
+    panel.innerHTML='<strong style="font-size:13px">Optional analytics</strong><p style="margin:4px 0 8px">Help us measure website use, performance and which Google ads bring enquiries. No ad personalisation. Enquiries work either way. <a href="/privacy" style="color:inherit;text-decoration:underline">Privacy policy</a></p><div style="display:flex;gap:8px"><button type="button" data-consent="allow">Allow analytics</button><button type="button" data-consent="deny">Decline analytics</button></div>';
     panel.querySelectorAll('button').forEach(button=>{button.style.cssText='flex:1;min-width:0;min-height:44px;padding:8px 6px;font:600 12px/1.25 sans-serif;cursor:pointer;border:1px solid #07274d;border-radius:6px;background:white;color:#07274d';button.onclick=()=>setConsent(button.dataset.consent==='allow');});
     panel.hidden=Boolean(preferences && Date.now()-preferences.at<180*86400000);document.body.appendChild(panel);
     const preferencesButton=document.createElement('button');preferencesButton.type='button';preferencesButton.textContent='Analytics preferences';preferencesButton.style.cssText='display:block;margin:16px auto;padding:8px;border:1px solid #cbd5e1;background:white;border-radius:6px;cursor:pointer';preferencesButton.onclick=()=>{panel.hidden=false;panel.querySelector('button').focus();};document.body.appendChild(preferencesButton);

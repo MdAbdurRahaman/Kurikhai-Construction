@@ -17,4 +17,19 @@ for (const mode of ['direct_ga4','gtm']) {
  context.TabeebAnalytics.setConsent(false);const before=calls.length;context.TabeebAnalytics.track('contact_click',{detail:'phone'});assert.equal(calls.length,before);assert.equal(tabs.size,0);total+=2;
  context.TabeebAnalytics.setConsent(true);assert.equal(scripts.length,1);assert.equal(context['ga-disable-'+config.ga4_id],false);total+=2;
 }
+{
+ // Google Ads conversion tag only (no GA4/GTM): nothing before consent, conversions after, no PII.
+ const scripts=[],storage=new Map(),tabs=new Map(),buttons=[{dataset:{consent:'allow'},style:{}},{dataset:{consent:'deny'},style:{}}];
+ const config={mode:'gtm',is_configured:false,ga4_id:'',gtm_id:'',ads_id:'AW-123456789',ads_lead_label:'LeadLabel1',ads_contact_label:'CallLabel1',is_ads_configured:true,first_party_enabled:false,csrf_token:'test'};
+ const context={console,Set,Date,JSON,Number,Array,URL,URLSearchParams,Uint8Array,crypto:require('crypto').webcrypto,location:{pathname:'/contact',search:'?gclid=test',origin:'https://tabeebgroup.com',hostname:'tabeebgroup.com'},innerWidth:390,innerHeight:800,scrollY:0,localStorage:{getItem:k=>storage.get(k),setItem:(k,v)=>storage.set(k,v),removeItem:k=>storage.delete(k)},sessionStorage:{getItem:k=>tabs.get(k),setItem:(k,v)=>tabs.set(k,v),removeItem:k=>tabs.delete(k)},fetch:()=>{throw new Error('first-party disabled');},setInterval:()=>1,clearInterval:()=>{},addEventListener:()=>{},document:{referrer:'',visibilityState:'visible',cookie:'',documentElement:{scrollHeight:2000},getElementById:id=>id==='tabeeb-analytics-config'?{textContent:JSON.stringify(config)}:null,querySelector:()=>null,createElement:tag=>tag==='script'?{}:{style:{},setAttribute:()=>{},querySelectorAll:()=>buttons,querySelector:()=>({focus:()=>{}})},head:{appendChild:s=>scripts.push(s)},body:{appendChild:()=>{}}}};
+ context.window=context;vm.createContext(context);vm.runInContext(script,context);
+ assert.equal(scripts.length,0);assert(!context.dataLayer.some(v=>v[0]==='event'));total+=2;
+ context.TabeebAnalytics.setConsent(true);assert.equal(scripts.length,1);assert(scripts[0].src.endsWith('id=AW-123456789'));total+=2;
+ const conv=()=>context.dataLayer.filter(v=>v[0]==='event'&&v[1]==='conversion').map(v=>v[2].send_to);
+ context.TabeebAnalytics.track('generate_lead',{email:'private@example.invalid'});assert.deepEqual(conv(),['AW-123456789/LeadLabel1']);total++;
+ context.TabeebAnalytics.track('contact_click',{detail:'whatsapp'});context.TabeebAnalytics.track('contact_click',{detail:'email'});assert.deepEqual(conv(),['AW-123456789/LeadLabel1','AW-123456789/CallLabel1']);total++;
+ assert(!JSON.stringify(context.dataLayer).includes('example.invalid'));total++;
+ const granted=context.dataLayer.filter(v=>v[0]==='consent'&&v[1]==='update').pop()[2];assert.equal(granted.ad_storage,'granted');assert.equal(granted.ad_personalization,'denied');total+=2;
+ context.TabeebAnalytics.setConsent(false);context.TabeebAnalytics.track('generate_lead');assert.equal(conv().length,2);total++;
+}
 console.log(JSON.stringify({passed:total,suite:'Actual analytics JavaScript: consent, mode dispatch, PII exclusion and deduplication'}));

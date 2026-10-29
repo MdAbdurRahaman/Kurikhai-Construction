@@ -15,6 +15,11 @@ require_once __DIR__ . '/db.php';
 
 class TrackingService {
 
+    // Google Ads account defaults (Tabeeb Contractor). Admin settings or env vars override these.
+    public const DEFAULT_GOOGLE_ADS_ID = 'AW-18461253179';
+    public const DEFAULT_GOOGLE_ADS_LEAD_LABEL = '2mWxCJ-_uKEdELu8geNE';
+    public const DEFAULT_GOOGLE_ADS_CONTACT_LABEL = 'zKDwCLGxr64dELu8geNE';
+
     /**
      * Determine if current request URL is on an excluded/sensitive path
      */
@@ -78,7 +83,27 @@ class TrackingService {
         $isValidGtm = preg_match('/^GTM-[A-Z0-9]{4,10}$/i', $gtmId) && !preg_match('/^GTM-X+$/i', $gtmId);
         $isValidGa4 = preg_match('/^G-[A-Z0-9]{6,15}$/i', $ga4Id) && !preg_match('/^G-X+$/i', $ga4Id);
 
+        // Google Ads conversion tracking (independent of the GA4/GTM mode).
+        // Values come from admin settings, then environment, then the defaults below.
+        $adsId = '';
+        $adsLeadLabel = '';
+        $adsContactLabel = '';
+        if (DB::isConnected()) {
+            $adsId = trim((string)(db_val("SELECT setting_value FROM settings WHERE setting_key = 'google_ads_id' LIMIT 1") ?: ''));
+            $adsLeadLabel = trim((string)(db_val("SELECT setting_value FROM settings WHERE setting_key = 'google_ads_lead_label' LIMIT 1") ?: ''));
+            $adsContactLabel = trim((string)(db_val("SELECT setting_value FROM settings WHERE setting_key = 'google_ads_contact_label' LIMIT 1") ?: ''));
+        }
+        if ($adsId === '') $adsId = trim((string)(getenv('GOOGLE_ADS_ID') ?: self::DEFAULT_GOOGLE_ADS_ID));
+        if ($adsLeadLabel === '') $adsLeadLabel = trim((string)(getenv('GOOGLE_ADS_LEAD_LABEL') ?: self::DEFAULT_GOOGLE_ADS_LEAD_LABEL));
+        if ($adsContactLabel === '') $adsContactLabel = trim((string)(getenv('GOOGLE_ADS_CONTACT_LABEL') ?: self::DEFAULT_GOOGLE_ADS_CONTACT_LABEL));
+        $isValidAds = (bool)preg_match('/^AW-[0-9]{6,15}$/i', $adsId);
+        $validLabel = static fn(string $label): string => preg_match('/^[A-Za-z0-9_-]{4,40}$/', $label) ? $label : '';
+
         return [
+            'ads_id'            => $isValidAds ? strtoupper($adsId) : '',
+            'ads_lead_label'    => $isValidAds ? $validLabel($adsLeadLabel) : '',
+            'ads_contact_label' => $isValidAds ? $validLabel($adsContactLabel) : '',
+            'is_ads_configured' => $isValidAds,
             'mode'           => $mode,
             'gtm_id'         => $isValidGtm ? strtoupper($gtmId) : '',
             'ga4_id'         => $isValidGa4 ? strtoupper($ga4Id) : '',
@@ -98,10 +123,10 @@ function render_gtm_head(): void {
     require_once __DIR__.'/measurement.php';
     $config=TrackingService::getConfig();
     $config['first_party_enabled']=analytics_setting('first_party_analytics','enabled')==='enabled';
-    if (!$config['first_party_enabled'] && !$config['is_configured']) return;
+    if (!$config['first_party_enabled'] && !$config['is_configured'] && !$config['is_ads_configured']) return;
     $config['csrf_token']=get_csrf_token();
     echo '<script type="application/json" id="tabeeb-analytics-config">'.json_encode($config,JSON_HEX_TAG|JSON_HEX_AMP|JSON_HEX_APOS|JSON_HEX_QUOT).'</script>';
-    echo '<script defer src="/js/vendor/web-vitals-5.0.3.js"></script><script defer src="/js/analytics.js?v=2"></script>';
+    echo '<script defer src="/js/vendor/web-vitals-5.0.3.js"></script><script defer src="/js/analytics.js?v=3"></script>';
 }
 function render_gtm_body(): void {
     // No noscript tag: optional analytics requires an affirmative consent choice.

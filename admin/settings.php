@@ -1,5 +1,6 @@
 <?php
 require_once dirname(__DIR__) . '/includes/data.php';
+require_once dirname(__DIR__) . '/includes/tracking.php';
 require_login();
 require_permission('settings.manage');
 
@@ -34,7 +35,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         // Validate before storing any configuration.
         $gaInput=strtoupper(trim($_POST['ga4_id']??''));$gtmInput=strtoupper(trim($_POST['gtm_id']??''));
         $propertyInput=trim($_POST['ga4_property_id']??'');
-        if (($gaInput!=='' && !preg_match('/^G-[A-Z0-9]{6,15}$/',$gaInput)) || ($gtmInput!=='' && !preg_match('/^GTM-[A-Z0-9]{4,10}$/',$gtmInput)) || ($propertyInput!=='' && !preg_match('/^[0-9]{4,15}$/',$propertyInput))) {
+        $adsInput=strtoupper(trim($_POST['google_ads_id']??''));$adsLeadInput=trim($_POST['google_ads_lead_label']??'');$adsContactInput=trim($_POST['google_ads_contact_label']??'');
+        if (($adsInput!=='' && !preg_match('/^AW-[0-9]{6,15}$/',$adsInput)) || ($adsLeadInput!=='' && !preg_match('/^[A-Za-z0-9_-]{4,40}$/',$adsLeadInput)) || ($adsContactInput!=='' && !preg_match('/^[A-Za-z0-9_-]{4,40}$/',$adsContactInput))) {
+            $error='Use a valid Google Ads ID (AW-123456789) and conversion labels.';
+        } elseif (($gaInput!=='' && !preg_match('/^G-[A-Z0-9]{6,15}$/',$gaInput)) || ($gtmInput!=='' && !preg_match('/^GTM-[A-Z0-9]{4,10}$/',$gtmInput)) || ($propertyInput!=='' && !preg_match('/^[0-9]{4,15}$/',$propertyInput))) {
             $error='Use valid GA4, GTM and numeric property IDs.';
         } else {
         // Analytics & Tracking
@@ -43,6 +47,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         set_setting('analytics', 'ga4_id', trim($_POST['ga4_id'] ?? ''));
         set_setting('analytics', 'gtm_id', trim($_POST['gtm_id'] ?? ''));
         set_setting('analytics', 'tracking_mode', in_array($_POST['tracking_mode'] ?? '', ['gtm', 'direct_ga4']) ? $_POST['tracking_mode'] : 'gtm');
+        set_setting('analytics', 'google_ads_id', $adsInput);
+        set_setting('analytics', 'google_ads_lead_label', $adsLeadInput);
+        set_setting('analytics', 'google_ads_contact_label', $adsContactInput);
         set_setting('analytics', 'gsc_token', trim($_POST['gsc_token'] ?? ''));
         set_setting('analytics', 'turnstile_key', trim($_POST['turnstile_key'] ?? ''));
 
@@ -62,6 +69,10 @@ $gtmId = get_setting('gtm_id', getenv('GTM_CONTAINER_ID') ?: '');
 $trackingMode = get_setting('tracking_mode', 'gtm');
 $firstPartyEnabled=get_setting('first_party_analytics','enabled')==='enabled';
 $gaProperty=get_setting('ga4_property_id',getenv('GA4_PROPERTY_ID')?:'');
+$adsDefaults = TrackingService::getConfig();
+$googleAdsId = get_setting('google_ads_id', '') ?: $adsDefaults['ads_id'];
+$googleAdsLeadLabel = get_setting('google_ads_lead_label', '') ?: $adsDefaults['ads_lead_label'];
+$googleAdsContactLabel = get_setting('google_ads_contact_label', '') ?: $adsDefaults['ads_contact_label'];
 $gscToken = get_setting('gsc_token', getenv('GSC_VERIFICATION_TOKEN') ?: 'googlea9c88d1e38989379');
 $turnstileKey = get_setting('turnstile_key', getenv('TURNSTILE_SITE_KEY') ?: '');
 $titleSuffix = get_setting('meta_title_suffix', ' | Tabeeb Contractor Singapore');
@@ -127,6 +138,21 @@ require_once __DIR__ . '/header.php';
                     </div>
                     <input type="text" name="ga4_id" id="ga4_id" class="form-control-adm" placeholder="G-XXXXXXXXXX" value="<?= htmlspecialchars($ga4Id) ?>">
                     <div style="font-size: 12px; color: #64748b; margin-top: 4px;">Measurement ID for privacy-compliant visit tracking.</div>
+                </div>
+
+                <div class="form-group">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
+                        <label class="form-label" for="google_ads_id" style="margin-bottom: 0;">Google Ads Conversion Tag ID</label>
+                        <span style="font-size: 11px; font-weight: 700; color: <?= !empty($googleAdsId) ? '#16a34a' : '#94a3b8' ?>;">
+                            <?= !empty($googleAdsId) ? '● Active' : '○ Not configured' ?>
+                        </span>
+                    </div>
+                    <input type="text" name="google_ads_id" id="google_ads_id" class="form-control-adm" placeholder="AW-123456789" value="<?= htmlspecialchars($googleAdsId) ?>">
+                    <label class="form-label" for="google_ads_lead_label" style="margin-top: 8px;">Quote form conversion label</label>
+                    <input type="text" name="google_ads_lead_label" id="google_ads_lead_label" class="form-control-adm" placeholder="AbCdEfGhIjK" value="<?= htmlspecialchars($googleAdsLeadLabel) ?>">
+                    <label class="form-label" for="google_ads_contact_label" style="margin-top: 8px;">Phone / WhatsApp click conversion label</label>
+                    <input type="text" name="google_ads_contact_label" id="google_ads_contact_label" class="form-control-adm" placeholder="AbCdEfGhIjK" value="<?= htmlspecialchars($googleAdsContactLabel) ?>">
+                    <div style="font-size: 12px; color: #64748b; margin-top: 4px;">Sends a Google Ads conversion when a visitor who allowed analytics submits the quote form or taps phone/WhatsApp. No ad personalisation.</div>
                 </div>
 
                 <div class="form-group">
