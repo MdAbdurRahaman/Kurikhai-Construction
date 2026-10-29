@@ -53,12 +53,14 @@
     "hero_tagline": "Supply & installation of floor and wall tiles, precision surface leveling, and premium grouting across Singapore.",
     "overview": "Flooring and wall tiling form the visual centerpiece and everyday durability of your space. Tabeeb Contractor provides experienced master tilers for residential HDB flats, condominiums, landed properties, and commercial premises across Singapore.",
     "scope_of_work": [
-      "Supply & installation of tiles",
-      "Floor & wall tiling works",
-      "Surface preparation and laser-level leveling",
+      "Supply & installation of floor and wall tiles",
+      "Hacking and removal of existing floor tiles",
+      "Surface preparation, bonding coat and cement screeding",
+      "Tile levelling system for flat, lippage-free large-format tiles",
+      "Hollow, popped and cracked tile repair and replacement",
+      "Bathroom, kitchen, living room and balcony re-tiling",
       "Grouting & finishing (anti-stain epoxy and polymer grouts)",
-      "Wide range of tile options (homogeneous, porcelain, ceramic, terrazzo, marble)",
-      "Bathroom, kitchen, living room, and outdoor balcony tiling"
+      "Wide range of tile options (homogeneous, porcelain, ceramic, terrazzo, marble)"
     ],
     "key_benefits": [
       {"title": "Laser Flatness Precision", "desc": "Optical laser level verification ensures flat subfloors and zero lippage between tiles."},
@@ -73,8 +75,17 @@
       {"step": "04", "title": "Grouting & Surface Protection", "desc": "Apply anti-stain mold-resistant grout and protect completed tiles with corrugated board."}
     ],
     "faq": [
-      {"q": "Can you do tiling for just a kitchen or bathroom?", "a": "Yes! We undertake both whole-house tiling contracts and targeted single-room bathroom, kitchen, or balcony retiling projects."},
-      {"q": "What is the benefit of epoxy grout over standard cement grout?", "a": "Epoxy grout is 100% waterproof, highly stain-resistant, and impervious to mould and mildew—making it ideal for wet bathroom floors and kitchen splashbacks."}
+      {"q": "Can you do tiling for just a kitchen or bathroom?", "a": "Yes. We undertake both whole-house tiling and single-room bathroom, kitchen, living room or balcony re-tiling projects."},
+      {"q": "Do you repair hollow, popped or cracked floor tiles?", "a": "Yes. We inspect the affected area, remove the hollow or damaged tiles, prepare the base properly and re-lay the tiles. Where the problem is widespread, we will explain whether a section or the whole floor should be re-tiled."},
+      {"q": "Do I need to hack my old floor tiles before re-tiling?", "a": "It depends on the condition of the existing floor. Loose or hollow tiles should be hacked and the base re-screeded so the new tiles bond firmly. We check the floor on site and recommend the right approach in your quotation."},
+      {"q": "How do you keep large-format tiles flat and level?", "a": "We prepare a flat cement screed base, use proper adhesive coverage and install the tiles with a tile levelling clip system, which keeps the edges of neighbouring tiles at the same height."},
+      {"q": "Do you provide a free site inspection and quotation?", "a": "Yes. We visit your property to check the floor and measure the area, then send a clear itemised quotation. You can also WhatsApp us photos of the area for an initial assessment."},
+      {"q": "What is the benefit of epoxy grout over standard cement grout?", "a": "Epoxy grout is waterproof, highly stain-resistant and resists mould, which makes it a good choice for bathroom floors and kitchen walls."}
+    ],
+    "related_guides": [
+      {"title": "Hollow or Popped Floor Tiles? Causes and How We Repair Them", "url": "/blog/hollow-popped-floor-tiles-repair-singapore"},
+      {"title": "Floor Re-Tiling Step by Step: A Recent Project at Central Imperial, Geylang", "url": "/blog/floor-retiling-process-singapore-geylang-project"},
+      {"title": "Large-Format Floor Tiles: Why Screeding and Levelling Matter", "url": "/blog/large-format-floor-tiles-screed-levelling-guide"}
     ]
   },
   {

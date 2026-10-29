@@ -322,6 +322,42 @@ $relatedPosts = array_slice($relatedPosts, 0, 3);
             margin-bottom: 0;
         }
 
+        .article-content a:not(.btn) {
+            color: var(--color-primary);
+            text-decoration: underline;
+            font-weight: 600;
+        }
+
+        /* Article photos */
+        .article-content img {
+            max-width: 100%;
+            height: auto;
+            border-radius: 10px;
+            display: block;
+        }
+        .article-content .photo-row {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+            gap: 12px;
+            margin: 20px 0 8px;
+        }
+        .article-content .photo-row img {
+            width: 100%;
+            aspect-ratio: 4 / 3;
+            object-fit: cover;
+        }
+        .article-content .photo-caption {
+            font-size: 13px;
+            color: #64748b;
+            margin: 0 0 24px;
+        }
+        .article-content .cta-row {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 12px;
+            margin: 28px 0;
+        }
+
         /* Sidebar Quote Box */
         .sidebar-box {
             background: #f8fafc;

@@ -33,6 +33,22 @@ if (!$service || empty($service['is_published'])) {
     exit;
 }
 
+// Database rows only store core fields; fill page content (scope, benefits, FAQs)
+// from the bundled service definitions so live pages are never left empty.
+// Limited to tiling for now; other services' bundled copy still needs an owner review.
+if ($service['slug'] === 'tiling-works') (function () use (&$service) {
+    $file = __DIR__ . '/config/bootstrap/services.json';
+    $defs = is_file($file) ? (json_decode((string)file_get_contents($file), true) ?: []) : [];
+    foreach ($defs as $def) {
+        if (($def['slug'] ?? '') !== $service['slug']) continue;
+        foreach (['short_title', 'badge', 'icon', 'hero_tagline', 'scope_of_work', 'key_benefits', 'process', 'faq', 'related_guides'] as $key) {
+            if (empty($service[$key]) && !empty($def[$key])) $service[$key] = $def[$key];
+        }
+        break;
+    }
+    if (empty($service['faq']) && !empty($service['faqs'])) $service['faq'] = $service['faqs'];
+})();
+
 $company = get_company_info();
 $baseUrl = get_base_url();
 $canonicalUrl = $baseUrl . '/' . htmlspecialchars($service['slug']);
@@ -122,6 +138,19 @@ $twitterShareUrl = 'https://twitter.com/intent/tweet?text=' . urlencode($service
       "serviceType": <?= json_encode($service['category_name']) ?>
     }
     </script>
+    <?php if (!empty($service['faq'])): ?>
+    <script type="application/ld+json">
+    <?= json_encode([
+        '@context' => 'https://schema.org',
+        '@type' => 'FAQPage',
+        'mainEntity' => array_map(static fn(array $f): array => [
+            '@type' => 'Question',
+            'name' => $f['q'],
+            'acceptedAnswer' => ['@type' => 'Answer', 'text' => $f['a']],
+        ], $service['faq']),
+    ], JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE | JSON_HEX_TAG) ?>
+    </script>
+    <?php endif; ?>
 
     <style>
         .service-single-hero {
@@ -533,6 +562,15 @@ $twitterShareUrl = 'https://twitter.com/intent/tweet?text=' . urlencode($service
                                 <a href="/projects/serangoon-avenue-3-flooring-works" class="btn btn-primary" style="padding: 8px 18px; font-size: 13px;">View Full Project Board & Video ➔</a>
                             </div>
                         </div>
+                    <?php endif; ?>
+
+                    <?php if (!empty($service['related_guides'])): ?>
+                        <h2 style="font-size: 24px; margin: 45px 0 16px;">Tiling Guides From Our Recent Projects</h2>
+                        <ul style="margin: 0 0 30px; padding-left: 20px; line-height: 1.9;">
+                            <?php foreach ($service['related_guides'] as $guide): ?>
+                                <li><a href="<?= htmlspecialchars($guide['url']) ?>" style="color: var(--color-primary); font-weight: 600;"><?= htmlspecialchars($guide['title']) ?></a></li>
+                            <?php endforeach; ?>
+                        </ul>
                     <?php endif; ?>
 
                     <!-- FAQ Section -->
