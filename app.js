@@ -404,6 +404,9 @@ document.addEventListener('DOMContentLoaded', () => {
         openModalBtns.forEach(btn => {
             btn.addEventListener('click', (e) => {
                 e.preventDefault();
+                const serviceSelect = document.getElementById('popup-service');
+                const wanted = btn.dataset.service;
+                if (serviceSelect && wanted && [...serviceSelect.options].some(o => o.value === wanted)) serviceSelect.value = wanted;
                 quoteModal.classList.add('active');
             });
         });

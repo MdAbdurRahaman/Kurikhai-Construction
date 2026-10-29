@@ -40,6 +40,9 @@ $imageUrl = (strpos($service['image'], 'http') === 0) ? $service['image'] : ($ba
 $ogTitle = $service['og_title'] ?? ($service['name'] . ' | ' . $company['brand_name']);
 $ogDesc = $service['og_description'] ?? $service['overview'];
 $whatsappShareText = urlencode($service['name'] . ' – Tabeeb Contractor Singapore' . "\n" . $canonicalUrl);
+// Pre-filled enquiry text for contacting Tabeeb (sharing buttons keep $whatsappShareText).
+$whatsappEnquiryText = urlencode('Hello Tabeeb Contractor, I would like a quotation for ' . ($service['short_title'] ?? $service['name']) . '. My property type and area: ');
+$quoteServiceSlug = (string)$service['slug'];
 $facebookShareUrl = 'https://www.facebook.com/sharer/sharer.php?u=' . urlencode($canonicalUrl);
 $linkedinShareUrl = 'https://www.linkedin.com/sharing/share-offsite/?url=' . urlencode($canonicalUrl);
 $twitterShareUrl = 'https://twitter.com/intent/tweet?text=' . urlencode($service['name']) . '&url=' . urlencode($canonicalUrl);
@@ -416,8 +419,8 @@ $twitterShareUrl = 'https://twitter.com/intent/tweet?text=' . urlencode($service
             <h1><?= htmlspecialchars($service['name']) ?></h1>
             <p class="lead"><?= htmlspecialchars($service['hero_tagline'] ?? $service['overview']) ?></p>
             <div class="service-hero-actions">
-                <a href="/contact?service=<?= urlencode($service['name']) ?>" class="btn btn-primary" style="background: var(--color-gold); border-color: var(--color-gold); color: #fff;">Get Free Onsite Quote</a>
-                <a href="https://wa.me/6586484883?text=<?= $whatsappShareText ?>" target="_blank" rel="noopener noreferrer" class="btn" style="background: #25d366; color: #fff; display: inline-flex; align-items: center; gap: 8px;">
+                <a href="/contact?service=<?= urlencode($quoteServiceSlug) ?>" class="btn btn-primary open-quote-modal-btn" data-service="<?= htmlspecialchars($quoteServiceSlug) ?>" style="background: var(--color-gold); border-color: var(--color-gold); color: #fff;">Get Free Onsite Quote</a>
+                <a href="https://wa.me/6586484883?text=<?= $whatsappEnquiryText ?>" target="_blank" rel="noopener noreferrer" class="btn" style="background: #25d366; color: #fff; display: inline-flex; align-items: center; gap: 8px;">
                     <svg width="18" height="18" fill="currentColor" viewBox="0 0 24 24"><path d="M.057 24l1.687-6.163c-1.041-1.804-1.588-3.849-1.587-5.946.003-6.556 5.338-11.891 11.893-11.891 3.181.001 6.167 1.24 8.413 3.488 2.245 2.248 3.481 5.236 3.48 8.414-.003 6.557-5.338 11.892-11.893 11.892-1.99-.001-3.951-.5-5.688-1.448l-6.305 1.654zm6.597-3.807c1.676.995 3.276 1.591 5.392 1.592 5.448 0 9.886-4.434 9.889-9.885.002-5.462-4.415-9.89-9.881-9.892-5.452 0-9.887 4.434-9.889 9.884-.001 2.225.651 3.891 1.746 5.634l-.999 3.648 3.742-.981z"/></svg>
                     WhatsApp Specialist
                 </a>
@@ -575,9 +578,13 @@ $twitterShareUrl = 'https://twitter.com/intent/tweet?text=' . urlencode($service
                             <div style="font-size: 15px; font-weight: 600; color: #38bdf8; margin-top: 4px;"><?= htmlspecialchars($service['name']) ?></div>
                         </div>
 
-                        <a href="https://wa.me/6586484883?text=<?= $whatsappShareText ?>" target="_blank" rel="noopener noreferrer" class="btn" style="background: #25d366; color: #fff; width: 100%; display: flex; align-items: center; justify-content: center; gap: 10px; margin-bottom: 12px; padding: 14px 20px; font-weight: 600; border-radius: 10px;">
+                        <a href="https://wa.me/6586484883?text=<?= $whatsappEnquiryText ?>" target="_blank" rel="noopener noreferrer" class="btn" style="background: #25d366; color: #fff; width: 100%; display: flex; align-items: center; justify-content: center; gap: 10px; margin-bottom: 12px; padding: 14px 20px; font-weight: 600; border-radius: 10px;">
                             <svg width="20" height="20" fill="currentColor" viewBox="0 0 24 24"><path d="M.057 24l1.687-6.163c-1.041-1.804-1.588-3.849-1.587-5.946.003-6.556 5.338-11.891 11.893-11.891 3.181.001 6.167 1.24 8.413 3.488 2.245 2.248 3.481 5.236 3.48 8.414-.003 6.557-5.338 11.892-11.893 11.892-1.99-.001-3.951-.5-5.688-1.448l-6.305 1.654zm6.597-3.807c1.676.995 3.276 1.591 5.392 1.592 5.448 0 9.886-4.434 9.889-9.885.002-5.462-4.415-9.89-9.881-9.892-5.452 0-9.887 4.434-9.889 9.884-.001 2.225.651 3.891 1.746 5.634l-.999 3.648 3.742-.981z"/></svg>
                             Instant WhatsApp Quote
+                        </a>
+
+                        <a href="/contact?service=<?= urlencode($quoteServiceSlug) ?>" class="btn open-quote-modal-btn" data-service="<?= htmlspecialchars($quoteServiceSlug) ?>" style="background: var(--color-gold); color: #fff; width: 100%; display: flex; align-items: center; justify-content: center; padding: 12px 20px; font-weight: 600; border-radius: 10px; margin-bottom: 12px;">
+                            📝 Request Free Onsite Quote
                         </a>
 
                         <a href="tel:+6586484883" class="btn" style="background: rgba(255,255,255,0.12); color: #fff; width: 100%; display: flex; align-items: center; justify-content: center; gap: 8px; border: 1px solid rgba(255,255,255,0.2); padding: 12px 20px; font-weight: 500; border-radius: 10px; margin-bottom: 20px;">
@@ -620,7 +627,8 @@ $twitterShareUrl = 'https://twitter.com/intent/tweet?text=' . urlencode($service
         <div class="container">
             <h2>Ready to Schedule Your Site Inspection?</h2>
             <p>Our licensed technicians and project coordinators are ready to evaluate your floor plan and provide transparent direct contractor quotations.</p>
-            <a href="https://wa.me/6586484883?text=<?= $whatsappShareText ?>" target="_blank" rel="noopener noreferrer" class="btn btn-primary" style="background: var(--color-gold); border-color: var(--color-gold); margin-top: 15px;">Chat on WhatsApp with Engineer</a>
+            <a href="https://wa.me/6586484883?text=<?= $whatsappEnquiryText ?>" target="_blank" rel="noopener noreferrer" class="btn btn-primary" style="background: var(--color-gold); border-color: var(--color-gold); margin-top: 15px;">Chat on WhatsApp with Engineer</a>
+            <a href="/contact?service=<?= urlencode($quoteServiceSlug) ?>" class="btn open-quote-modal-btn" data-service="<?= htmlspecialchars($quoteServiceSlug) ?>" style="background: #fff; color: var(--color-primary-dark); margin-top: 15px; margin-left: 8px;">Request Free Onsite Quote</a>
         </div>
     </section>
 
