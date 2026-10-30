@@ -559,7 +559,11 @@ $twitterShareUrl = 'https://twitter.com/intent/tweet?text=' . urlencode($service
                                 <p style="font-size: 0.95rem; color: #64748b; margin-bottom: 12px; line-height: 1.5;">
                                     Client-supplied photographs show the existing floor condition, work in progress and the completed tiled finish at Serangoon Avenue 3.
                                 </p>
-                                <a href="/projects/serangoon-avenue-3-flooring-works" class="btn btn-primary" style="padding: 8px 18px; font-size: 13px;">View Full Project Board & Video ➔</a>
+                                <?php if (get_project_by_slug('serangoon-avenue-3-flooring-works', true)): ?>
+                                    <a href="/projects/serangoon-avenue-3-flooring-works" class="btn btn-primary" style="padding: 8px 18px; font-size: 13px;">View Full Project Board & Video ➔</a>
+                                <?php else: ?>
+                                    <a href="/blog/hollow-popped-floor-tiles-repair-singapore" class="btn btn-primary" style="padding: 8px 18px; font-size: 13px;">Read How We Repaired This Floor ➔</a>
+                                <?php endif; ?>
                             </div>
                         </div>
                     <?php endif; ?>

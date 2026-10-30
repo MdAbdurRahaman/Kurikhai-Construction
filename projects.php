@@ -167,8 +167,30 @@ $pageDesc = 'Explore authentic residential and commercial renovation case studie
 
     <main class="container" style="max-width: 1140px; margin: 0 auto; padding: 0 20px;">
         <?php if (empty($projects)): ?>
-            <div style="padding: 60px 20px; text-align: center; color: #64748b;">
-                <p>New project case studies are currently being documented. Please check back soon.</p>
+            <?php $projectGuides = [
+                ['title' => 'Floor Re-Tiling at Central Imperial, Geylang', 'desc' => 'Hacking, cement screeding and new floor tiles laid with a levelling system — step by step.', 'url' => '/blog/floor-retiling-process-singapore-geylang-project', 'img' => '/images/articles/geylang-completed-floor-tiles.webp'],
+                ['title' => 'Damaged Floor Tiles Repaired at Serangoon Avenue 3', 'desc' => 'Cracked and broken living room tiles removed, a new screed base laid and the floor re-tiled.', 'url' => '/blog/hollow-popped-floor-tiles-repair-singapore', 'img' => '/images/articles/serangoon-new-floor-tiles-completed.webp'],
+                ['title' => 'Large-Format Floor Tiles for a Residential Project', 'desc' => 'Old stone-chip floor hacked out, screeded and finished with large-format tiles.', 'url' => '/blog/large-format-floor-tiles-screed-levelling-guide', 'img' => '/images/service-flooring.jpg'],
+            ]; ?>
+            <div style="padding: 40px 0 10px; text-align: center;">
+                <h2 style="font-size: 26px; color: var(--color-primary); margin-bottom: 8px;">Recent Tiling Projects</h2>
+                <p style="color: #64748b; margin: 0;">Photos from our recent floor tiling work, from the existing floor to the completed finish.</p>
+            </div>
+            <div class="portfolio-grid" style="margin-bottom: 50px;">
+                <?php foreach ($projectGuides as $g): ?>
+                    <article class="project-card">
+                        <img src="<?= htmlspecialchars($g['img']) ?>" alt="<?= htmlspecialchars($g['title']) ?>" class="project-card-thumb" loading="lazy" width="490" height="325" style="object-fit: cover;">
+                        <div class="project-card-body">
+                            <span class="project-card-badge">Tiling Works</span>
+                            <h2 class="project-card-title"><?= htmlspecialchars($g['title']) ?></h2>
+                            <p style="color: #64748b; font-size: 14px; line-height: 1.6;"><?= htmlspecialchars($g['desc']) ?></p>
+                            <a href="<?= htmlspecialchars($g['url']) ?>" class="btn btn-primary" style="padding: 8px 18px; font-size: 13px; margin-top: 8px; display: inline-block;">View Project ➔</a>
+                        </div>
+                    </article>
+                <?php endforeach; ?>
+            </div>
+            <div style="text-align: center; margin-bottom: 60px;">
+                <a href="/contact?service=tiling-works" class="btn btn-primary open-quote-modal-btn" data-service="tiling-works">Request a Free Onsite Quote</a>
             </div>
         <?php else: ?>
             <div class="portfolio-grid">
